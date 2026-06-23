@@ -21,7 +21,16 @@ export const HEADER_NAV = [
   { label: "Politics", href: "/category/politique" },
   { label: "Culture", href: "/category/culture" },
   { label: "Technology", href: "/category/technologie" },
+  { label: "About us", href: "/about" },
 ];
+
+/** About & mission — footer, mobile menu, sitemap */
+export const ABOUT_NAV = [
+  { label: "About us", href: "/about" },
+  { label: "Our mission", href: "/about#mission" },
+  { label: "Our team", href: "/team" },
+  { label: "Editorial charter", href: "/editorial-charter" },
+] as const;
 
 export const NAV_RUBRIQUES = [
   { label: "Africa", href: "/category/africa" },
@@ -219,7 +228,8 @@ export const FOOTER_COLS = {
     { label: "World", href: "/category/monde" },
   ],
   presse: [
-    { label: "About", href: "/about" },
+    { label: "About us", href: "/about" },
+    { label: "Our mission", href: "/about#mission" },
     { label: "Our team", href: "/team" },
     { label: "Press room", href: "/press" },
     { label: "Advertising", href: "/advertising" },

@@ -96,11 +96,14 @@ export async function fetchRssItems(options?: {
 
 export function buildRssXml(
   items: RssItem[],
-  options?: { channelTitle?: string; channelDescription?: string }
+  options?: { channelTitle?: string; channelDescription?: string; logoUrl?: string }
 ): string {
   const baseUrl = getSiteUrl();
   const feedUrl = getFeedUrl();
-  const logoUrl = toAbsoluteUrl(baseUrl, "/images/logo-global-south-watch.png");
+  const logoUrl = toAbsoluteUrl(
+    baseUrl,
+    options?.logoUrl ?? "/images/logo-global-south-watch.png"
+  );
   const lastBuildDate = items[0]?.publishedAt
     ? new Date(items[0].publishedAt).toUTCString()
     : new Date().toUTCString();

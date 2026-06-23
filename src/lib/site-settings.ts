@@ -12,6 +12,7 @@ import {
   type HomeSectionId,
   type TrustPartnerItem,
 } from "@/lib/homepage-sections";
+import { resolveFavicon, resolveSiteLogo } from "@/lib/branding";
 
 export interface PulseStat {
   value: string;
@@ -30,6 +31,8 @@ export interface PublicSiteSettings {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  siteLogo: string;
+  favicon: string;
   breakingAlertEnabled: boolean;
   commentsEnabled: boolean;
   newsletterEnabled: boolean;
@@ -71,6 +74,8 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     siteName: doc.siteName,
     tagline: doc.tagline,
     contactEmail: doc.contactEmail,
+    siteLogo: resolveSiteLogo(doc.siteLogo),
+    favicon: resolveFavicon(doc.favicon),
     breakingAlertEnabled: doc.breakingAlertEnabled,
     commentsEnabled: doc.commentsEnabled,
     newsletterEnabled: doc.newsletterEnabled,
@@ -110,6 +115,8 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       siteName: "Global South Watch",
       tagline: "The voice of the Global South — independent & committed journalism",
       contactEmail: "contact@globalsouthwatch.com",
+      siteLogo: resolveSiteLogo(undefined),
+      favicon: resolveFavicon(undefined),
       breakingAlertEnabled: false,
       commentsEnabled: true,
       newsletterEnabled: true,
@@ -176,6 +183,8 @@ function applySettingsPatch(
     "siteName",
     "tagline",
     "contactEmail",
+    "siteLogo",
+    "favicon",
     "breakingAlertEnabled",
     "commentsEnabled",
     "newsletterEnabled",

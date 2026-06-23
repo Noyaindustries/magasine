@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Newsreader } from "next/font/google";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getLayoutNavData } from "@/lib/data";
+import { getPublicSiteSettings } from "@/lib/site-settings";
 import { Providers } from "@/components/Providers";
 import { MaintenanceGate } from "@/components/MaintenanceGate";
 import "./globals.css";
@@ -24,27 +25,31 @@ const newsreader = Newsreader({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Global South Watch — Online Magazine & News Portal",
-    template: "%s | Global South Watch",
-  },
-  description:
-    "Global South Watch — the leading news portal for Africa and the Global South. Independent, rigorous, and committed journalism.",
-  keywords: ["Global South", "Africa", "news", "magazine", "journalism", "current affairs"],
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    siteName: "Global South Watch",
-    images: ["/images/logo-global-south-watch.png"],
-  },
-  icons: {
-    icon: "/images/logo-global-south-watch.png",
-  },
-  other: {
-    google: "notranslate",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicSiteSettings();
+
+  return {
+    title: {
+      default: `${settings.siteName} — Online Magazine & News Portal`,
+      template: `%s | ${settings.siteName}`,
+    },
+    description:
+      "Global South Watch — the leading news portal for Africa and the Global South. Independent, rigorous, and committed journalism.",
+    keywords: ["Global South", "Africa", "news", "magazine", "journalism", "current affairs"],
+    openGraph: {
+      type: "website",
+      locale: "en_US",
+      siteName: settings.siteName,
+      images: [settings.siteLogo],
+    },
+    icons: {
+      icon: settings.favicon,
+    },
+    other: {
+      google: "notranslate",
+    },
+  };
+}
 
 export const viewport = {
   width: "device-width",
@@ -70,7 +75,14 @@ export default async function RootLayout({
       className={`${dmSans.variable} ${newsreader.variable} notranslate`}
     >
       <body className="notranslate" suppressHydrationWarning translate="no">
-        <Providers>
+        <Providers
+          branding={{
+            siteName: siteSettings.siteName,
+            tagline: siteSettings.tagline,
+            siteLogo: siteSettings.siteLogo,
+            favicon: siteSettings.favicon,
+          }}
+        >
           <MaintenanceGate
             maintenanceMode={siteSettings.maintenanceMode}
             siteName={siteSettings.siteName}

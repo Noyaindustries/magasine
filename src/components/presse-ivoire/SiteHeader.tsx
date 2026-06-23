@@ -162,7 +162,7 @@ export function SiteHeader() {
           </button>
           <Link href="/donate" className="btn-donate" aria-label="Donate">
             <span className="btn-donate-full">Donate</span>
-            <span className="btn-donate-short">♥</span>
+            <span className="btn-donate-short">Donate</span>
           </Link>
           <Link href="/newsletter" className="btn-subscribe" aria-label="Newsletter">
             <span className="btn-subscribe-label">Newsletter</span>

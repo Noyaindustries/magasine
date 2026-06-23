@@ -20,6 +20,8 @@ const updateSchema = z.object({
   siteName: z.string().min(1).optional(),
   tagline: z.string().optional(),
   contactEmail: z.string().email().optional(),
+  siteLogo: z.string().min(1).optional(),
+  favicon: z.string().min(1).optional(),
   breakingAlertEnabled: z.boolean().optional(),
   commentsEnabled: z.boolean().optional(),
   newsletterEnabled: z.boolean().optional(),

@@ -753,12 +753,76 @@
   font-family: var(--font-serif, Georgia, serif);
 }
 
+.adm-branding-panel {
+  margin-top: 20px;
+}
+
+.adm-branding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.adm-branding-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(26, 56, 150, 0.1);
+  border-radius: 14px;
+  background: rgba(26, 56, 150, 0.02);
+}
+
+.adm-branding-field-head label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.adm-branding-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px dashed rgba(26, 56, 150, 0.18);
+  border-radius: 10px;
+}
+
+.adm-branding-preview-img {
+  max-height: 64px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.adm-branding-path code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.adm-branding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.adm-branding-file {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .adm-settings-grid {
     grid-template-columns: 1fr;
   }
 
   .adm-toggle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-branding-grid {
     grid-template-columns: 1fr;
   }
 

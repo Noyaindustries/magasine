@@ -27,7 +27,7 @@ export const IMG = {
   sahel: "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1200&h=800&fit=crop",
 } as const;
 
-export const SITE_LOGO = "/images/logo-global-south-watch.png";
+export { DEFAULT_SITE_LOGO as SITE_LOGO } from "@/lib/branding";
 
 /** Photos Unsplash retirées — remplacement par ID (indépendant des query params). */
 const REMOVED_UNSPLASH_PHOTO_IDS: Record<string, string> = {

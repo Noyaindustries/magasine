@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { SITE_LOGO } from "@/lib/images";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 interface BrandLogoProps {
   variant?: "header" | "footer" | "auth";
@@ -16,16 +18,18 @@ export function BrandLogo({
   showTagline,
   linked = true,
 }: BrandLogoProps) {
+  const { siteLogo, siteName } = useSiteBranding();
   const height = variant === "header" ? 52 : 44;
   const width = variant === "header" ? 220 : 190;
   const displayTagline = showTagline ?? variant === "header";
+
   const logoClassName = className ?? (variant === "auth" ? "logo logo-auth" : "logo");
 
   const content = (
     <>
       <Image
-        src={SITE_LOGO}
-        alt="Global South Watch"
+        src={siteLogo}
+        alt={siteName}
         width={width}
         height={height}
         priority={variant === "header"}
@@ -45,7 +49,7 @@ export function BrandLogo({
     <Link
       href="/"
       className={logoClassName}
-      aria-label="Global South Watch — Home"
+      aria-label={`${siteName} — Home`}
     >
       {content}
     </Link>

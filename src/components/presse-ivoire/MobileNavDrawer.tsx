@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { HEADER_NAV, NAV_RUBRIQUES, REGION_NAV } from "@/data/presse-ivoire-home";
+import { HEADER_NAV, NAV_RUBRIQUES, REGION_NAV, ABOUT_NAV } from "@/data/presse-ivoire-home";
 
 interface MobileNavDrawerProps {
   open: boolean;
@@ -210,6 +210,23 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
               </div>
             </div>
           </div>
+        </nav>
+
+        <nav className="mobile-nav-about" aria-label="About Global South Watch">
+          <p className="mobile-nav-about-label">About us</p>
+          <ul className="mobile-nav-about-list">
+            {ABOUT_NAV.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className={`mobile-nav-about-link${isActive(item.href.split("#")[0] ?? item.href) ? " is-active" : ""}`}
+                  onClick={onClose}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
 
         <div className="mobile-nav-footer">

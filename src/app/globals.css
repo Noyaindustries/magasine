@@ -777,6 +777,40 @@ img { display: block; max-width: 100%; }
   background: var(--region-accent, var(--brand-blue));
   flex-shrink: 0;
 }
+.mobile-nav-about {
+  padding: 12px 20px 4px;
+  border-top: 1px solid var(--rule);
+  flex-shrink: 0;
+}
+.mobile-nav-about-label {
+  margin: 0 0 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mid-gray);
+}
+.mobile-nav-about-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.mobile-nav-about-link {
+  display: block;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.mobile-nav-about-link.is-active {
+  color: var(--brand-blue, #1a3896);
+}
+.mobile-nav-about-link:hover {
+  color: var(--brand-blue, #1a3896);
+}
 .mobile-nav-footer {
   display: grid;
   grid-template-columns: 1fr 1fr;

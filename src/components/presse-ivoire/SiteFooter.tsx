@@ -1,8 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { FOOTER_COLS } from "@/data/presse-ivoire-home";
 import { SocialLinks } from "@/components/ui/SocialIcons";
-import { SITE_LOGO } from "@/lib/images";
+import { FooterBrandLogo } from "@/components/presse-ivoire/FooterBrandLogo";
 
 export function SiteFooter() {
   return (
@@ -10,15 +9,7 @@ export function SiteFooter() {
       <div className="container">
         <div className="footer-top">
           <div className="footer-brand">
-            <Link href="/" className="footer-logo-link">
-              <Image
-                src={SITE_LOGO}
-                alt="Global South Watch"
-                width={190}
-                height={44}
-                style={{ height: 44, width: "auto" }}
-              />
-            </Link>
+            <FooterBrandLogo />
             <p className="footer-brand-desc">
               Global South Watch — the leading news portal for Africa and the Global South. Independent, rigorous, and committed journalism.
             </p>
