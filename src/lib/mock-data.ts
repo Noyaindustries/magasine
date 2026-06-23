@@ -6,6 +6,7 @@ import {
   SEED_AUTHORS,
   SEED_CATEGORIES,
 } from "@/lib/seed-data";
+import { filterRetiredCategories, filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 import { resolveArticleContent } from "@/lib/article-content";
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 
@@ -82,10 +83,12 @@ export const mockAlerts = SEED_ALERTS.map((a, i) => ({
   link: a.link,
 }));
 
-export const mockCategories = categories.map((c) => ({
-  name: c.name,
-  slug: c.slug,
-}));
+export const mockCategories = filterRetiredCategories(
+  categories.map((c) => ({
+    name: c.name,
+    slug: c.slug,
+  }))
+);
 
 export function getMockArticles(): ArticleListItem[] {
   return articles;
@@ -162,7 +165,7 @@ export function getMockSearchSuggestions(query: string) {
 
 export function getMockHomePageData() {
   const by = (fn: (a: ArticleDetail) => boolean) =>
-    articles.filter(fn).slice(0, 6);
+    filterArticlesByRetiredCategories(articles.filter(fn)).slice(0, 6);
 
   const tagCounts = new Map<string, number>();
   for (const a of articles) {
@@ -171,45 +174,46 @@ export function getMockHomePageData() {
     }
   }
 
+  const published = filterArticlesByRetiredCategories(articles);
+
   return {
     breakingAlertsEnabled: true,
     alerts: mockAlerts,
-    categories: categories.map((c) => ({
-      _id: c._id,
-      name: c.name,
-      slug: c.slug,
-      color: c.color,
-    })),
+    categories: filterRetiredCategories(
+      categories.map((c) => ({
+        _id: c._id,
+        name: c.name,
+        slug: c.slug,
+        color: c.color,
+      }))
+    ),
     heroArticles: by((a) => !!a.isFeatured),
     topStories: by((a) => !!a.isTopStory),
     editorsChoice: by((a) => !!a.isEditorsChoice).slice(0, 3),
-    latestUpdates: articles.slice(0, 5),
-    featuredVideos: articles.filter((a) => a.contentType === "video").slice(0, 4),
-    nationalNews: articles.filter((a) => a.category.slug === "actualites").slice(0, 6),
-    worldNews: articles.filter((a) => a.category.slug === "monde").slice(0, 4),
-    multimedia: articles.filter((a) => a.category.slug === "multimedia").slice(0, 4),
-    opinion: articles.filter((a) => a.category.slug === "opinion").slice(0, 3),
-    investigations: articles.filter((a) => a.category.slug === "investigations").slice(0, 3),
-    specialReports: articles
+    latestUpdates: published.slice(0, 6),
+    featuredVideos: published.filter((a) => a.contentType === "video").slice(0, 4),
+    nationalNews: published.filter((a) => a.category.slug === "actualites").slice(0, 6),
+    worldNews: published.filter((a) => a.category.slug === "monde").slice(0, 4),
+    multimedia: published.filter((a) => a.category.slug === "multimedia").slice(0, 4),
+    opinion: published.filter((a) => a.category.slug === "opinion").slice(0, 3),
+    investigations: published.filter((a) => a.category.slug === "investigations").slice(0, 3),
+    specialReports: published
       .filter((a) => a.category.slug === "reportages-speciaux")
       .slice(0, 3),
     popularTags: [...tagCounts.entries()]
       .sort((a, b) => b[1] - a[1])
       .slice(0, 12)
       .map(([name, count]) => ({ name, count })),
-    techNews: articles.filter((a) => a.category.slug === "technologie").slice(0, 4),
-    sportsNews: articles.filter((a) => a.category.slug === "sports").slice(0, 4),
-    financeNews: articles.filter((a) => a.category.slug === "finance").slice(0, 4),
-    santeNews: articles.filter((a) => a.category.slug === "sante").slice(0, 4),
-    divertissementNews: articles.filter((a) => a.category.slug === "divertissement").slice(0, 4),
-    localNews: articles.filter((a) => a.category.slug === "local").slice(0, 4),
-    politiqueNews: articles.filter((a) => a.category.slug === "politique").slice(0, 4),
-    cultureNews: articles.filter((a) => a.category.slug === "culture").slice(0, 4),
-    urgentArticles: articles.filter((a) => a.isUrgent || a.isTopStory).slice(0, 8),
-    africaNews: articles.filter((a) => a.category.slug === "africa").slice(0, 4),
-    latinAmericaNews: articles.filter((a) => a.category.slug === "latin-america").slice(0, 4),
-    southAsiaNews: articles.filter((a) => a.category.slug === "south-asia").slice(0, 4),
-    westAsiaNews: articles.filter((a) => a.category.slug === "west-asia").slice(0, 4),
+    techNews: published.filter((a) => a.category.slug === "technologie").slice(0, 4),
+    santeNews: published.filter((a) => a.category.slug === "sante").slice(0, 4),
+    localNews: published.filter((a) => a.category.slug === "local").slice(0, 4),
+    politiqueNews: published.filter((a) => a.category.slug === "politique").slice(0, 4),
+    cultureNews: published.filter((a) => a.category.slug === "culture").slice(0, 4),
+    urgentArticles: published.filter((a) => a.isUrgent || a.isTopStory).slice(0, 8),
+    africaNews: published.filter((a) => a.category.slug === "africa").slice(0, 4),
+    latinAmericaNews: published.filter((a) => a.category.slug === "latin-america").slice(0, 4),
+    southAsiaNews: published.filter((a) => a.category.slug === "south-asia").slice(0, 4),
+    westAsiaNews: published.filter((a) => a.category.slug === "west-asia").slice(0, 4),
   };
 }
 

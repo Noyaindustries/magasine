@@ -1,18 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Eye, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import type { CSSProperties } from "react";
 import type { ArticleDetail, ArticleListItem } from "@/types";
 import type { Session } from "next-auth";
-import { formatDate, formatRelativeDate } from "@/lib/utils";
-import { articleBadge } from "@/lib/format-article";
+import { formatRelativeDate } from "@/lib/utils";
+import {
+  articleBadge,
+  authorInitials,
+  formatPublishedDate,
+  formatViews,
+} from "@/lib/format-article";
 import { resolveFeaturedImage } from "@/lib/images";
-import { ShareButtons } from "@/components/article/ShareButtons";
-import { SaveArticleButton } from "@/components/article/SaveArticleButton";
 import { CommentsSection } from "@/components/article/CommentsSection";
 import { NewsletterPrompt } from "@/components/article/NewsletterPrompt";
 import { ArticleBody } from "@/components/article/ArticleBody";
 import { PageBackdrop } from "@/components/presse-ivoire/PageBackdrop";
 import { ArticleCard } from "@/components/article/ArticleCard";
+import { ArticleStickyRail, ArticleMobileToolbar } from "@/components/article/ArticleStickyRail";
 
 interface ArticleDetailViewProps {
   article: ArticleDetail;
@@ -29,174 +34,256 @@ export function ArticleDetailView({
   article,
   related,
   navigation,
-  session,
+  session: _session,
   siteUrl,
 }: ArticleDetailViewProps) {
   const author = article.authors[0];
   const badge = articleBadge(article);
   const heroImage = resolveFeaturedImage(article.featuredImage);
+  const accentColor = article.category.color ?? "#1a3896";
+  const articleUrl = `${siteUrl}/article/${article.slug}`;
+
+  const style = {
+    "--art-accent": accentColor,
+    "--art-accent-soft": `${accentColor}14`,
+  } as CSSProperties;
 
   return (
-    <article className="article-page article-page--revolution">
+    <article className="article-page article-page--premium" style={style}>
       <PageBackdrop />
-      <div className="container article-page-inner">
-        <nav className="article-breadcrumb article-reveal" aria-label="Breadcrumb">
-          <Link href="/">Home</Link>
-          <span aria-hidden>/</span>
-          <Link href={`/category/${article.category.slug}`}>{article.category.name}</Link>
-          <span aria-hidden>/</span>
-          <span className="article-breadcrumb-current">{article.title}</span>
-        </nav>
 
-        <header className="article-header article-reveal article-reveal--delay-1">
-          <div className="article-badges">
-            <span className="tag">{article.category.name}</span>
-            {article.isUrgent && <span className="tag article-tag-urgent">🔥 Urgent</span>}
-            {article.isPremium && <span className="premium-badge">Premium</span>}
-            {article.contentType === "video" && <span className="tag gold">Video</span>}
-            {article.contentType === "podcast" && <span className="tag gold">Podcast</span>}
-            {badge !== "News" && badge !== article.category.name && !article.isUrgent && (
-              <span className="tag outline">{badge}</span>
-            )}
-          </div>
+      <div className="art-hero-band">
+        <div className="container art-hero-inner">
+          <nav className="art-breadcrumb art-reveal" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <span className="art-breadcrumb-sep" aria-hidden>
+              /
+            </span>
+            <Link href={`/category/${article.category.slug}`}>{article.category.name}</Link>
+            <span className="art-breadcrumb-sep" aria-hidden>
+              /
+            </span>
+            <span className="art-breadcrumb-current">{article.title}</span>
+          </nav>
 
-          <h1 className="article-title">{article.title}</h1>
-
-          {article.subtitle && <p className="article-subtitle">{article.subtitle}</p>}
-
-          <div className="article-meta">
-            {author && (
-              <Link href={`/author/${author.slug}`} className="article-author">
-                {author.avatar && (
-                  <Image
-                    src={author.avatar}
-                    alt={author.name}
-                    width={40}
-                    height={40}
-                    className="article-author-avatar"
-                  />
-                )}
-                <span>
-                  <strong>{author.name}</strong>
-                  {author.bio && <small>{author.bio.split("—")[0]?.trim()}</small>}
-                </span>
+          <header className="art-reveal art-reveal--d1">
+            <div className="art-kicker-row">
+              <Link href={`/category/${article.category.slug}`} className="art-category-pill">
+                <span className="art-category-pill-dot" aria-hidden />
+                {article.category.name}
               </Link>
-            )}
-            <div className="article-meta-stats">
-              {article.publishedAt && (
-                <time dateTime={article.publishedAt} title={formatDate(article.publishedAt)}>
-                  {formatRelativeDate(article.publishedAt)}
-                </time>
+              {article.isUrgent && <span className="art-badge art-badge--urgent">Urgent</span>}
+              {article.isPremium && <span className="art-badge art-badge--premium">Premium</span>}
+              {article.contentType === "video" && (
+                <span className="art-badge art-badge--gold">Video</span>
               )}
-              <span className="article-meta-dot" aria-hidden>·</span>
-              <span className="article-meta-reading">
-                <Clock className="w-3.5 h-3.5" aria-hidden />
-                {article.readingTime} min
-              </span>
-              {typeof article.views === "number" && article.views > 0 && (
-                <>
-                  <span className="article-meta-dot" aria-hidden>·</span>
-                  <span className="article-meta-views">
-                    <Eye className="w-3.5 h-3.5" aria-hidden />
-                    {article.views.toLocaleString("en-US")} views
+              {article.contentType === "podcast" && (
+                <span className="art-badge art-badge--gold">Podcast</span>
+              )}
+              {badge !== "News" && badge !== article.category.name && !article.isUrgent && (
+                <span className="art-badge">{badge}</span>
+              )}
+            </div>
+
+            <h1 className="art-title">{article.title}</h1>
+
+            {article.subtitle && <p className="art-subtitle">{article.subtitle}</p>}
+
+            <div className="art-byline">
+              {author ? (
+                <Link href={`/author/${author.slug}`} className="art-author-card">
+                  {author.avatar ? (
+                    <Image
+                      src={author.avatar}
+                      alt={author.name}
+                      width={52}
+                      height={52}
+                      className="art-author-avatar"
+                    />
+                  ) : (
+                    <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
+                      {authorInitials(author.name)}
+                    </span>
+                  )}
+                  <span>
+                    <span className="art-author-name">{author.name}</span>
+                    {author.bio && (
+                      <span className="art-author-role">{author.bio.split("—")[0]?.trim()}</span>
+                    )}
                   </span>
-                </>
+                </Link>
+              ) : (
+                <span />
               )}
-            </div>
-          </div>
-        </header>
 
-        <figure className="article-hero article-reveal article-reveal--delay-2">
-          <div className="article-hero-img">
-            <Image
-              src={heroImage}
-              alt={article.featuredImageAlt ?? article.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 960px"
+              <div className="art-meta-strip">
+                {article.publishedAt && (
+                  <time
+                    className="art-meta-item"
+                    dateTime={article.publishedAt}
+                    title={formatPublishedDate(article.publishedAt)}
+                  >
+                    {formatRelativeDate(article.publishedAt)}
+                  </time>
+                )}
+                <span className="art-meta-divider" aria-hidden />
+                <span className="art-meta-item">
+                  <Clock className="w-3.5 h-3.5" aria-hidden />
+                  {article.readingTime} min read
+                </span>
+                {typeof article.views === "number" && article.views > 0 && (
+                  <>
+                    <span className="art-meta-divider" aria-hidden />
+                    <span className="art-meta-item">
+                      <Eye className="w-3.5 h-3.5" aria-hidden />
+                      {formatViews(article.views)}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </header>
+        </div>
+      </div>
+
+      <figure className="art-hero-media art-reveal art-reveal--d2">
+        <div className="art-hero-frame">
+          <Image
+            src={heroImage}
+            alt={article.featuredImageAlt ?? article.title}
+            fill
+            priority
+            className="object-cover"
+            sizes="(max-width: 1024px) 100vw, 1120px"
+          />
+        </div>
+        {article.featuredImageCaption && (
+          <figcaption className="art-hero-caption">{article.featuredImageCaption}</figcaption>
+        )}
+      </figure>
+
+      <div className="container art-body-shell">
+        <div className="art-layout art-reveal art-reveal--d3">
+          <ArticleStickyRail
+            url={articleUrl}
+            title={article.title}
+            articleId={article._id}
+            readingTime={article.readingTime}
+          />
+
+          <div className="art-main">
+            <ArticleMobileToolbar
+              url={articleUrl}
+              title={article.title}
+              articleId={article._id}
             />
-          </div>
-          {article.featuredImageCaption && (
-            <figcaption className="article-hero-caption">{article.featuredImageCaption}</figcaption>
-          )}
-        </figure>
 
-        <div className="article-layout article-reveal article-reveal--delay-3">
-          <div className="article-main">
-            <div className="article-toolbar">
-              <ShareButtons url={`${siteUrl}/article/${article.slug}`} title={article.title} />
-              <SaveArticleButton articleId={article._id} />
+            <div className="art-deck">
+              <span className="art-deck-label">The story</span>
+              <p>{article.excerpt}</p>
             </div>
-
-            <p className="article-chapo">{article.excerpt}</p>
 
             <ArticleBody article={article} />
 
             {(article.isPremium || article.isEditorsChoice) && <NewsletterPrompt />}
 
             {author?.bio && (
-              <aside className="article-author-box">
-                <h3>About the author</h3>
+              <aside className="art-author-box">
+                <div className="art-author-box-header">
+                  {author.avatar ? (
+                    <Image
+                      src={author.avatar}
+                      alt=""
+                      width={56}
+                      height={56}
+                      className="art-author-avatar"
+                      aria-hidden
+                    />
+                  ) : (
+                    <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
+                      {authorInitials(author.name)}
+                    </span>
+                  )}
+                  <div>
+                    <span className="art-author-box-kicker">About the author</span>
+                    <h3>{author.name}</h3>
+                  </div>
+                </div>
                 <p>{author.bio}</p>
-                <Link href={`/author/${author.slug}`} className="read-more">
-                  View all their articles
+                <Link href={`/author/${author.slug}`} className="art-author-box-link">
+                  View all articles
+                  <ArrowRight className="w-4 h-4" aria-hidden />
                 </Link>
               </aside>
             )}
 
             {article.tags && article.tags.length > 0 && (
-              <div className="article-tags">
+              <div className="art-tags">
                 {article.tags.map((tag) => (
-                  <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`} className="article-tag">
+                  <Link
+                    key={tag}
+                    href={`/search?q=${encodeURIComponent(tag)}`}
+                    className="art-tag"
+                  >
                     #{tag}
                   </Link>
                 ))}
               </div>
             )}
 
-            <CommentsSection articleId={article._id} />
+            <CommentsSection articleId={article._id} variant="premium" />
           </div>
         </div>
+      </div>
 
-        {(navigation.prev || navigation.next) && (
-          <nav className="article-nav article-reveal article-reveal--delay-4" aria-label="Article navigation">
+      {(navigation.prev || navigation.next) && (
+        <nav className="art-article-nav container art-reveal art-reveal--d4" aria-label="Article navigation">
+          <div className="art-article-nav-grid">
             {navigation.prev ? (
-              <Link href={`/article/${navigation.prev.slug}`} className="article-nav-link article-nav-link--prev">
-                <span className="article-nav-label">
+              <Link href={`/article/${navigation.prev.slug}`} className="art-nav-card">
+                <span className="art-nav-card-label">
                   <ChevronLeft className="w-4 h-4" aria-hidden />
                   Previous
                 </span>
-                <span className="article-nav-title">{navigation.prev.title}</span>
+                <span className="art-nav-card-title">{navigation.prev.title}</span>
               </Link>
             ) : (
               <div />
             )}
             {navigation.next ? (
-              <Link href={`/article/${navigation.next.slug}`} className="article-nav-link article-nav-link--next">
-                <span className="article-nav-label">
+              <Link
+                href={`/article/${navigation.next.slug}`}
+                className="art-nav-card art-nav-card--next"
+              >
+                <span className="art-nav-card-label">
                   Next
                   <ChevronRight className="w-4 h-4" aria-hidden />
                 </span>
-                <span className="article-nav-title">{navigation.next.title}</span>
+                <span className="art-nav-card-title">{navigation.next.title}</span>
               </Link>
             ) : null}
-          </nav>
-        )}
+          </div>
+        </nav>
+      )}
 
-        {related.length > 0 && (
-          <section className="article-related article-reveal article-reveal--delay-5" aria-labelledby="related-heading">
-            <h2 id="related-heading" className="article-related-title">
-              Related articles
+      {related.length > 0 && (
+        <section
+          className="art-related container art-reveal art-reveal--d5"
+          aria-labelledby="related-heading"
+        >
+          <div className="art-related-header">
+            <h2 id="related-heading" className="art-related-title">
+              Continue reading
             </h2>
-            <div className="article-related-grid">
-              {related.map((a) => (
-                <ArticleCard key={a._id} article={a} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+            <span className="art-related-sub">Related coverage</span>
+          </div>
+          <div className="art-related-grid">
+            {related.map((a) => (
+              <ArticleCard key={a._id} article={a} />
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }

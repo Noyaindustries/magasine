@@ -13,7 +13,13 @@ interface Comment {
   replies?: Comment[];
 }
 
-export function CommentsSection({ articleId }: { articleId: string }) {
+export function CommentsSection({
+  articleId,
+  variant = "default",
+}: {
+  articleId: string;
+  variant?: "default" | "premium";
+}) {
   const { data: session } = useSession();
   const [comments, setComments] = useState<Comment[]>([]);
   const [content, setContent] = useState("");
@@ -55,20 +61,29 @@ export function CommentsSection({ articleId }: { articleId: string }) {
     }
   };
 
+  const isPremium = variant === "premium";
+  const rootClass = isPremium ? "art-comments" : "mt-12 pt-8 border-t border-border";
+  const titleClass = isPremium
+    ? undefined
+    : "font-serif text-2xl font-bold text-charcoal mb-6";
+
   if (!loaded) {
     return (
-      <button
-        onClick={loadComments}
-        className="text-sm text-accent hover:text-accent-hover font-medium"
-      >
-        Show comments
-      </button>
+      <div className={isPremium ? "art-comments" : undefined}>
+        <button
+          type="button"
+          onClick={loadComments}
+          className={isPremium ? "art-comments-load" : "text-sm text-accent hover:text-accent-hover font-medium"}
+        >
+          Show comments
+        </button>
+      </div>
     );
   }
 
   return (
-    <div className="mt-12 pt-8 border-t border-border">
-      <h3 className="font-serif text-2xl font-bold text-charcoal mb-6">
+    <div className={rootClass}>
+      <h3 className={titleClass}>
         Comments ({comments.length})
       </h3>
 

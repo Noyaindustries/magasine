@@ -33,6 +33,7 @@ import {
   formatViews,
   splitHeroTitle,
 } from "@/lib/format-article";
+import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
@@ -99,7 +100,11 @@ function buildHeroSlides(source: HomeDataSource): HeroSlide[] {
   const seen = new Set<string>();
   const pool: ArticleListItem[] = [];
 
-  for (const a of [...source.heroArticles, ...source.featuredVideos, ...source.topStories]) {
+  for (const a of filterArticlesByRetiredCategories([
+    ...source.heroArticles,
+    ...source.featuredVideos,
+    ...source.topStories,
+  ])) {
     if (!seen.has(a._id)) {
       seen.add(a._id);
       pool.push(a);
@@ -110,11 +115,11 @@ function buildHeroSlides(source: HomeDataSource): HeroSlide[] {
     return [
       {
         slug: HERO_MINI_CARDS[0]?.slug.replace("/article/", "") ?? "",
-        image: IMG.finance,
+        image: IMG.politics,
         title: "West Africa's major tax reform:",
         titleEm: "who wins and who loses in WAEMU?",
         badge: "Exclusive Investigation",
-        category: "Economy",
+        category: "Politics",
         excerpt: "",
         author: "Ama Kouassi",
         authorRole: "Economics Correspondent",
@@ -131,9 +136,11 @@ function buildHeroSlides(source: HomeDataSource): HeroSlide[] {
 }
 
 function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCard[] {
-  const pool = source.latestUpdates.filter((a) => !heroSlugs.has(a.slug));
+  const pool = filterArticlesByRetiredCategories(source.latestUpdates).filter(
+    (a) => !heroSlugs.has(a.slug)
+  );
   if (pool.length >= 4) {
-    return pool.slice(0, 4).map(toHomeCard);
+    return pool.slice(0, 6).map(toHomeCard);
   }
   return HERO_MINI_CARDS.map((c) => ({
     slug: c.slug,
@@ -145,8 +152,9 @@ function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCar
 }
 
 function buildTopStories(source: HomeDataSource): HomeTopStory[] {
-  if (source.topStories.length > 0) {
-    return source.topStories.slice(0, 6).map((a, i) => ({
+  const topStories = filterArticlesByRetiredCategories(source.topStories);
+  if (topStories.length > 0) {
+    return topStories.slice(0, 6).map((a, i) => ({
       num: String(i + 1).padStart(2, "0"),
       slug: articlePath(a.slug),
       cat: a.category.name,
@@ -166,7 +174,7 @@ function buildTopStories(source: HomeDataSource): HomeTopStory[] {
 }
 
 function buildEditorsChoice(source: HomeDataSource): HomeEditorsChoice {
-  const items = source.editorsChoice;
+  const items = filterArticlesByRetiredCategories(source.editorsChoice);
   if (items.length >= 3) {
     const [featured, ...rest] = items;
     const side = rest[rest.length - 1];
@@ -214,8 +222,9 @@ function buildEditorsChoice(source: HomeDataSource): HomeEditorsChoice {
 }
 
 function buildLatest(source: HomeDataSource): HomeLatest {
-  if (source.latestUpdates.length >= 2) {
-    const [featured, ...items] = source.latestUpdates;
+  const updates = filterArticlesByRetiredCategories(source.latestUpdates);
+  if (updates.length >= 2) {
+    const [featured, ...items] = updates;
     return {
       featured: {
         ...toHomeCard(featured),
@@ -378,8 +387,10 @@ function buildUrgent(source: HomeDataSource): HomeUrgent {
 
 function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
   return RUBRIQUE_SOURCES.flatMap(({ slug, title, key }) => {
-    const items = source[key] as ArticleListItem[] | undefined;
-    if (!items?.length) return [];
+    const items = filterArticlesByRetiredCategories(
+      (source[key] as ArticleListItem[] | undefined) ?? []
+    );
+    if (!items.length) return [];
 
     return [
       {

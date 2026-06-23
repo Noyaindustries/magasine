@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Radio, Trash2 } from "lucide-react";
+import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
 
 interface AlertRow {
   _id: string;
@@ -57,49 +58,68 @@ export function AlertsManager({ initial }: { initial: AlertRow[] }) {
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this alert?")) return;
+    if (!globalThis.confirm("Delete this alert?")) return;
     await fetch(`/api/admin/alerts/${id}`, { method: "DELETE" });
     reload();
   };
 
+  const liveCount = alerts.filter((a) => a.isActive).length;
+
   return (
-    <>
-      <div className="admin-toolbar">
-        <button type="button" className="admin-btn admin-btn--primary" onClick={() => setModalOpen(true)}>
-          <Plus className="w-4 h-4" />
+    <AdminSectionShell
+      eyebrow="Breaking news"
+      title={
+        <>
+          Alerts & <em>ticker</em>
+        </>
+      }
+      description="Configure urgent headlines shown in the breaking news strip on the public homepage."
+      pulse="gold"
+      stats={[
+        { value: alerts.length, label: "Total" },
+        { value: liveCount, label: "Live" },
+      ]}
+      actions={
+        <button type="button" className="adm-btn adm-btn--primary" onClick={() => setModalOpen(true)}>
+          <Plus className="w-4 h-4" aria-hidden />
           Add alert
         </button>
-      </div>
-
-      <div className="admin-alert-list">
-        {alerts.map((alert) => (
-          <div
-            key={alert._id}
-            className={`admin-alert-item${alert.isActive ? " admin-alert-item--active" : ""}`}
-          >
-            <div>
-              <p className="admin-alert-text">{alert.text}</p>
-              {alert.link && <p className="admin-alert-meta">{alert.link}</p>}
-              <p className="admin-alert-meta">Order: {alert.order}</p>
+      }
+    >
+      {alerts.length === 0 ? (
+        <p className="adm-empty">No breaking alerts configured. Add one to activate the ticker.</p>
+      ) : (
+        <div className="adm-alert-list">
+          {alerts.map((alert) => (
+            <div
+              key={alert._id}
+              className={`adm-alert-card${alert.isActive ? " adm-alert-card--live" : ""}`}
+            >
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                {alert.isActive && <span className="adm-alert-live-dot" aria-hidden />}
+                <div className="min-w-0">
+                  <p className="adm-alert-text">{alert.text}</p>
+                  {alert.link && <p className="adm-alert-sub">→ {alert.link}</p>}
+                  <p className="adm-alert-sub">Display order: {alert.order}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  className={`adm-btn adm-btn--sm ${alert.isActive ? "adm-btn--danger" : "adm-btn--secondary"}`}
+                  onClick={() => toggle(alert)}
+                >
+                  <Radio className="w-3.5 h-3.5" aria-hidden />
+                  {alert.isActive ? "Live" : "Off"}
+                </button>
+                <button type="button" className="adm-btn adm-btn--danger adm-btn--sm" onClick={() => remove(alert._id)}>
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className={`admin-btn admin-btn--sm ${alert.isActive ? "admin-btn--primary" : "admin-btn--secondary"}`}
-                onClick={() => toggle(alert)}
-              >
-                {alert.isActive ? "Active" : "Inactive"}
-              </button>
-              <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => remove(alert._id)}>
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        ))}
-        {alerts.length === 0 && (
-          <p className="admin-empty">No breaking alerts configured.</p>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {modalOpen && (
         <div className="admin-modal-backdrop" onClick={() => setModalOpen(false)} role="presentation">
@@ -122,16 +142,16 @@ export function AlertsManager({ initial }: { initial: AlertRow[] }) {
               </div>
             </div>
             <div className="admin-modal-footer">
-              <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setModalOpen(false)}>
+              <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
                 Cancel
               </button>
-              <button type="button" className="admin-btn admin-btn--primary" disabled={loading || !form.text} onClick={save}>
+              <button type="button" className="adm-btn adm-btn--primary" disabled={loading || !form.text} onClick={save}>
                 Create
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </AdminSectionShell>
   );
 }

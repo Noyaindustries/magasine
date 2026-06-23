@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Alert } from "@/models/Alert";
-import { AdminPageTitle } from "@/components/admin/AdminPageTitle";
 import { AlertsManager } from "@/components/admin/AlertsManager";
 import { isAdminRole } from "@/lib/permissions";
 
@@ -23,14 +22,8 @@ export default async function AdminAlertsPage() {
   }));
 
   return (
-    <>
-      <AdminPageTitle
-        title="Breaking alerts"
-        description="Manage the ticker messages shown on the public site."
-      />
-      <div className="admin-content">
-        <AlertsManager initial={alerts} />
-      </div>
-    </>
+    <div className="admin-content admin-content--premium">
+      <AlertsManager initial={alerts} />
+    </div>
   );
 }

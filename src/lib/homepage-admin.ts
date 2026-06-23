@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
+import { filterRetiredCategories } from "@/lib/retired-categories";
 import { Article } from "@/models/Article";
 import { Alert } from "@/models/Alert";
 import { Category } from "@/models/Category";
@@ -45,7 +46,7 @@ export async function getHomepageAdminOverview(): Promise<{
     videos,
     opinion,
     tech,
-    sports,
+    culture,
     alerts,
     categories,
     rubriqueSamples,
@@ -58,9 +59,9 @@ export async function getHomepageAdminOverview(): Promise<{
     Article.find({ ...published, contentType: "video" }).select("title slug status category").populate("category", "name").sort({ publishedAt: -1 }).limit(4).lean(),
     Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "opinion" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(3).lean(),
     Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "technologie" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(4).lean(),
-    Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "sports" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(4).lean(),
+    Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "culture" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(4).lean(),
     Alert.countDocuments({ isActive: true }),
-    Category.countDocuments({ isActive: true }),
+    Category.find({ isActive: true }).select("slug").lean(),
     Article.find(published).select("title slug status category").populate("category", "name slug").sort({ publishedAt: -1 }).limit(12).lean(),
   ]);
 
@@ -83,7 +84,7 @@ export async function getHomepageAdminOverview(): Promise<{
   const insightsPool = [
     ...opinion.filter((a) => (a.category as { slug?: string } | null)?.slug === "opinion"),
     ...tech.filter((a) => (a.category as { slug?: string } | null)?.slug === "technologie"),
-    ...sports.filter((a) => (a.category as { slug?: string } | null)?.slug === "sports"),
+    ...culture.filter((a) => (a.category as { slug?: string } | null)?.slug === "culture"),
   ];
 
   const sectionArticles: Record<HomeSectionId, HomepageSlotArticle[]> = {
@@ -117,6 +118,8 @@ export async function getHomepageAdminOverview(): Promise<{
     settings,
     sections,
     alertCount: alerts,
-    categoryCount: categories,
+    categoryCount: filterRetiredCategories(
+      categories.map((c) => ({ slug: c.slug as string }))
+    ).length,
   };
 }

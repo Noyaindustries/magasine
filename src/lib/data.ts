@@ -17,7 +17,23 @@ import {
 } from "@/lib/mock-data";
 import { resolveAuthorAvatar, resolveFeaturedImage } from "@/lib/images";
 import { getPublicSiteSettings } from "@/lib/site-settings";
+import { filterRetiredCategories, filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
+
+function mapHomeArticles(
+  docs: unknown[],
+  limit?: number
+): ArticleListItem[] {
+  const items = filterArticlesByRetiredCategories(
+    docs.map((a) => serializeArticle(a as Record<string, unknown>))
+  );
+  return limit !== undefined ? items.slice(0, limit) : items;
+}
+
+function filterHomeArticleList(items: ArticleListItem[], limit?: number): ArticleListItem[] {
+  const filtered = filterArticlesByRetiredCategories(items);
+  return limit !== undefined ? filtered.slice(0, limit) : filtered;
+}
 
 function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
   const category = doc.category as Record<string, unknown> | null | undefined;
@@ -115,10 +131,7 @@ export const getHomePageData = cache(async function getHomePageData() {
     specialReports,
     popularTags,
     techNews,
-    sportsNews,
-    financeNews,
     santeNews,
-    divertissementNews,
     localNews,
     politiqueNews,
     cultureNews,
@@ -133,22 +146,22 @@ export const getHomePageData = cache(async function getHomePageData() {
     Article.find({ ...baseQuery, isFeatured: true })
       .populate(articlePopulate)
       .sort({ publishedAt: -1 })
-      .limit(6)
+      .limit(10)
       .lean(),
     Article.find({ ...baseQuery, isTopStory: true })
       .populate(articlePopulate)
       .sort({ publishedAt: -1 })
-      .limit(6)
+      .limit(10)
       .lean(),
     Article.find({ ...baseQuery, isEditorsChoice: true })
       .populate(articlePopulate)
       .sort({ publishedAt: -1 })
-      .limit(5)
+      .limit(8)
       .lean(),
     Article.find(baseQuery)
       .populate(articlePopulate)
       .sort({ publishedAt: -1 })
-      .limit(5)
+      .limit(14)
       .lean(),
     Article.find({ ...baseQuery, contentType: "video" })
       .populate(articlePopulate)
@@ -181,10 +194,7 @@ export const getHomePageData = cache(async function getHomePageData() {
       { $limit: 12 },
     ]),
     getArticlesByCategorySlug("technologie", 4),
-    getArticlesByCategorySlug("sports", 4),
-    getArticlesByCategorySlug("finance", 4),
     getArticlesByCategorySlug("sante", 4),
-    getArticlesByCategorySlug("divertissement", 4),
     getArticlesByCategorySlug("local", 4),
     getArticlesByCategorySlug("politique", 4),
     getArticlesByCategorySlug("culture", 4),
@@ -194,7 +204,7 @@ export const getHomePageData = cache(async function getHomePageData() {
     })
       .populate(articlePopulate)
       .sort({ publishedAt: -1 })
-      .limit(8)
+      .limit(12)
       .lean(),
     getArticlesByCategorySlug("africa", 4),
     getArticlesByCategorySlug("latin-america", 4),
@@ -211,42 +221,39 @@ export const getHomePageData = cache(async function getHomePageData() {
           link: a.link,
         }))
       : [],
-    categories: categories.map((c) => ({
-      _id: String(c._id),
-      name: c.name,
-      slug: c.slug,
-      color: c.color,
-    })),
-    heroArticles: heroArticles.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    topStories: topStories.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    editorsChoice: editorsChoice.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    latestUpdates: latestUpdates.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    featuredVideos: featuredVideos.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    nationalNews: nationalNews.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
-    worldNews,
-    multimedia,
-    opinion,
-    investigations,
-    specialReports,
+    categories: filterRetiredCategories(
+      categories.map((c) => ({
+        _id: String(c._id),
+        name: c.name,
+        slug: c.slug,
+        color: c.color,
+      }))
+    ),
+    heroArticles: mapHomeArticles(heroArticles, 6),
+    topStories: mapHomeArticles(topStories, 6),
+    editorsChoice: mapHomeArticles(editorsChoice, 5),
+    latestUpdates: mapHomeArticles(latestUpdates, 6),
+    featuredVideos: mapHomeArticles(featuredVideos, 4),
+    nationalNews: mapHomeArticles(nationalNews, 6),
+    worldNews: filterHomeArticleList(worldNews, 4),
+    multimedia: filterHomeArticleList(multimedia, 4),
+    opinion: filterHomeArticleList(opinion, 3),
+    investigations: filterHomeArticleList(investigations, 3),
+    specialReports: filterHomeArticleList(specialReports, 3),
     popularTags: popularTags.map((t: { _id: string; count: number }) => ({
       name: t._id,
       count: t.count,
     })),
-    techNews,
-    sportsNews,
-    financeNews,
-    santeNews,
-    divertissementNews,
-    localNews,
-    politiqueNews,
-    cultureNews,
-    urgentArticles: urgentArticles.map((a) =>
-      serializeArticle(a as unknown as Record<string, unknown>)
-    ),
-    africaNews,
-    latinAmericaNews,
-    southAsiaNews,
-    westAsiaNews,
+    techNews: filterHomeArticleList(techNews, 4),
+    santeNews: filterHomeArticleList(santeNews, 4),
+    localNews: filterHomeArticleList(localNews, 4),
+    politiqueNews: filterHomeArticleList(politiqueNews, 4),
+    cultureNews: filterHomeArticleList(cultureNews, 4),
+    urgentArticles: mapHomeArticles(urgentArticles, 8),
+    africaNews: filterHomeArticleList(africaNews, 4),
+    latinAmericaNews: filterHomeArticleList(latinAmericaNews, 4),
+    southAsiaNews: filterHomeArticleList(southAsiaNews, 4),
+    westAsiaNews: filterHomeArticleList(westAsiaNews, 4),
   };
 });
 
@@ -654,7 +661,7 @@ export const getLayoutNavData = cache(async function getLayoutNavData() {
 
     if (articleCount === 0) {
       return {
-        categories: mockCategories,
+        categories: filterRetiredCategories(mockCategories),
         alerts: siteSettings.breakingAlertEnabled
           ? mockAlerts.map((a) => ({ text: a.text, link: a.link }))
           : [],
@@ -663,14 +670,16 @@ export const getLayoutNavData = cache(async function getLayoutNavData() {
     }
 
     return {
-      categories: categories.map((c) => ({ name: c.name, slug: c.slug })),
+      categories: filterRetiredCategories(
+        categories.map((c) => ({ name: c.name, slug: c.slug }))
+      ),
       alerts: alerts.map((a) => ({ text: a.text, link: a.link })),
       siteSettings,
     };
   } catch {
     const siteSettings = await getPublicSiteSettings();
     return {
-      categories: mockCategories,
+      categories: filterRetiredCategories(mockCategories),
       alerts: siteSettings.breakingAlertEnabled
         ? mockAlerts.map((a) => ({ text: a.text, link: a.link }))
         : [],

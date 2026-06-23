@@ -18,7 +18,7 @@ export function ReadingProgress() {
 
   return (
     <div
-      className="reading-progress"
+      className="art-reading-progress"
       style={{ width: `${progress}%` }}
       role="progressbar"
       aria-valuenow={Math.round(progress)}

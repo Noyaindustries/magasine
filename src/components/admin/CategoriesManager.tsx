@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
 
 interface CategoryRow {
   _id: string;
@@ -84,7 +85,7 @@ export function CategoriesManager({ initial }: { initial: CategoryRow[] }) {
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this category?")) return;
+    if (!globalThis.confirm("Delete this category?")) return;
     const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) {
@@ -94,61 +95,69 @@ export function CategoriesManager({ initial }: { initial: CategoryRow[] }) {
     reload();
   };
 
+  const activeCount = categories.filter((c) => c.isActive).length;
+
   return (
-    <>
-      <div className="admin-toolbar">
-        <button type="button" className="admin-btn admin-btn--primary" onClick={openCreate}>
-          <Plus className="w-4 h-4" />
+    <AdminSectionShell
+      eyebrow="Editorial structure"
+      title={
+        <>
+          Categories & <em>sections</em>
+        </>
+      }
+      description="Manage editorial rubrics, navigation labels, and accent colors across the public site."
+      pulse="green"
+      stats={[
+        { value: categories.length, label: "Total" },
+        { value: activeCount, label: "Active" },
+      ]}
+      actions={
+        <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
+          <Plus className="w-4 h-4" aria-hidden />
           Add category
         </button>
-      </div>
-
-      <div className="admin-card">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Order</th>
-              <th>Status</th>
-              <th style={{ textAlign: "right" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {categories.map((cat) => (
-              <tr key={cat._id}>
-                <td>
-                  <span className="admin-color-dot" style={{ background: cat.color }} />
-                  <strong>{cat.name}</strong>
-                </td>
-                <td className="text-muted">{cat.slug}</td>
-                <td>{cat.order}</td>
-                <td>
-                  <span className={`admin-status-pill ${cat.isActive ? "admin-status-pill--active" : "admin-status-pill--inactive"}`}>
-                    {cat.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td>
-                  <div className="admin-table-actions">
-                  <Link href={`/category/${cat.slug}`} className="admin-btn admin-btn--sm admin-btn--secondary mr-2">
-                    View
-                  </Link>
-                  <button type="button" className="admin-btn admin-btn--sm admin-btn--secondary mr-2" onClick={() => openEdit(cat)}>
-                    <Pencil className="w-3 h-3" />
-                  </button>
-                  <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => remove(cat._id)}>
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+      }
+    >
+      {categories.length === 0 ? (
+        <p className="adm-empty">No categories yet. Create your first editorial section.</p>
+      ) : (
+        <div className="adm-card-grid">
+          {categories.map((cat) => (
+            <div
+              key={cat._id}
+              className="adm-entity-card"
+              style={{ "--adm-accent": cat.color } as CSSProperties}
+            >
+              <div className="adm-entity-head">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="adm-color-swatch" style={{ background: cat.color }} aria-hidden />
+                  <div className="min-w-0">
+                    <h3 className="adm-entity-title">{cat.name}</h3>
+                    <p className="adm-entity-meta">/{cat.slug} · Order {cat.order}</p>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {categories.length === 0 && (
-          <p className="admin-empty">No categories yet.</p>
-        )}
-      </div>
+                </div>
+                <span className={`adm-status ${cat.isActive ? "adm-status--active" : "adm-status--inactive"}`}>
+                  {cat.isActive ? "Active" : "Inactive"}
+                </span>
+              </div>
+              {cat.description && <p className="adm-entity-desc line-clamp-2">{cat.description}</p>}
+              <div className="adm-entity-actions">
+                <Link href={`/category/${cat.slug}`} className="adm-btn adm-btn--ghost adm-btn--sm" target="_blank">
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+                  View
+                </Link>
+                <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEdit(cat)}>
+                  <Pencil className="w-3.5 h-3.5" aria-hidden />
+                  Edit
+                </button>
+                <button type="button" className="adm-btn adm-btn--danger adm-btn--sm" onClick={() => remove(cat._id)}>
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {modalOpen && (
         <div className="admin-modal-backdrop" onClick={() => setModalOpen(false)} role="presentation">
@@ -180,16 +189,16 @@ export function CategoriesManager({ initial }: { initial: CategoryRow[] }) {
               </label>
             </div>
             <div className="admin-modal-footer">
-              <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setModalOpen(false)}>
+              <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
                 Cancel
               </button>
-              <button type="button" className="admin-btn admin-btn--primary" disabled={loading || !form.name} onClick={save}>
+              <button type="button" className="adm-btn adm-btn--primary" disabled={loading || !form.name} onClick={save}>
                 {loading ? "Saving…" : "Save"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </AdminSectionShell>
   );
 }

@@ -6,6 +6,7 @@ import { Article } from "@/models/Article";
 import { Category } from "@/models/Category";
 import { FOOTER_COLS } from "@/data/presse-ivoire-home";
 import { mockCategories } from "@/lib/mock-data";
+import { filterRetiredCategories } from "@/lib/retired-categories";
 import { getSiteUrl, getSitemapUrl, PUBLISHER_NAME, SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -53,7 +54,7 @@ async function getSitemapData() {
     ]);
     articleCount = count;
     recentArticles = recent.map((a) => ({ title: a.title, slug: a.slug }));
-    categories = cats.map((c) => ({ name: c.name, slug: c.slug }));
+    categories = filterRetiredCategories(cats.map((c) => ({ name: c.name, slug: c.slug })));
   } catch {
     categories = mockCategories.map((c) => ({ name: c.name, slug: c.slug }));
     articleCount = 0;

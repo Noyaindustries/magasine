@@ -101,18 +101,36 @@
 
   .home-page .hero-grid,
   .home-page .hero-grid--amargi {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 0;
   }
 
+  .home-page .hero-lead {
+    order: 1;
+  }
+
+  .home-page .hero-also-read {
+    order: 2;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+  }
+
   .home-page .hero-center {
+    order: 3;
     border-left: none;
     border-right: none;
     padding: 32px 0 0;
     border-top: 1px solid var(--rule);
   }
 
+  .home-page .hero-also-read .hero-sub-section {
+    padding-top: 0;
+    border-top: none;
+  }
+
   .home-page .hero-latest-column {
+    order: 4;
     padding-top: 32px;
     border-top: 1px solid var(--rule);
   }
@@ -262,7 +280,7 @@
   }
 
   .home-page .hero-premium {
-    padding: 24px 0 0;
+    padding: 0;
   }
 
   .home-page .hero-illustration {
@@ -339,6 +357,12 @@
     grid-template-columns: 1fr;
     gap: 12px;
     padding: 16px;
+  }
+
+  .home-page .hero-sub-articles--grid-3 .mini-card-h {
+    grid-template-columns: minmax(64px, 36%) 1fr;
+    gap: 8px 10px;
+    padding: 8px 10px;
   }
 
   .home-page .mini-card-h-media {
@@ -633,6 +657,11 @@
     padding: 10px;
   }
 
+  .home-page .hero-sub-articles--grid-3 .mini-card-h {
+    grid-template-columns: minmax(56px, 38%) 1fr;
+    padding: 8px;
+  }
+
   .home-page .mini-card-h-media {
     width: 100%;
   }
@@ -691,7 +720,8 @@
   }
 
   .home-page .section-link {
-    width: 100%;
+    width: auto;
+    align-self: flex-start;
     text-align: center;
   }
 
@@ -869,7 +899,7 @@
     -webkit-mask-image: none;
   }
 
-  .home-page .hero-illustration {
+  .home-page .hero-illustration-text {
     padding: 16px;
   }
 
@@ -1081,7 +1111,7 @@
   }
 
   .home-page--revolution .section-divider {
-    padding: 20px 16px 4px;
+    padding: 10px 16px 4px;
   }
 
   .home-page--revolution .home-insights-layout .opinion-section-premium,
@@ -1162,9 +1192,9 @@
   }
 
   .section-header--revolution .section-link {
-    width: 100%;
+    width: auto;
+    align-self: flex-start;
     text-align: center;
-    align-self: stretch;
   }
 
   .home-page--revolution .home-insights-layout {
@@ -1476,9 +1506,14 @@
     grid-template-columns: 1fr;
   }
 
-  .home-page--revolution .mini-card-h,
   .home-page--revolution .latest-item-premium {
     grid-template-columns: 1fr;
+  }
+
+  .home-page--revolution .hero-sub-articles--grid-3 .mini-card-h {
+    grid-template-columns: minmax(56px, 38%) 1fr;
+    gap: 8px;
+    padding: 7px 8px;
   }
 
   .home-page--revolution .latest-item-img,

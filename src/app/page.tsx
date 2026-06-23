@@ -27,7 +27,11 @@ export default async function HomePage() {
 
       {sections.hero && (
         <section className="home-band home-band--hero">
-          <HeroHome data={data} latest={data.latest} />
+          <HeroHome
+            data={data}
+            latest={data.latest}
+            newsletterEnabled={siteSettings.newsletterEnabled}
+          />
         </section>
       )}
 

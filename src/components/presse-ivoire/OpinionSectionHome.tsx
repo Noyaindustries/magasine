@@ -20,7 +20,6 @@ export function OpinionSectionHome({ data, embedded = false }: OpinionSectionHom
           title="Opinions & Analysis"
           linkHref="/category/opinion"
           linkLabel="All op-eds"
-          italic
         />
         <div className="opinion-row">
           {data.map((op, i) => (

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { Author } from "@/models/Author";
+import { filterRetiredCategories } from "@/lib/retired-categories";
 
 export async function GET() {
   const session = await auth();
@@ -17,7 +18,9 @@ export async function GET() {
   ]);
 
   return NextResponse.json({
-    categories: categories.map((c) => ({ _id: String(c._id), name: c.name })),
+    categories: filterRetiredCategories(
+      categories.map((c) => ({ _id: String(c._id), name: c.name, slug: c.slug }))
+    ).map(({ _id, name }) => ({ _id, name })),
     authors: authors.map((a) => ({ _id: String(a._id), name: a.name })),
   });
 }

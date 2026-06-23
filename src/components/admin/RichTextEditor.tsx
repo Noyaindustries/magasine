@@ -66,7 +66,6 @@ export function RichTextEditor({
     <div className="admin-rich-editor">
       <div className="admin-rich-editor-toolbar">
         {btn("B", () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
-        {btn("I", () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic"))}
         {btn("H2", () => editor.chain().focus().toggleHeading({ level: 2 }).run(), editor.isActive("heading", { level: 2 }))}
         {btn("• List", () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList"))}
         {btn("1. List", () => editor.chain().focus().toggleOrderedList().run(), editor.isActive("orderedList"))}

@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
-import { AdminPageTitle } from "@/components/admin/AdminPageTitle";
 import { AuthorsManager } from "@/components/admin/AuthorsManager";
 import { isAdminRole } from "@/lib/permissions";
 
@@ -26,11 +25,8 @@ export default async function AdminAuthorsPage() {
   }));
 
   return (
-    <>
-      <AdminPageTitle title="Authors" description="Manage bylines and author profile pages." />
-      <div className="admin-content">
-        <AuthorsManager initial={authors} />
-      </div>
-    </>
+    <div className="admin-content admin-content--premium">
+      <AuthorsManager initial={authors} />
+    </div>
   );
 }

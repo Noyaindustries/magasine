@@ -11,9 +11,16 @@ import {
 interface ShareButtonsProps {
   url: string;
   title: string;
+  variant?: "default" | "premium";
+  layout?: "column" | "row";
 }
 
-export function ShareButtons({ url, title }: ShareButtonsProps) {
+export function ShareButtons({
+  url,
+  title,
+  variant = "default",
+  layout = "column",
+}: ShareButtonsProps) {
   const encoded = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
 
@@ -47,6 +54,36 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
   const copyLink = async () => {
     await navigator.clipboard.writeText(url);
   };
+
+  if (variant === "premium") {
+    return (
+      <div className={`art-share${layout === "row" ? " art-share--row" : ""}`}>
+        <span className="art-share-label">Share</span>
+        <div className="art-share-buttons">
+          {shareLinks.map(({ icon: Icon, href, label, brand }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Share on ${label}`}
+              className={`art-share-btn art-share-btn--${brand}`}
+            >
+              <Icon className="w-4 h-4" />
+            </a>
+          ))}
+          <button
+            type="button"
+            onClick={copyLink}
+            aria-label="Copy link"
+            className="art-share-btn art-share-btn--copy"
+          >
+            <Link2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">

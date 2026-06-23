@@ -4,6 +4,7 @@ import { AdminPageTitle } from "@/components/admin/AdminPageTitle";
 import { HomepageManager } from "@/components/admin/HomepageManager";
 import { getHomepageAdminOverview } from "@/lib/homepage-admin";
 import { isAdminRole } from "@/lib/permissions";
+import "../admin-homepage.css";
 
 export default async function AdminHomepagePage() {
   const session = await auth();
@@ -17,9 +18,9 @@ export default async function AdminHomepagePage() {
     <>
       <AdminPageTitle
         title="Homepage"
-        description="Control every block on the public homepage — visibility, copy, and current article slots."
+        description="Compose, configure, and publish every block on the public front page."
       />
-      <div className="admin-content">
+      <div className="admin-content admin-content--homepage">
         <HomepageManager
           initialSettings={settings}
           initialSections={sections}

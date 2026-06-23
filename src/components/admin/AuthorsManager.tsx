@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
+import { authorInitials } from "@/lib/format-article";
 
 interface AuthorRow {
   _id: string;
@@ -87,7 +90,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
   };
 
   const remove = async (id: string) => {
-    if (!window.confirm("Delete this author?")) return;
+    if (!globalThis.confirm("Delete this author?")) return;
     const res = await fetch(`/api/admin/authors/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
@@ -98,41 +101,65 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
   };
 
   return (
-    <>
-      <div className="admin-toolbar">
-        <button type="button" className="admin-btn admin-btn--primary" onClick={openCreate}>
-          <Plus className="w-4 h-4" />
+    <AdminSectionShell
+      eyebrow="Editorial team"
+      title={
+        <>
+          Authors & <em>bylines</em>
+        </>
+      }
+      description="Manage contributor profiles, bios, and public author pages linked from every article."
+      pulse="blue"
+      stats={[{ value: authors.length, label: "Profiles" }]}
+      actions={
+        <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
+          <Plus className="w-4 h-4" aria-hidden />
           Add author
         </button>
-      </div>
-
-      <div className="admin-author-grid">
-        {authors.map((author) => (
-          <div key={author._id} className="admin-author-card">
-            <div className="admin-author-card-head">
-              <div>
-                <h3 className="admin-author-name">{author.name}</h3>
-                <p className="admin-author-slug">{author.slug}</p>
+      }
+    >
+      {authors.length === 0 ? (
+        <p className="adm-empty">No authors yet. Add your first editorial byline.</p>
+      ) : (
+        <div className="adm-author-grid">
+          {authors.map((author) => (
+            <div key={author._id} className="adm-author-card">
+              <div className="adm-author-top">
+                {author.avatar ? (
+                  <Image
+                    src={author.avatar}
+                    alt=""
+                    width={52}
+                    height={52}
+                    className="adm-author-avatar"
+                  />
+                ) : (
+                  <span className="adm-author-avatar adm-author-avatar--fallback" aria-hidden>
+                    {authorInitials(author.name)}
+                  </span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h3 className="adm-entity-title">{author.name}</h3>
+                  <p className="adm-entity-meta">/{author.slug}</p>
+                  {author.email && <p className="adm-entity-meta" style={{ textTransform: "none", letterSpacing: 0 }}>{author.email}</p>}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEdit(author)}>
+                    <Pencil className="w-3.5 h-3.5" aria-hidden />
+                  </button>
+                  <button type="button" className="adm-btn adm-btn--danger adm-btn--sm" onClick={() => remove(author._id)}>
+                    <Trash2 className="w-3.5 h-3.5" aria-hidden />
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button type="button" className="admin-btn admin-btn--sm admin-btn--secondary" onClick={() => openEdit(author)}>
-                  <Pencil className="w-3 h-3" />
-                </button>
-                <button type="button" className="admin-btn admin-btn--sm admin-btn--danger" onClick={() => remove(author._id)}>
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
+              {author.bio && <p className="adm-entity-desc line-clamp-3">{author.bio}</p>}
+              <Link href={`/author/${author.slug}`} className="adm-btn adm-btn--ghost adm-btn--sm" target="_blank">
+                <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+                View page
+              </Link>
             </div>
-            {author.bio && <p className="admin-author-bio line-clamp-3">{author.bio}</p>}
-            <Link href={`/author/${author.slug}`} className="admin-action-link" style={{ marginTop: 16 }}>
-              View author page →
-            </Link>
-          </div>
-        ))}
-      </div>
-
-      {authors.length === 0 && (
-        <p className="admin-empty">No authors yet.</p>
+          ))}
+        </div>
       )}
 
       {modalOpen && (
@@ -169,16 +196,16 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
               </div>
             </div>
             <div className="admin-modal-footer">
-              <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setModalOpen(false)}>
+              <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
                 Cancel
               </button>
-              <button type="button" className="admin-btn admin-btn--primary" disabled={loading || !form.name} onClick={save}>
+              <button type="button" className="adm-btn adm-btn--primary" disabled={loading || !form.name} onClick={save}>
                 {loading ? "Saving…" : "Save"}
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </AdminSectionShell>
   );
 }

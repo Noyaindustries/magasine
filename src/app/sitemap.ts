@@ -5,6 +5,7 @@ import { Category } from "@/models/Category";
 import { Author } from "@/models/Author";
 import { SEED_AUTHORS } from "@/lib/seed-data";
 import { mockCategories } from "@/lib/mock-data";
+import { filterRetiredCategories } from "@/lib/retired-categories";
 import { getSiteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -60,7 +61,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: a.isUrgent ? 0.92 : 0.9,
     }));
 
-    const categoryList = categories.length > 0 ? categories : mockCategories;
+    const categoryList = filterRetiredCategories(
+      (categories.length > 0 ? categories : mockCategories).map((c) => ({
+        slug: c.slug,
+        updatedAt: "updatedAt" in c ? c.updatedAt : undefined,
+      }))
+    );
     const categoryPages = categoryList.map((c) => ({
       url: `${baseUrl}/category/${c.slug}`,
       lastModified:

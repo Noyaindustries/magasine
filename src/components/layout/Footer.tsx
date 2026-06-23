@@ -9,9 +9,8 @@ const footerLinks = {
   rubriques: [
     { label: "News", href: "/category/actualites" },
     { label: "World", href: "/category/monde" },
-    { label: "Finance", href: "/category/finance" },
     { label: "Technology", href: "/category/technologie" },
-    { label: "Sports", href: "/category/sports" },
+    { label: "Culture", href: "/category/culture" },
     { label: "Health", href: "/category/sante" },
   ],
   magazine: [

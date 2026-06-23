@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
@@ -37,6 +38,10 @@ const FLAG_FILTERS: { label: string; value?: string }[] = [
 
 export default async function AdminArticlesPage({ searchParams }: PageProps) {
   const { status, q, flag } = await searchParams;
+
+  if (status === "review" && !q?.trim() && !flag) {
+    redirect("/admin/review");
+  }
 
   await connectDB();
   const filter: Record<string, unknown> = {};

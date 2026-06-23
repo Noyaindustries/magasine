@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans, Newsreader } from "next/font/google";
-import { SiteHeader } from "@/components/presse-ivoire/SiteHeader";
-import { HomeQuickNav } from "@/components/presse-ivoire/HomeQuickNav";
-import { SiteFooter } from "@/components/presse-ivoire/SiteFooter";
-import { ProgressBar } from "@/components/presse-ivoire/ProgressBar";
-import { ScrollReveal } from "@/components/presse-ivoire/ScrollReveal";
+import { DM_Sans, Newsreader } from "next/font/google";
+import { SiteChrome } from "@/components/SiteChrome";
 import { getLayoutNavData } from "@/lib/data";
 import { Providers } from "@/components/Providers";
 import { MaintenanceGate } from "@/components/MaintenanceGate";
@@ -12,13 +8,6 @@ import "./globals.css";
 import "./responsive.css";
 import "./revolution.css";
 import "./home-page.css";
-
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  display: "swap",
-});
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -30,8 +19,8 @@ const dmSans = DM_Sans({
 const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal"],
   display: "swap",
 });
 
@@ -78,7 +67,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${syne.variable} ${dmSans.variable} ${newsreader.variable} notranslate`}
+      className={`${dmSans.variable} ${newsreader.variable} notranslate`}
     >
       <body className="notranslate" suppressHydrationWarning translate="no">
         <Providers>
@@ -86,12 +75,9 @@ export default async function RootLayout({
             maintenanceMode={siteSettings.maintenanceMode}
             siteName={siteSettings.siteName}
           >
-            <ProgressBar />
-            <SiteHeader />
-            <HomeQuickNav categories={categories} />
-            <main>{children}</main>
-            <SiteFooter />
-            <ScrollReveal />
+            <SiteChrome categories={categories}>
+              {children}
+            </SiteChrome>
           </MaintenanceGate>
         </Providers>
       </body>

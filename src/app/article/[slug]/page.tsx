@@ -5,6 +5,7 @@ import { ReadingProgress } from "@/components/article/ReadingProgress";
 import { TrackReading } from "@/components/article/TrackReading";
 import { ArticleDetailView } from "@/components/article/ArticleDetailView";
 import type { Metadata } from "next";
+import "@/app/article-page.css";
 
 interface Props {
   params: Promise<{ slug: string }>;

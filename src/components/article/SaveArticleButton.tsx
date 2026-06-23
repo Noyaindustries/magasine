@@ -4,7 +4,12 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Bookmark } from "lucide-react";
 
-export function SaveArticleButton({ articleId }: { articleId: string }) {
+interface SaveArticleButtonProps {
+  articleId: string;
+  variant?: "default" | "premium";
+}
+
+export function SaveArticleButton({ articleId, variant = "default" }: SaveArticleButtonProps) {
   const { data: session, status } = useSession();
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,7 +27,7 @@ export function SaveArticleButton({ articleId }: { articleId: string }) {
 
   const toggle = async () => {
     if (!session?.user) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+      globalThis.location.href = `/login?callbackUrl=${encodeURIComponent(globalThis.location.pathname)}`;
       return;
     }
     setLoading(true);
@@ -42,6 +47,20 @@ export function SaveArticleButton({ articleId }: { articleId: string }) {
   };
 
   if (status === "loading") return null;
+
+  if (variant === "premium") {
+    return (
+      <button
+        type="button"
+        onClick={toggle}
+        disabled={loading}
+        className={`art-save-btn${saved ? " art-save-btn--saved" : ""}`}
+      >
+        <Bookmark className={`w-4 h-4${saved ? " fill-current" : ""}`} aria-hidden />
+        {saved ? "Saved" : "Save article"}
+      </button>
+    );
+  }
 
   return (
     <button

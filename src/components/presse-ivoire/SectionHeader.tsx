@@ -6,7 +6,6 @@ interface SectionHeaderProps {
   title: string;
   linkHref: string;
   linkLabel: string;
-  italic?: boolean;
   revealDelay?: number;
 }
 
@@ -16,7 +15,6 @@ export function SectionHeader({
   title,
   linkHref,
   linkLabel,
-  italic = false,
   revealDelay,
 }: SectionHeaderProps) {
   return (
@@ -30,7 +28,7 @@ export function SectionHeader({
         </span>
         <div>
           <span className="section-eyebrow">{eyebrow}</span>
-          <h2 className={italic ? "section-title-italic" : undefined}>{title}</h2>
+          <h2>{title}</h2>
         </div>
       </div>
       <Link href={linkHref} className="section-link">

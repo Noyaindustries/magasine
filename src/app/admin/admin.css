@@ -1,3 +1,7 @@
+.admin-root {
+  min-height: 100vh;
+}
+
 .admin-shell {
   display: flex;
   min-height: 100vh;
@@ -999,7 +1003,7 @@
 }
 
 .dash-hero-title em {
-  font-style: italic;
+  font-style: normal;
   color: #e8d48a;
 }
 

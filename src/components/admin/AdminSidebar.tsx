@@ -77,12 +77,10 @@ const NAV_GROUPS: NavGroup[] = [
         label: "Articles",
         href: "/admin/articles",
         icon: FileText,
-        badge: "pendingReview",
-        badgeTone: "gold",
       },
       {
         label: "Review queue",
-        href: "/admin/articles?status=review",
+        href: "/admin/review",
         icon: Sparkles,
         badge: "pendingReview",
         badgeTone: "gold",

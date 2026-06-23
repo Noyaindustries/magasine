@@ -517,7 +517,7 @@ body {
   border-top: 1px solid var(--rule);
   font-family: var(--f-serif);
   font-size: 13px;
-  font-style: italic;
+  font-style: normal;
   color: var(--mid-gray);
   text-align: center;
   display: flex;
@@ -593,7 +593,7 @@ body {
   gap: 20px;
 }
 .section-header--revolution .section-number {
-  font-family: var(--f-display);
+  font-family: var(--f-ui);
   font-size: clamp(48px, 8vw, 88px);
   font-weight: 800;
   -webkit-text-stroke: 1.5px rgba(30, 58, 138, 0.2);
@@ -601,7 +601,6 @@ body {
   line-height: 0.85;
 }
 .section-header--revolution .section-eyebrow {
-  font-family: var(--f-body);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.28em;
@@ -890,7 +889,7 @@ body {
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px dashed rgba(26, 56, 150, 0.12);
-  font-style: italic;
+  font-style: normal;
   color: var(--mid-gray);
   text-align: center;
   letter-spacing: 0.02em;
@@ -910,7 +909,7 @@ body {
 }
 
 .home-page--revolution .section-divider {
-  padding: 32px 24px 8px;
+  padding: 12px 24px 6px;
   max-width: 640px;
 }
 .home-page--revolution .section-divider-line {
@@ -933,7 +932,7 @@ body {
 }
 
 .home-page--revolution .home-band--hero {
-  padding: 16px 0 36px;
+  padding: 0 0 20px;
 }
 .home-page--revolution .hero-shell {
   position: relative;
@@ -1000,7 +999,7 @@ body {
 }
 
 .home-page--revolution .home-band--ad {
-  padding: 4px 0 28px;
+  padding: 0 0 12px;
 }
 .home-page--revolution .mega-ad-slot {
   border-radius: 18px;
@@ -1010,7 +1009,7 @@ body {
 }
 
 .home-page--revolution .home-band--editorial {
-  padding: 52px 0 60px;
+  padding: 0 0 48px;
   background: linear-gradient(180deg, var(--white) 0%, #FBFAF8 55%, var(--white) 100%);
   border-top: none;
 }
@@ -1405,7 +1404,7 @@ body {
   color: var(--mid-gray);
   max-width: 680px;
   margin: 0 0 32px;
-  font-style: italic;
+  font-style: normal;
 }
 .category-empty {
   text-align: center;
@@ -1451,7 +1450,6 @@ body {
   color: var(--ink);
 }
 .category-count {
-  font-family: var(--f-body);
   font-size: 12px;
   font-weight: 600;
   color: var(--mid-gray);

@@ -4,6 +4,7 @@ import { canManageArticles } from "@/lib/permissions";
 import { getAdminNavStats } from "@/lib/admin-nav";
 import { AdminShell } from "@/components/admin/AdminShell";
 import "./admin.css";
+import "./admin-premium.css";
 
 export default async function AdminLayout({
   children,

@@ -7,7 +7,7 @@ import {
   type NewsletterTopicId,
 } from "@/lib/newsletter-topics";
 
-type FormVariant = "banner" | "page" | "inline";
+type FormVariant = "banner" | "page" | "inline" | "sidebar";
 
 interface NewsletterSignupFormProps {
   variant?: FormVariant;
@@ -85,6 +85,7 @@ export function NewsletterSignupForm({
   }
 
   const topicsVisible = showTopics && variant !== "inline";
+  const topicsCompact = variant === "sidebar";
 
   return (
     <form
@@ -108,14 +109,16 @@ export function NewsletterSignupForm({
 
       {topicsVisible && (
         <fieldset className="nl-signup-topics">
-          <legend>Choose your editions</legend>
-          <div className="nl-signup-topics-grid">
+          <legend>{topicsCompact ? "Editions" : "Choose your editions"}</legend>
+          <div
+            className={`nl-signup-topics-grid${topicsCompact ? " nl-signup-topics-grid--sidebar" : ""}`}
+          >
             {NEWSLETTER_TOPICS.map((topic) => {
               const checked = topics.includes(topic.id);
               return (
                 <label
                   key={topic.id}
-                  className={`nl-signup-topic${checked ? " is-checked" : ""}`}
+                  className={`nl-signup-topic${checked ? " is-checked" : ""}${topicsCompact ? " nl-signup-topic--compact" : ""}`}
                 >
                   <input
                     type="checkbox"
@@ -124,7 +127,7 @@ export function NewsletterSignupForm({
                   />
                   <span className="nl-signup-topic-text">
                     <strong>{topic.label}</strong>
-                    <small>{topic.description}</small>
+                    {!topicsCompact && <small>{topic.description}</small>}
                   </span>
                 </label>
               );
@@ -145,7 +148,11 @@ export function NewsletterSignupForm({
         ) : (
           <>
             <span className="nl-btn-full">
-              {variant === "inline" ? "Get the newsletter" : "Subscribe for free"}
+              {variant === "inline"
+                ? "Get the newsletter"
+                : variant === "sidebar"
+                  ? "Subscribe"
+                  : "Subscribe for free"}
             </span>
             <span className="nl-btn-short">Subscribe</span>
           </>
@@ -155,8 +162,11 @@ export function NewsletterSignupForm({
       {status === "error" && message && (
         <p className="nl-note nl-note-error" role="alert">{message}</p>
       )}
-      {status === "idle" && variant !== "inline" && (
+      {status === "idle" && variant !== "inline" && variant !== "sidebar" && (
         <p className="nl-note">Free · No spam · Unsubscribe in one click</p>
+      )}
+      {status === "idle" && variant === "sidebar" && (
+        <p className="nl-note nl-note--sidebar">Free · unsubscribe anytime</p>
       )}
     </form>
   );

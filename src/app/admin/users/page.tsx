@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { AdminPageTitle } from "@/components/admin/AdminPageTitle";
 import { UsersManager } from "@/components/admin/UsersManager";
 import { canManageUsers } from "@/lib/permissions";
 
@@ -11,14 +10,8 @@ export default async function AdminUsersPage() {
   }
 
   return (
-    <>
-      <AdminPageTitle
-        title="Users"
-        description="Manage roles and premium access for registered accounts."
-      />
-      <div className="admin-content">
-        <UsersManager />
-      </div>
-    </>
+    <div className="admin-content admin-content--premium">
+      <UsersManager />
+    </div>
   );
 }

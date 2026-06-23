@@ -3,22 +3,19 @@ import { IMG } from "@/lib/images";
 export const SEED_CATEGORIES = [
   { name: "News", slug: "actualites", color: "#1a3896", order: 1, description: "National and local news from the Global South" },
   { name: "Politics", slug: "politique", color: "#1D3557", order: 2, description: "Political institutions, elections, and governance across the Global South" },
-  { name: "Sports", slug: "sports", color: "#2D6A4F", order: 3, description: "All African sports news" },
-  { name: "Culture", slug: "culture", color: "#6A4C93", order: 4, description: "Arts, literature, heritage, and cultural life across the Global South" },
-  { name: "Entertainment", slug: "divertissement", color: "#9B5DE5", order: 5, description: "Music, film, arts, and entertainment from the Global South" },
-  { name: "Health", slug: "sante", color: "#00B4D8", order: 6, description: "Public health, epidemics, and health systems across emerging economies" },
-  { name: "Finance", slug: "finance", color: "#94563c", order: 7, description: "Economy and financial markets" },
-  { name: "Technology", slug: "technologie", color: "#4361EE", order: 8, description: "Innovation, digital infrastructure, and startups" },
-  { name: "World", slug: "monde", color: "#F77F00", order: 9, description: "International news" },
-  { name: "Investigations", slug: "investigations", color: "#D62828", order: 10, description: "Accountability journalism and long-form probes" },
-  { name: "Opinion", slug: "opinion", color: "#6B6B6B", order: 11, description: "Analysis, columns, and debate from experts and public intellectuals" },
-  { name: "Multimedia", slug: "multimedia", color: "#1a3896", order: 12, description: "Video reports, podcasts, and visual storytelling" },
-  { name: "Local", slug: "local", color: "#588157", order: 13, description: "City and regional stories beyond the capital" },
-  { name: "Special Reports", slug: "reportages-speciaux", color: "#94563c", order: 14, description: "In-depth features and cross-border narrative journalism" },
-  { name: "Africa", slug: "africa", color: "#1a3896", order: 15, description: "News, analysis, and investigations across the African continent" },
-  { name: "Latin America", slug: "latin-america", color: "#2D6A4F", order: 16, description: "Coverage from Mexico to Patagonia" },
-  { name: "South Asia", slug: "south-asia", color: "#E85D04", order: 17, description: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent" },
-  { name: "West Asia", slug: "west-asia", color: "#9B2226", order: 18, description: "Gulf states, Levant, Turkey, and Iran" },
+  { name: "Culture", slug: "culture", color: "#6A4C93", order: 3, description: "Arts, literature, heritage, and cultural life across the Global South" },
+  { name: "Health", slug: "sante", color: "#00B4D8", order: 4, description: "Public health, epidemics, and health systems across emerging economies" },
+  { name: "Technology", slug: "technologie", color: "#4361EE", order: 5, description: "Innovation, digital infrastructure, and startups" },
+  { name: "World", slug: "monde", color: "#F77F00", order: 6, description: "International news" },
+  { name: "Investigations", slug: "investigations", color: "#D62828", order: 7, description: "Accountability journalism and long-form probes" },
+  { name: "Opinion", slug: "opinion", color: "#6B6B6B", order: 8, description: "Analysis, columns, and debate from experts and public intellectuals" },
+  { name: "Multimedia", slug: "multimedia", color: "#1a3896", order: 9, description: "Video reports, podcasts, and visual storytelling" },
+  { name: "Local", slug: "local", color: "#588157", order: 10, description: "City and regional stories beyond the capital" },
+  { name: "Special Reports", slug: "reportages-speciaux", color: "#94563c", order: 11, description: "In-depth features and cross-border narrative journalism" },
+  { name: "Africa", slug: "africa", color: "#1a3896", order: 12, description: "News, analysis, and investigations across the African continent" },
+  { name: "Latin America", slug: "latin-america", color: "#2D6A4F", order: 13, description: "Coverage from Mexico to Patagonia" },
+  { name: "South Asia", slug: "south-asia", color: "#E85D04", order: 14, description: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent" },
+  { name: "West Asia", slug: "west-asia", color: "#9B2226", order: 15, description: "Gulf states, Levant, Turkey, and Iran" },
 ];
 
 export const SEED_AUTHORS = [
@@ -66,7 +63,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
     title: "The great West African tax reform: who wins and who loses in WAEMU?",
     slug: "la-grande-reforme-fiscale-ouest-africaine-qui-gagne-qui-perd-dans-luemoa",
     subtitle: "In-depth analysis of the new common tax directives",
-    category: "finance",
+    category: "politique",
     excerpt: "An in-depth analysis of the new common tax directives for the eight member states of the Union. Our experts break down the stakes for businesses, households, and governments across the region.",
     content: `<p>The WAEMU member states have just adopted an unprecedented package of tax reforms since the creation of the monetary union. This overhaul affects VAT, corporate tax, and sectoral exemptions.</p>
     <h2>Differentiated impacts</h2>
@@ -85,7 +82,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Wave and Orange Money announce merger: birth of Africa's first super-wallet",
     slug: "wave-et-orange-money-annoncent-leur-fusion-naissance-du-premier-super-portefeuille-africain",
-    category: "finance",
+    category: "politique",
     excerpt: "The deal would create an entity valued at over $8 billion, reshaping the FinTech landscape across the continent.",
     content: `<p>Two mobile money giants have just announced their intention to merge. The resulting entity would cover 24 countries and more than 180 million active users.</p>
     <h2>An expected consolidation</h2>
@@ -99,7 +96,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "AFCON 2027: Félix Houphouët-Boigny Stadium to host the final, capacity raised to 60,000",
     slug: "can-2027-le-stade-felix-houphouet-boigny-accueillera-la-finale-capacite-portee-a-60-000",
-    category: "sports",
+    category: "culture",
     excerpt: "CAF has confirmed that Abidjan will host the continental tournament final after expansion work on the iconic stadium.",
     content: `<p>Côte d'Ivoire will host the AFCON 2027 final at the Félix Houphouët-Boigny Stadium, whose capacity will be increased to 60,000 seats. An investment of €120 million is planned.</p>`,
     tags: ["AFCON2027", "football", "Abidjan", "sport"],
@@ -261,7 +258,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Ligue 1 CI: ASEC wins Abidjan derby 3-1",
     slug: "ligue-1-ci-lasec-remporte-le-derby-dabidjan-3-1",
-    category: "sports",
+    category: "culture",
     excerpt: "ASEC Mimosas beat Africa Sports and reclaim the top of the Ivorian championship.",
     content: `<p>In a heated Abidjan derby, ASEC won 3-1 against Africa Sports at Robert-Champroux Stadium in front of 25,000 spectators.</p>`,
     tags: ["football", "ASEC", "Ligue 1", "Abidjan"],
@@ -293,7 +290,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "AfDB announces $800M financing for Ivorian agri-food SMEs",
     slug: "la-bad-annonce-un-financement-de-800mdollar-pour-les-pme-ivoiriennes-dans-le-secteur-agroalimentaire",
-    category: "finance",
+    category: "politique",
     excerpt: "The African Development Bank unlocks a major package for local processing and agri-food exports.",
     content: `<p>The AfDB confirms an $800 million loan to support Ivorian SMEs.</p>`,
     tags: ["AfDB", "SMEs", "agri-food"],
@@ -347,7 +344,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "The Elephants on the road to AFCON — report from the FIF training center",
     slug: "les-elephants-en-route-pour-la-can-reportage-dans-le-centre-de-preparation-de-la-fif",
-    category: "sports",
+    category: "culture",
     excerpt: "Inside the Ivorian national team's training center.",
     content: `<p>Report from the FIF training center.</p>`,
     tags: ["AFCON", "football"],
@@ -548,7 +545,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Afrobeats goes global: Lagos and Abidjan producers dominate streaming charts",
     slug: "afrobeats-goes-global-lagos-abidjan-streaming-charts",
-    category: "divertissement",
+    category: "culture",
     excerpt: "A new wave of West African artists tops international playlists, reshaping how labels scout talent south of the Sahara.",
     content: `<p>Streaming platforms report record growth for Afrobeats and coupé-décalé crossovers, with independent producers in Lagos and Abidjan signing direct distribution deals.</p>`,
     tags: ["music", "Afrobeats", "Nigeria", "Côte d'Ivoire"],
@@ -559,7 +556,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "FESPACO 2026: Burkina Faso film festival spotlights Sahelian directors",
     slug: "fespaco-2026-burkina-faso-sahelian-directors",
-    category: "divertissement",
+    category: "culture",
     excerpt: "The pan-African cinema showcase returns with a record number of submissions from conflict-affected countries.",
     content: `<p>FESPACO's 2026 edition highlights filmmakers from Mali, Niger, and Burkina Faso, with a dedicated program on cinema as cultural resistance.</p>`,
     tags: ["cinema", "FESPACO", "Burkina Faso", "culture"],
@@ -570,7 +567,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Nollywood on Netflix: Nigerian studios negotiate landmark revenue-sharing deal",
     slug: "nollywood-netflix-nigerian-studios-revenue-sharing",
-    category: "divertissement",
+    category: "culture",
     excerpt: "Studios secure improved royalties and regional premiere windows for original series aimed at diaspora audiences.",
     content: `<p>After months of talks, Nigeria's leading production houses reached a framework agreement with Netflix for African originals.</p>`,
     tags: ["Nollywood", "streaming", "Nigeria", "film"],
@@ -580,7 +577,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Abidjan Fashion Week: designers blend wax prints with sustainable textiles",
     slug: "abidjan-fashion-week-sustainable-wax-prints",
-    category: "divertissement",
+    category: "culture",
     excerpt: "Runway shows spotlight eco-friendly fabrics and artisan cooperatives from across West Africa.",
     content: `<p>Abidjan Fashion Week closed with a collective showcase of designers using recycled materials and traditional weaving techniques.</p>`,
     tags: ["fashion", "Abidjan", "culture", "sustainability"],
@@ -591,7 +588,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "WAEMU debt in numbers: who owes what across eight member states",
     slug: "waemu-debt-in-numbers-eight-member-states-infographic",
-    category: "finance",
+    category: "politique",
     excerpt: "An interactive visual breakdown of sovereign and commercial debt across the West African Economic and Monetary Union.",
     content: `<p>Our data desk maps debt-to-GDP ratios, repayment schedules, and creditor composition for Benin, Burkina Faso, Côte d'Ivoire, Guinea-Bissau, Mali, Niger, Senegal, and Togo.</p>`,
     tags: ["infographic", "WAEMU", "debt", "data"],

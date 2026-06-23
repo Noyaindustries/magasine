@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
+import { filterRetiredCategories } from "@/lib/retired-categories";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -20,15 +21,17 @@ export async function GET() {
   await connectDB();
   const categories = await Category.find().sort({ order: 1, name: 1 }).lean();
   return NextResponse.json({
-    categories: categories.map((c) => ({
-      _id: String(c._id),
-      name: c.name,
-      slug: c.slug,
-      description: c.description ?? "",
-      color: c.color,
-      order: c.order,
-      isActive: c.isActive,
-    })),
+    categories: filterRetiredCategories(
+      categories.map((c) => ({
+        _id: String(c._id),
+        name: c.name,
+        slug: c.slug,
+        description: c.description ?? "",
+        color: c.color,
+        order: c.order,
+        isActive: c.isActive,
+      }))
+    ),
   });
 }
 

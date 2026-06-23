@@ -2,8 +2,8 @@ import { IMG } from "@/lib/images";
 
 export const TICKER_ITEMS = [
   "Presidential election: first-round results expected tonight",
-  "Economy: CFA franc under pressure against the dollar — experts weigh in",
-  "African football: Abidjan to host AFCON 2027 final — CAF confirms",
+  "Politics: parliament debates new data protection framework",
+  "Culture: Abidjan biennial opens with record international attendance",
   "Tech: Wave raises $350M for continental expansion",
   "Health: new anti-malaria protocol adopted across 12 West African countries",
 ];
@@ -19,8 +19,8 @@ export const HEADER_NAV = [
   { label: "Home", href: "/", active: true },
   { label: "Regions", href: "/category/africa", mega: true },
   { label: "Politics", href: "/category/politique" },
-  { label: "Economy", href: "/category/finance" },
   { label: "Culture", href: "/category/culture" },
+  { label: "Technology", href: "/category/technologie" },
 ];
 
 export const NAV_RUBRIQUES = [
@@ -39,11 +39,11 @@ export const NAV_RUBRIQUES = [
 
 export const HERO_MAIN = {
   slug: "la-grande-reforme-fiscale-ouest-africaine-qui-gagne-qui-perd-dans-luemoa",
-  image: IMG.finance,
+  image: IMG.politics,
   badge: "Exclusive Investigation",
   title: "West Africa's major tax reform:",
   titleEm: "who wins and who loses in WAEMU?",
-  category: "Economy",
+  category: "Politics",
   excerpt:
     "An in-depth look at new common tax directives across the Union's eight member states. Our experts break down the stakes for businesses, households, and governments across the region.",
   author: "Ama Kouassi",
@@ -78,16 +78,30 @@ export const HERO_MINI_CARDS = [
     slug: "/article/sommet-de-l-ua-le-continent-adopte-une-feuille-de-route-pour-l-autonomie-alimentaire",
   },
   {
-    cat: "Sports",
-    title: "AFCON 2027: Félix Houphouët-Boigny Stadium to host final, capacity raised to 60,000",
+    cat: "Health",
+    title: "RTS,S malaria vaccine: nationwide mass vaccination campaign launched",
     meta: "8h ago · 3 min",
-    image: IMG.football,
-    slug: "/article/can-2027-le-stade-felix-houphouet-boigny-accueillera-la-finale-capacite-portee-a-60-000",
+    image: IMG.health,
+    slug: "/article/vaccin-antipaludisme-rtss-la-cote-divoire-lance-sa-campagne-nationale-de-vaccination-de-masse",
+  },
+  {
+    cat: "Technology",
+    title: "Google unveils its first sub-Saharan Africa data center in Accra",
+    meta: "5h ago · 4 min",
+    image: IMG.datacenter,
+    slug: "/article/google-devoile-son-premier-data-center-dafrique-subsaharienne-installe-a-accra",
+  },
+  {
+    cat: "Local",
+    title: "Grand-Bassam UNESCO extension: colonial heritage site officially expanded",
+    meta: "7h ago · 3 min",
+    image: IMG.heritage,
+    slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial",
   },
 ];
 
 export const TOP_STORIES = [
-  { num: "01", cat: "Finance", title: "Wave and Orange Money announce merger: birth of Africa's first super-wallet", meta: "12 min read · 1h ago", image: IMG.fintech, slug: "/article/wave-et-orange-money-annoncent-leur-fusion-naissance-du-premier-super-portefeuille-africain" },
+  { num: "01", cat: "Technology", title: "Wave and Orange Money announce merger: birth of Africa's first super-wallet", meta: "12 min read · 1h ago", image: IMG.fintech, slug: "/article/wave-et-orange-money-annoncent-leur-fusion-naissance-du-premier-super-portefeuille-africain" },
   { num: "02", cat: "Investigation", title: "Embezzlement probe: three ministers charged in public construction contracts case", meta: "8 min · 2h ago", image: IMG.investigation, slug: "/article/detournement-de-fonds-publics-trois-ministres-mis-en-examen-dans-laffaire-des-marches-de-construction" },
   { num: "03", cat: "Health", title: "RTS,S malaria vaccine: Côte d'Ivoire launches nationwide mass vaccination campaign", meta: "5 min · 4h ago", image: IMG.health, slug: "/article/vaccin-antipaludisme-rtss-la-cote-divoire-lance-sa-campagne-nationale-de-vaccination-de-masse" },
   { num: "04", cat: "Technology", title: "Google unveils its first sub-Saharan Africa data center in Accra", meta: "4 min · 5h ago", image: IMG.datacenter, slug: "/article/google-devoile-son-premier-data-center-dafrique-subsaharienne-installe-a-accra" },
@@ -137,8 +151,8 @@ export const LATEST = {
     slug: "/article/le-parlement-vote-la-loi-sur-la-protection-des-donnees-personnelles",
   },
   items: [
-    { cat: "Economy", title: "AfDB announces $800M financing for Ivorian agri-food SMEs", time: "25 min ago · 3 min", image: IMG.cacao, slug: "/article/la-bad-annonce-un-financement-de-800m-pour-les-pme-ivoiriennes-dans-le-secteur-agroalimentaire" },
-    { cat: "Sports", title: "Ligue 1 CI: ASEC wins Abidjan derby 3-1, back on top of the table", time: "1h ago · 2 min", image: IMG.stadium, slug: "/article/ligue-1-ci-lasec-remporte-le-derby-dabidjan-3-1" },
+    { cat: "Politics", title: "AfDB announces $800M financing for Ivorian agri-food SMEs", time: "25 min ago · 3 min", image: IMG.cacao, slug: "/article/la-bad-annonce-un-financement-de-800m-pour-les-pme-ivoiriennes-dans-le-secteur-agroalimentaire" },
+    { cat: "Culture", title: "Grand-Bassam UNESCO extension: colonial heritage site officially expanded", time: "1h ago · 2 min", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
     { cat: "World", title: "United Nations: Security Council holds emergency session on Sahel crisis", time: "2h ago · 5 min", image: IMG.un, slug: "/article/nations-unies-le-conseil-de-securite-se-reunit-en-urgence-sur-la-situation-au-sahel" },
     { cat: "Technology", title: "Meta launches WhatsApp Pay in Côte d'Ivoire with native CinetPay integration", time: "3h ago · 4 min", image: IMG.datacenter, slug: "/article/meta-deploie-son-service-whatsapp-pay-en-cote-divoire-avec-integration-cinetpay-native" },
     { cat: "Health", title: "New meningitis cases in Bouaké: Health Ministry activates regional emergency protocol", time: "4h ago · 3 min", image: IMG.health, slug: "/article/nouveaux-cas-de-meningite-a-bouake-le-ministere-de-la-sante-active-le-protocole-durgence-regional" },
@@ -146,9 +160,9 @@ export const LATEST = {
 };
 
 export const VIDEOS = [
-  { cat: "Economy", title: "Port of Abidjan: how it became West Africa's leading logistics hub", duration: "12:34", views: "2.4k views · 3h ago", image: IMG.port, slug: "/article/le-port-dabidjan-comment-il-est-devenu-le-premier-hub-logistique-dafrique-de-louest" },
+  { cat: "World", title: "Port of Abidjan: how it became West Africa's leading logistics hub", duration: "12:34", views: "2.4k views · 3h ago", image: IMG.port, slug: "/article/le-port-dabidjan-comment-il-est-devenu-le-premier-hub-logistique-dafrique-de-louest" },
   { cat: "Politics", title: "Exclusive interview: Prime Minister responds to criticism of education reform", duration: "08:12", views: "5.1k views · 5h ago", image: IMG.politics, slug: "/article/interview-exclusive-le-premier-ministre-repond-aux-critiques-sur-la-reforme-de-leducation" },
-  { cat: "Sports", title: "The Elephants on the road to AFCON — inside the FIF training camp", duration: "05:47", views: "8.9k views · 8h ago", image: IMG.football, slug: "/article/les-elephants-en-route-pour-la-can-reportage-dans-le-centre-de-preparation-de-la-fif" },
+  { cat: "Culture", title: "Ivorian cinema week: three films selected for Cannes Critics' Week", duration: "05:47", views: "8.9k views · 8h ago", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
   { cat: "Investigation", title: "Illegal gold mining in the north: documentary on clandestine supply chains", duration: "21:05", views: "14k views · 1d ago", image: IMG.forest, slug: "/article/orpaillage-illegal-dans-le-nord-le-grand-documentaire-sur-les-filieres-clandestines" },
 ];
 
@@ -170,13 +184,13 @@ export const THEMATIC = [
     ],
   },
   {
-    title: "Sports",
-    href: "/category/sports",
-    main: { cat: "Football", title: "Didier Drogba named Technical Director — a divisive decision for FIF and fans", image: IMG.stadium },
+    title: "Culture",
+    href: "/category/culture",
+    main: { cat: "Heritage", title: "Grand-Bassam UNESCO extension officially expands colonial heritage site", image: IMG.heritage },
     subs: [
-      { num: "01", cat: "Basketball", title: "Ivory Coast Lions qualify for FIBA World Cup 2027 after win over Cameroon" },
-      { num: "02", cat: "Boxing", title: "Souleymane Cissokho, WBC champion: Ivorian boxing's renewed pride" },
-      { num: "03", cat: "Athletics", title: "LA 2028: four Ivorian athletes qualify in sprint disciplines" },
+      { num: "01", cat: "Cinema", title: "Three Ivorian films selected for Cannes Critics' Week" },
+      { num: "02", cat: "Music", title: "Abidjan Jazz Festival draws record crowds for its 15th edition" },
+      { num: "03", cat: "Arts", title: "Contemporary African art fair opens new pavilion in Plateau district" },
     ],
   },
 ];
@@ -199,11 +213,9 @@ export const FOOTER_COLS = {
   rubriques: [
     { label: "News", href: "/category/actualites" },
     { label: "Politics", href: "/category/politique" },
-    { label: "Economy & Finance", href: "/category/finance" },
     { label: "Technology", href: "/category/technologie" },
-    { label: "Sports", href: "/category/sports" },
+    { label: "Culture", href: "/category/culture" },
     { label: "Health", href: "/category/sante" },
-    { label: "Entertainment", href: "/category/divertissement" },
     { label: "World", href: "/category/monde" },
   ],
   presse: [

@@ -66,7 +66,7 @@ export const HOME_SECTIONS: HomeSectionMeta[] = [
   {
     id: "insights",
     label: "Opinion & thematic",
-    description: "Opinion category plus tech and sports columns.",
+    description: "Opinion category plus tech and culture columns.",
     articlesHref: "/admin/articles?status=published",
   },
   {

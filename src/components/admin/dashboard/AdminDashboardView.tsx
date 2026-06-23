@@ -98,7 +98,7 @@ export function AdminDashboardView({
       {(data.pendingReview > 0 || data.pendingComments > 0) && (
         <div className="dash-alerts">
           {data.pendingReview > 0 && (
-            <Link href="/admin/articles?status=review" className="dash-alert dash-alert--gold">
+            <Link href="/admin/review" className="dash-alert dash-alert--gold">
               <strong>{data.pendingReview}</strong> article(s) awaiting review
               <ArrowUpRight className="w-4 h-4" />
             </Link>
@@ -208,7 +208,7 @@ export function AdminDashboardView({
               <PenLine className="w-5 h-5" />
               New article
             </Link>
-            <Link href="/admin/articles?status=review" className="dash-quick-action">
+            <Link href="/admin/review" className="dash-quick-action">
               Review queue
             </Link>
             {canEditHome && (
