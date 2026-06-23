@@ -2509,8 +2509,7 @@ img { display: block; max-width: 100%; }
 }
 .home-page .hero-latest-column {
   grid-column: 3;
-  grid-row: 3;
-  align-self: start;
+  grid-row: 1 / span 3;
   min-width: 0;
 }
 .home-page .hero-latest-panel {
