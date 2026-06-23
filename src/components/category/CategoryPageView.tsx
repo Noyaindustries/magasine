@@ -17,7 +17,6 @@ interface CategoryPageViewProps {
   };
   sectionMeta: {
     kind: SectionKind;
-    number: string;
     eyebrow: string;
     lead: string;
     relatedSlugs: string[];
@@ -54,7 +53,6 @@ export function CategoryPageView({ category, sectionMeta, articles }: CategoryPa
         name={category.name}
         slug={category.slug}
         kind={sectionMeta.kind}
-        number={sectionMeta.number}
         eyebrow={sectionMeta.eyebrow}
         lead={sectionMeta.lead}
         description={category.description}

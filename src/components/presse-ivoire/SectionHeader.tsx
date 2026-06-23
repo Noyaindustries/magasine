@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 interface SectionHeaderProps {
-  number: string;
   eyebrow: string;
   title: string;
   linkHref: string;
@@ -10,7 +9,6 @@ interface SectionHeaderProps {
 }
 
 export function SectionHeader({
-  number,
   eyebrow,
   title,
   linkHref,
@@ -23,9 +21,6 @@ export function SectionHeader({
       {...(revealDelay !== undefined ? { "data-reveal-delay": revealDelay } : {})}
     >
       <div className="section-header-main">
-        <span className="section-number" aria-hidden>
-          {number}
-        </span>
         <div>
           <span className="section-eyebrow">{eyebrow}</span>
           <h2>{title}</h2>

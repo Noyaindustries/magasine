@@ -8,7 +8,6 @@ import { formatRelativeDate } from "@/lib/utils";
 
 export interface FormatPageConfig {
   slug: string;
-  number: string;
   eyebrow: string;
   title: string;
   lead: string;
@@ -57,9 +56,6 @@ export function FormatPageView({ config, articles }: FormatPageViewProps) {
           </nav>
 
           <div className="section-page-hero-main">
-            <span className="section-page-hero-number" aria-hidden>
-              {config.number}
-            </span>
             <div>
               <span className="section-page-hero-eyebrow">{config.eyebrow}</span>
               <h1 className="section-page-hero-title">{config.title}</h1>

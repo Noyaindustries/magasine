@@ -15,7 +15,6 @@ export function OpinionSectionHome({ data, embedded = false }: OpinionSectionHom
     <div className={`opinion-section opinion-section-premium${embedded ? " opinion-section--embedded" : ""}`}>
       <div className={embedded ? undefined : "container"}>
         <SectionHeader
-          number="04"
           eyebrow="Op-eds"
           title="Opinions & Analysis"
           linkHref="/category/opinion"

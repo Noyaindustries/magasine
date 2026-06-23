@@ -35,9 +35,6 @@ export function UrgentPageView({ articles, alerts }: UrgentPageViewProps) {
           </nav>
 
           <div className="section-page-hero-main">
-            <span className="section-page-hero-number" aria-hidden>
-              {URGENT_SECTION.number}
-            </span>
             <div>
               <span className="section-page-hero-eyebrow urgent-page-eyebrow">
                 <span className="breaking-dot" aria-hidden />

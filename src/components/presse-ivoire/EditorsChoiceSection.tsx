@@ -73,7 +73,6 @@ export function EditorsChoiceSection({ data }: EditorsChoiceSectionProps) {
     <div className="section section-premium section-editorial">
       <div className="container">
         <SectionHeader
-          number="01"
           eyebrow="Editor's pick"
           title="Editor's Choice"
           linkHref="/search"

@@ -13,7 +13,6 @@ export function ThematicSectionHome({ data, embedded = false }: ThematicSectionH
     <div className={`thematic-section thematic-section-premium${embedded ? " thematic-section--embedded" : ""}`}>
       <div className={embedded ? undefined : "container"}>
         <SectionHeader
-          number="05"
           eyebrow="Sections"
           title="Featured by Theme"
           linkHref="/search"

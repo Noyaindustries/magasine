@@ -1,10 +1,9 @@
-export type SectionKind = "region" | "topic" | "format" | "investigation";
+﻿export type SectionKind = "region" | "topic" | "format" | "investigation";
 
 export interface SectionMeta {
   slug: string;
   label: string;
   kind: SectionKind;
-  number: string;
   eyebrow: string;
   lead: string;
   relatedSlugs: string[];
@@ -14,10 +13,9 @@ export interface SectionMeta {
 }
 
 export const URGENT_SECTION = {
-  number: "00",
   eyebrow: "Alert feed",
-  title: "Breaking — Live",
-  lead: "Alerts, breaking news, and priority updates on Global South affairs — updated as stories develop.",
+  title: "Breaking â€” Live",
+  lead: "Alerts, breaking news, and priority updates on Global South affairs â€” updated as stories develop.",
   relatedSlugs: ["news", "world", "investigations", "africa", "west-asia"],
 } as const;
 
@@ -26,9 +24,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "africa",
     label: "Africa",
     kind: "region",
-    number: "01",
     eyebrow: "Region",
-    lead: "News, analysis, and investigations across the African continent — from the Sahel to the Cape.",
+    lead: "News, analysis, and investigations across the African continent â€” from the Sahel to the Cape.",
     relatedSlugs: ["west-asia", "world", "politics", "investigations", "local"],
     linkHref: "/rss?category=africa",
     linkLabel: "Africa RSS feed",
@@ -37,9 +34,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "latin-america",
     label: "Latin America",
     kind: "region",
-    number: "02",
     eyebrow: "Region",
-    lead: "Coverage from Mexico to Patagonia — politics, economy, environment, and society.",
+    lead: "Coverage from Mexico to Patagonia â€” politics, economy, environment, and society.",
     relatedSlugs: ["world", "politics", "news", "investigations", "multimedia"],
     linkHref: "/rss?category=latin-america",
     linkLabel: "Latin America RSS",
@@ -48,9 +44,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "south-asia",
     label: "South Asia",
     kind: "region",
-    number: "03",
     eyebrow: "Region",
-    lead: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent — trade, tech, and public policy.",
+    lead: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent â€” trade, tech, and public policy.",
     relatedSlugs: ["world", "technology", "politics", "health", "opinion"],
     linkHref: "/rss?category=south-asia",
     linkLabel: "South Asia RSS",
@@ -59,9 +54,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "west-asia",
     label: "West Asia",
     kind: "region",
-    number: "04",
     eyebrow: "Region",
-    lead: "Gulf states, Levant, Turkey, and Iran — energy, diplomacy, and regional security.",
+    lead: "Gulf states, Levant, Turkey, and Iran â€” energy, diplomacy, and regional security.",
     relatedSlugs: ["africa", "world", "politics", "investigations", "news"],
     linkHref: "/rss?category=west-asia",
     linkLabel: "West Asia RSS",
@@ -70,9 +64,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "news",
     label: "News",
     kind: "topic",
-    number: "05",
     eyebrow: "News desk",
-    lead: "National and local news from the Global South — institutions, society, and daily affairs.",
+    lead: "National and local news from the Global South â€” institutions, society, and daily affairs.",
     relatedSlugs: ["politics", "world", "local", "opinion", "investigations"],
     linkHref: "/rss?category=news",
     linkLabel: "News RSS",
@@ -81,9 +74,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "politics",
     label: "Politics",
     kind: "topic",
-    number: "05b",
     eyebrow: "Politics",
-    lead: "Elections, parliaments, parties, and governance — political news from the Global South.",
+    lead: "Elections, parliaments, parties, and governance â€” political news from the Global South.",
     relatedSlugs: ["news", "world", "opinion", "investigations", "africa"],
     linkHref: "/rss?category=politics",
     linkLabel: "Politics RSS",
@@ -92,7 +84,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "technology",
     label: "Technology",
     kind: "topic",
-    number: "08",
     eyebrow: "Technology",
     lead: "Innovation, digital infrastructure, AI, and startups reshaping the Global South.",
     relatedSlugs: ["politics", "news", "multimedia", "south-asia", "africa"],
@@ -103,7 +94,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "health",
     label: "Health",
     kind: "topic",
-    number: "09",
     eyebrow: "Health",
     lead: "Public health, epidemics, vaccines, and health systems from community clinics to continental policy.",
     relatedSlugs: ["news", "world", "investigations", "local", "africa"],
@@ -114,7 +104,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "opinion",
     label: "Opinion",
     kind: "format",
-    number: "11",
     eyebrow: "Opinion",
     lead: "Analysis, columns, and debate from economists, activists, and public intellectuals.",
     relatedSlugs: ["news", "politics", "world", "investigations", "special-reports"],
@@ -125,7 +114,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "multimedia",
     label: "Multimedia",
     kind: "format",
-    number: "12",
     eyebrow: "Multimedia",
     lead: "Video reports, podcasts, and visual storytelling from our newsroom and correspondents.",
     relatedSlugs: ["investigations", "special-reports", "news", "culture"],
@@ -140,7 +128,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "investigations",
     label: "Investigations",
     kind: "investigation",
-    number: "13",
     eyebrow: "Investigations",
     lead: "Long-form probes, accountability journalism, and exclusive documents from our investigations desk.",
     relatedSlugs: ["special-reports", "politics", "news", "world", "multimedia"],
@@ -151,9 +138,8 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "local",
     label: "Local",
     kind: "topic",
-    number: "14",
     eyebrow: "Local",
-    lead: "City and regional stories — heritage, communities, and life beyond the capital.",
+    lead: "City and regional stories â€” heritage, communities, and life beyond the capital.",
     relatedSlugs: ["news", "culture", "multimedia", "africa"],
     linkHref: "/rss?category=local",
     linkLabel: "Local RSS",
@@ -162,7 +148,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "world",
     label: "World",
     kind: "topic",
-    number: "15",
     eyebrow: "World",
     lead: "International affairs, diplomacy, and global institutions seen from the Global South.",
     relatedSlugs: ["africa", "west-asia", "south-asia", "latin-america", "politics"],
@@ -173,7 +158,6 @@ export const SECTION_META: Record<string, SectionMeta> = {
     slug: "special-reports",
     label: "Special Reports",
     kind: "format",
-    number: "16",
     eyebrow: "Special reports",
     lead: "In-depth features, cross-border series, and narrative journalism on defining issues.",
     relatedSlugs: ["investigations", "multimedia", "opinion", "world", "africa"],
@@ -191,7 +175,7 @@ export function getSectionMeta(slug: string): SectionMeta | null {
   return SECTION_META[resolved] ?? null;
 }
 
-/** @deprecated Legacy French slugs — resolved for old bookmarks and RSS links. */
+/** @deprecated Legacy French slugs â€” resolved for old bookmarks and RSS links. */
 const LEGACY_SECTION_SLUG_MAP: Record<string, string> = {
   actualites: "news",
   politique: "politics",

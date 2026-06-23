@@ -1,12 +1,11 @@
-import type { FormatPageConfig } from "@/components/format/FormatPageView";
+﻿import type { FormatPageConfig } from "@/components/format/FormatPageView";
 
 export const FORMAT_PAGES: Record<string, FormatPageConfig> = {
   videos: {
     slug: "videos",
-    number: "V1",
     eyebrow: "Multimedia",
     title: "Videos",
-    lead: "Reports, interviews, and documentaries on Global South news — field reporting in motion.",
+    lead: "Reports, interviews, and documentaries on Global South news â€” field reporting in motion.",
     accent: "#1a3896",
     relatedSlugs: ["multimedia", "investigations", "special-reports", "podcasts"],
     emptyMessage: "No videos published yet. Explore our written investigations and features.",
@@ -18,7 +17,6 @@ export const FORMAT_PAGES: Record<string, FormatPageConfig> = {
   },
   podcasts: {
     slug: "podcasts",
-    number: "P1",
     eyebrow: "Audio",
     title: "Podcasts",
     lead: "Analysis, debates, and audio stories to understand the defining issues of the Global South.",
@@ -33,7 +31,6 @@ export const FORMAT_PAGES: Record<string, FormatPageConfig> = {
   },
   infographics: {
     slug: "infographics",
-    number: "I1",
     eyebrow: "Visual data",
     title: "Infographics",
     lead: "Charts, maps, and visual explainers that make complex Global South stories accessible at a glance.",
@@ -48,7 +45,6 @@ export const FORMAT_PAGES: Record<string, FormatPageConfig> = {
   },
   "photo-galleries": {
     slug: "photo-galleries",
-    number: "G1",
     eyebrow: "Photography",
     title: "Photo galleries",
     lead: "Photo essays and visual reports from correspondents across Africa, Latin America, Asia, and the diaspora.",

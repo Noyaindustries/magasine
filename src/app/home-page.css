@@ -71,7 +71,9 @@
 
 .home-page--revolution .hero-latest-column {
   grid-column: 3;
-  grid-row: 1 / span 3;
+  grid-row: 3;
+  align-self: start;
+  min-width: 0;
 }
 
 .home-page--revolution .hero-frame {
@@ -355,7 +357,8 @@
   margin-bottom: 0;
 }
 
-.home-page--revolution .hero-opinion-band {
+.home-page--revolution .hero-opinion-band,
+.home-page--revolution .hero-latest-column {
   margin-top: clamp(-14px, -1.4vw, -8px);
 }
 
@@ -384,7 +387,6 @@
 }
 
 .home-page--revolution .hero-latest-panel {
-  flex: 1;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #f3f1ec 0%, #faf9f7 100%);

@@ -46,7 +46,6 @@ export default async function CategoryPage({ params }: Props) {
       }}
       sectionMeta={{
         kind: meta.kind,
-        number: meta.number,
         eyebrow: meta.eyebrow,
         lead: meta.lead,
         relatedSlugs: meta.relatedSlugs,

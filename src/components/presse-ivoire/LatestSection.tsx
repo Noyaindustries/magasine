@@ -14,7 +14,6 @@ export function LatestSection({ data }: LatestSectionProps) {
     <div className="section section-premium section-cream section-live">
       <div className="container">
         <SectionHeader
-          number="02"
           eyebrow="News"
           title="Latest Updates"
           linkHref="/search"

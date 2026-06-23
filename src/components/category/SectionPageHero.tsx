@@ -6,7 +6,6 @@ interface SectionPageHeroProps {
   name: string;
   slug: string;
   kind: SectionKind;
-  number: string;
   eyebrow: string;
   lead: string;
   description?: string;
@@ -20,7 +19,6 @@ export function SectionPageHero({
   name,
   slug,
   kind,
-  number,
   eyebrow,
   lead,
   description,
@@ -46,9 +44,6 @@ export function SectionPageHero({
         </nav>
 
         <div className="section-page-hero-main">
-          <span className="section-page-hero-number" aria-hidden>
-            {number}
-          </span>
           <div>
             <span className="section-page-hero-eyebrow">{eyebrow}</span>
             <h1 className="section-page-hero-title">{name}</h1>

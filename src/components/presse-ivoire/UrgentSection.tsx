@@ -14,7 +14,6 @@ export function UrgentSection({ data }: UrgentSectionProps) {
     <section id="urgent" className="home-band home-band--urgent" aria-label="Breaking news">
       <div className="container">
         <SectionHeader
-          number="00"
           eyebrow="Alert feed"
           title="🔥 Breaking — Live"
           linkHref="/urgent"

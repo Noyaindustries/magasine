@@ -14,7 +14,6 @@ export function VideoSectionHome({ data }: VideoSectionHomeProps) {
     <div className="section section-premium section-video">
       <div className="container">
         <SectionHeader
-          number="03"
           eyebrow="Multimedia"
           title="Featured Videos"
           linkHref="/category/multimedia"
