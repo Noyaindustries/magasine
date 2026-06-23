@@ -1,11 +1,9 @@
-import { StatsStrip } from "@/components/presse-ivoire/StatsStrip";
 import { NewsletterBanner } from "@/components/presse-ivoire/NewsletterBanner";
 import type { PublicSiteSettings } from "@/lib/site-settings";
 
 interface HomeClosingBandProps {
   settings: Pick<
     PublicSiteSettings,
-    | "closingStats"
     | "newsletterEnabled"
     | "newsletterTitle"
     | "newsletterTitleEm"
@@ -16,8 +14,7 @@ interface HomeClosingBandProps {
 
 export function HomeClosingBand({ settings }: HomeClosingBandProps) {
   return (
-    <section className="home-band home-band--closing" aria-label="Stats and newsletter">
-      <StatsStrip stats={settings.closingStats} />
+    <section className="home-band home-band--closing" aria-label="Newsletter">
       <NewsletterBanner
         enabled={settings.newsletterEnabled}
         title={settings.newsletterTitle}
