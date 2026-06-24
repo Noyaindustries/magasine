@@ -14,6 +14,7 @@ export function FooterBrandLogo() {
         alt={siteName}
         width={190}
         height={44}
+        unoptimized
         style={{ height: 44, width: "auto" }}
       />
     </Link>

@@ -51,6 +51,12 @@ body {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 12px 40px rgba(26, 56, 150, 0.1);
 }
+.header .logo img {
+  background: transparent;
+}
+.header-actions {
+  background: transparent;
+}
 .header-nav-left a.active::after,
 .header-nav-mobile a.active::after,
 .header-nav-mega-trigger.is-active::after,
@@ -115,42 +121,46 @@ body {
 }
 .home-quick-nav--revolution .home-quick-nav-wrap {
   gap: 0;
-  padding: 12px max(20px, env(safe-area-inset-left, 0px)) 14px max(20px, env(safe-area-inset-right, 0px));
+  padding: 8px max(20px, env(safe-area-inset-left, 0px)) 10px max(20px, env(safe-area-inset-right, 0px));
 }
 .home-quick-nav--revolution .home-quick-nav-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  padding: 0 6px 8px;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding: 0 4px 5px;
   border-bottom: 1px solid rgba(214, 211, 209, 0.6);
 }
-.home-quick-nav--revolution .home-quick-nav-label {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--mid-gray);
-}
-.home-quick-nav--revolution .home-quick-nav-brand {
-  display: inline-flex;
+.home-quick-nav--revolution .home-quick-nav-actions {
+  display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--f-display);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--brand-brown);
-  white-space: nowrap;
+  flex-shrink: 0;
 }
-.home-quick-nav--revolution .home-quick-nav-brand-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--brand-brown);
-  box-shadow: 0 0 10px rgba(148, 86, 60, 0.5);
-  animation: pulse-live 2s ease-in-out infinite;
+.home-quick-nav--revolution .home-quick-nav-donate {
+  padding: 6px 14px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  height: auto;
+  min-width: 0;
+}
+.home-quick-nav--revolution .home-quick-nav-newsletter {
+  padding: 6px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--brand-blue, #1a3896);
+  background: none;
+  border: none;
+  box-shadow: none;
+  transition: color 0.2s;
+}
+.home-quick-nav--revolution .home-quick-nav-newsletter:hover {
+  color: var(--brand-brown, #94563c);
+  background: none;
 }
 .home-quick-nav--revolution .home-quick-nav-rail {
   width: 100%;
@@ -159,20 +169,29 @@ body {
 }
 .home-quick-nav--revolution .home-quick-nav-track {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 4px 0;
+  justify-content: flex-start;
+  gap: 0 6px;
   width: 100%;
-  padding: 7px 0;
+  padding: 4px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.home-quick-nav--revolution .home-quick-nav-track::-webkit-scrollbar {
+  display: none;
 }
 .home-quick-nav--revolution .home-quick-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 14px;
+  gap: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 3px 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--charcoal);
   background: none;
@@ -184,7 +203,7 @@ body {
   white-space: nowrap;
 }
 .home-quick-nav--revolution .home-quick-pill-icon {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1;
 }
 .home-quick-nav--revolution .home-quick-pill:hover {
@@ -218,7 +237,19 @@ body {
 
 @media (min-width: 1025px) {
   :root {
-    --quick-nav-h: 88px;
+    --quick-nav-h: 72px;
+  }
+
+  .home-quick-nav--revolution .home-quick-nav-track {
+    overflow-x: visible;
+    justify-content: center;
+    gap: 0 clamp(4px, 0.55vw, 8px);
+  }
+
+  .home-quick-nav--revolution .home-quick-pill {
+    font-size: clamp(10px, 0.9vw, 12px);
+    padding: 3px clamp(4px, 0.4vw, 8px);
+    letter-spacing: 0.04em;
   }
 }
 
@@ -243,16 +274,19 @@ body {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     margin: 0;
-    padding: 7px 0;
+    padding: 4px 0;
     scroll-padding-inline: 0;
+    justify-content: flex-start;
+    gap: 0 4px;
   }
   .home-quick-nav--revolution .home-quick-nav-track::-webkit-scrollbar {
     display: none;
   }
   .home-quick-nav--revolution .home-quick-pill {
     flex-shrink: 0;
-    padding: 6px 12px;
+    padding: 3px 6px;
     font-size: 10px;
+    letter-spacing: 0.04em;
   }
 }
 
@@ -749,9 +783,9 @@ body {
   line-height: 1.35;
   border: none;
   box-shadow: none;
-  font-size: inherit;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -1384,8 +1418,9 @@ body {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .article-page--revolution .article-related-grid a:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-soft);
+  transform: translateY(-3px);
+  border-color: rgba(26, 56, 150, 0.48);
+  box-shadow: 0 0 0 1px rgba(26, 56, 150, 0.22), 0 14px 36px rgba(26, 56, 150, 0.12);
 }
 
 /* ═══ CATEGORY PAGE — REVOLUTION ═══ */
@@ -1506,10 +1541,10 @@ body {
 .category-page--revolution .ec-card-h--featured {
   grid-template-columns: minmax(280px, 44%) 1fr;
   gap: 24px;
-  align-items: center;
+  align-items: stretch;
 }
 .category-page--revolution .ec-card-h--compact {
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: auto 1fr;
   gap: 14px;
   align-items: start;
 }
@@ -1521,8 +1556,8 @@ body {
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
 .category-page--revolution .ec-card-h--compact .ec-card-h-media {
-  aspect-ratio: 4/3;
-  width: 110px;
+  aspect-ratio: 1 / 1;
+  width: clamp(100px, 28%, 120px);
 }
 .category-page--revolution .ec-card-h-content {
   min-width: 0;

@@ -56,11 +56,14 @@ export function HomeQuickNav({ categories: _categories }: HomeQuickNavProps) {
     <nav className="home-quick-nav home-quick-nav--revolution" aria-label="Quick sections">
       <div className="container home-quick-nav-wrap">
         <div className="home-quick-nav-head">
-          <span className="home-quick-nav-label">Sections</span>
-          <span className="home-quick-nav-brand">
-            <span className="home-quick-nav-brand-dot" aria-hidden />
-            Global South Watch
-          </span>
+          <div className="home-quick-nav-actions">
+            <Link href="/donate" className="home-quick-nav-donate btn-donate">
+              Donate
+            </Link>
+            <Link href="/newsletter" className="home-quick-nav-newsletter" aria-label="Newsletter">
+              Newsletter
+            </Link>
+          </div>
         </div>
 
         <div className="home-quick-nav-rail">

@@ -1,4 +1,7 @@
-/* Canela — place licensed .woff2 files in public/fonts/canela/
+/* Canela — fichiers locaux optionnels (non chargés par défaut).
+   Place licensed .woff2 files in public/fonts/canela/, then add to globals.css:
+   @import "./fonts/canela.css";
+
    Expected names (any matching pair works):
    - Canela-Regular.woff2 / Canela-Regular-Web.woff2
    - Canela-Medium.woff2 / Canela-Medium-Web.woff2

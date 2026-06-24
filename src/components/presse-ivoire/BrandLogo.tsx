@@ -33,6 +33,7 @@ export function BrandLogo({
         width={width}
         height={height}
         priority={variant === "header"}
+        unoptimized
         style={{ height, width: "auto", maxWidth: width }}
       />
       {displayTagline && (

@@ -1,0 +1,488 @@
+/* Cartes articles — hauteurs alignées image/texte + encadrement au survol */
+
+:root {
+  --article-card-border: 1px solid var(--rule, #e5e2dc);
+  --article-card-radius: 16px;
+  --article-card-hover-border: rgba(26, 56, 150, 0.48);
+  --article-card-hover-shadow: 0 14px 36px rgba(26, 56, 150, 0.12);
+  --article-card-hover-ring: 0 0 0 1px rgba(26, 56, 150, 0.22);
+  --article-card-thumb-size: clamp(100px, 28%, 120px);
+  --article-card-thumb-size-sm: clamp(72px, 24vw, 96px);
+  --hero-sidebar-thumb: clamp(64px, 22%, 76px);
+  --hero-also-read-thumb: clamp(64px, 26%, 80px);
+  --editor-compact-thumb: 96px;
+  --article-card-transition:
+    border-color 0.28s ease,
+    box-shadow 0.28s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.28s ease;
+}
+
+/* Grilles : cartes de même hauteur */
+.home-page .editors-horizontal-grid,
+.home-page .opinion-row,
+.home-page .video-row,
+.home-page .topic-row-grid,
+.home-page .urgent-list,
+.home-page .hero-sub-articles--grid-3,
+.home-page .rubrique-block-grid,
+.category-page--revolution .category-grid,
+.article-page--revolution .article-related-grid {
+  align-items: stretch;
+}
+
+/* Cartes horizontales compactes — vignette carrée à gauche */
+.home-page .ec-card-h--compact,
+.home-page .urgent-list-item,
+.home-page .mini-card-h,
+.home-page .rubrique-block-item,
+.home-page .hero-latest-item,
+.home-page .hero-latest-featured,
+.home-page .thematic-main-premium,
+.category-page--revolution .ec-card-h--compact {
+  align-items: start;
+  height: 100%;
+}
+
+/* Grandes cartes — image 16/10 */
+.home-page .ec-card-h--featured,
+.home-page .latest-featured-h,
+.home-page .urgent-featured-h,
+.category-page--revolution .ec-card-h--featured {
+  align-items: stretch;
+  height: 100%;
+}
+
+.home-page .ec-card-h--featured .ec-card-h-media,
+.home-page .latest-featured-h-media,
+.home-page .urgent-featured-h .ec-card-h-media,
+.category-page--revolution .ec-card-h--featured .ec-card-h-media {
+  align-self: stretch;
+  width: 100%;
+  min-height: 120px;
+  aspect-ratio: 16 / 10;
+  height: auto;
+}
+
+/* Cartes compactes — flex côte à côte (évite chevauchement image/texte) */
+.home-page .ec-card-h.ec-card-h--compact:not(.urgent-list-item),
+.category-page--revolution .ec-card-h.ec-card-h--compact {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.home-page .ec-card-h--compact:not(.urgent-list-item) .ec-card-h-media,
+.category-page--revolution .ec-card-h--compact .ec-card-h-media {
+  flex: 0 0 var(--editor-compact-thumb);
+  width: var(--editor-compact-thumb);
+  height: var(--editor-compact-thumb);
+  min-width: var(--editor-compact-thumb);
+  max-width: var(--editor-compact-thumb);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;
+  align-self: flex-start;
+}
+
+.home-page .ec-card-h--compact .ec-card-h-media .section-image-wrap,
+.category-page--revolution .ec-card-h--compact .ec-card-h-media .section-image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-page .ec-card-h--compact:not(.urgent-list-item) .ec-card-h-content,
+.category-page--revolution .ec-card-h--compact .ec-card-h-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+}
+
+/* Vignettes carrées (autres cartes horizontales) */
+.home-page .urgent-list-item .ec-card-h-media,
+.home-page .mini-card-h-media,
+.home-page .rubrique-block-item-img,
+.home-page .thematic-main-img {
+  width: var(--article-card-thumb-size);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  align-self: start;
+  min-height: 0;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page .urgent-list-item .ec-card-h-media .section-image-wrap,
+.home-page .mini-card-h-media .section-image-wrap,
+.home-page .rubrique-block-item-img .section-image-wrap,
+.home-page .thematic-main-img .section-image-wrap,
+.home-page .hero-latest-featured-media .section-image-wrap,
+.home-page .hero-latest-item-media .section-image-wrap,
+.home-page .hero-sub-articles--grid-3 .mini-card-h-media .section-image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Also read & Latest news — vignettes carrées compactes */
+.home-page .hero-sub-articles--grid-3 .mini-card-h-media,
+.home-page--revolution .hero-sub-articles--grid-3 .mini-card-h-media {
+  width: var(--hero-also-read-thumb);
+  height: var(--hero-also-read-thumb);
+  min-width: var(--hero-also-read-thumb);
+  max-width: var(--hero-also-read-thumb);
+  aspect-ratio: 1 / 1;
+  align-self: flex-start;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page .hero-latest-featured-media,
+.home-page .hero-latest-item-media,
+.home-page--revolution .hero-latest-featured-media,
+.home-page--revolution .hero-latest-item-media {
+  width: var(--hero-sidebar-thumb);
+  height: var(--hero-sidebar-thumb);
+  min-width: var(--hero-sidebar-thumb);
+  max-width: var(--hero-sidebar-thumb);
+  aspect-ratio: 1 / 1;
+  align-self: flex-start;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page .hero-latest-featured {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.home-page .hero-opinion-section .mini-card-h {
+  align-items: center;
+}
+
+.home-page .hero-opinion-section .mini-card-h-media {
+  width: clamp(64px, 22%, 88px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 0;
+  align-self: center;
+  border-radius: 50%;
+}
+
+.home-page .ec-card-h-content,
+.home-page .latest-featured-h-body,
+.home-page .mini-card-h-body,
+.home-page .urgent-list-item .ec-card-h-content,
+.home-page .rubrique-block-item-body,
+.home-page .hero-latest-item-body,
+.category-page--revolution .ec-card-h-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-self: stretch;
+  min-width: 0;
+}
+
+/* Cartes avec bordure + encadrement au survol */
+.home-page .ec-card-h,
+.home-page .latest-featured-h,
+.home-page .urgent-featured-h,
+.home-page .urgent-list-item,
+.home-page .mini-card-h,
+.home-page .video-row .video-card,
+.home-page .topic-row-card,
+.home-page .rubrique-block-featured,
+.home-page .rubrique-block-item,
+.home-page .latest-item-premium,
+.home-page .thematic-main-premium,
+.category-page--revolution .ec-card-h,
+.category-page--revolution .ec-card-h--featured,
+.category-page--revolution .ec-card-h--compact,
+.category-page--revolution .category-card,
+.article-page--revolution .article-related-grid a {
+  transition: var(--article-card-transition);
+}
+
+.home-page .ec-card-h:hover,
+.home-page .latest-featured-h:hover,
+.home-page .urgent-featured-h:hover,
+.home-page .urgent-list-item:hover,
+.home-page .mini-card-h:hover,
+.home-page .video-row .video-card:hover,
+.home-page .topic-row-card:hover,
+.home-page .rubrique-block-featured:hover,
+.home-page .rubrique-block-item:hover,
+.home-page .latest-item-premium:hover,
+.home-page .thematic-main-premium:hover,
+.category-page--revolution .ec-card-h:hover,
+.category-page--revolution .ec-card-h--featured:hover,
+.category-page--revolution .ec-card-h--compact:hover,
+.category-page--revolution .category-card:hover,
+.article-page--revolution .article-related-grid a:hover {
+  border-color: var(--article-card-hover-border);
+  box-shadow: var(--article-card-hover-ring), var(--article-card-hover-shadow);
+  transform: translateY(-3px);
+}
+
+/* Cartes verticales / listes */
+.home-page .topic-row-card {
+  border: var(--article-card-border);
+  border-radius: var(--article-card-radius);
+  padding: 12px;
+  background: var(--white);
+  box-sizing: border-box;
+}
+
+.home-page .rubrique-block-featured {
+  border: var(--article-card-border);
+  border-radius: 14px;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+.home-page .rubrique-block-item {
+  border: var(--article-card-border);
+  border-radius: 12px;
+  padding: 10px;
+  box-sizing: border-box;
+  border-bottom: var(--article-card-border);
+}
+
+.home-page .rubrique-block-item:last-child {
+  border-bottom: var(--article-card-border);
+}
+
+.home-page .hero-latest-item {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  margin-inline: -6px;
+  padding: 12px 6px;
+  box-sizing: border-box;
+  transition: var(--article-card-transition);
+}
+
+.home-page .hero-latest-item:hover {
+  border-color: var(--article-card-hover-border);
+  background: rgba(26, 56, 150, 0.04);
+  box-shadow: var(--article-card-hover-ring);
+  transform: none;
+}
+
+.home-page .latest-item-premium {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  margin-inline: -8px;
+  padding-inline: 8px;
+  align-items: stretch;
+}
+
+.home-page .latest-item-premium:hover {
+  border-color: var(--article-card-hover-border);
+  box-shadow: var(--article-card-hover-ring);
+  transform: none;
+}
+
+.home-page .thematic-main-premium {
+  border: var(--article-card-border);
+  border-radius: 12px;
+  padding: 12px;
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+.home-page .thematic-main-img {
+  width: var(--article-card-thumb-size);
+}
+
+/* Also read — flex image + texte */
+.home-page .hero-sub-articles--grid-3 .mini-card-h {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-page .hero-sub-articles--grid-3 .mini-card-h-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Also read — vignettes carrées */
+.home-page--revolution .hero-sub-articles--grid-3 .mini-card-h {
+  align-items: start;
+  height: 100%;
+}
+
+.home-page--revolution .hero-sub-articles--grid-3 .mini-card-h-body {
+  align-self: stretch;
+  justify-content: flex-start;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --article-card-thumb-size: clamp(96px, 26%, 112px);
+    --article-card-thumb-size-sm: clamp(68px, 22vw, 88px);
+    --hero-sidebar-thumb: clamp(60px, 20%, 72px);
+    --hero-also-read-thumb: clamp(60px, 24%, 76px);
+    --editor-compact-thumb: 88px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --article-card-thumb-size: clamp(88px, 24vw, 104px);
+    --article-card-thumb-size-sm: clamp(72px, 22vw, 88px);
+    --hero-sidebar-thumb: clamp(56px, 18vw, 68px);
+    --hero-also-read-thumb: clamp(56px, 22vw, 72px);
+    --editor-compact-thumb: 84px;
+  }
+
+  /* Empilé : image pleine largeur carrée */
+  .home-page .ec-card-h--featured .ec-card-h-media,
+  .home-page .latest-featured-h-media,
+  .home-page .urgent-featured-h .ec-card-h-media,
+  .category-page--revolution .ec-card-h--featured .ec-card-h-media {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    align-self: auto;
+  }
+
+  .home-page .ec-card-h--compact:not(.urgent-list-item) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .home-page .ec-card-h--compact:not(.urgent-list-item) .ec-card-h-media {
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    max-width: none;
+    aspect-ratio: 1 / 1;
+  }
+
+  .home-page .ec-card-h--compact .ec-card-h-media,
+  .home-page .urgent-list-item .ec-card-h-media,
+  .category-page--revolution .ec-card-h--compact .ec-card-h-media {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    align-self: auto;
+  }
+
+  .home-page .hero-sub-articles--grid-3 .mini-card-h-media,
+  .home-page--revolution .hero-sub-articles--grid-3 .mini-card-h-media {
+    width: var(--hero-also-read-thumb);
+    aspect-ratio: 1 / 1;
+    height: auto;
+    align-self: start;
+  }
+
+  .home-page .hero-latest-featured-media,
+  .home-page .hero-latest-item-media,
+  .home-page--revolution .hero-latest-featured-media,
+  .home-page--revolution .hero-latest-item-media {
+    width: var(--hero-sidebar-thumb);
+    aspect-ratio: 1 / 1;
+    align-self: start;
+  }
+
+  .home-page .hero-sub-articles--grid-3 .mini-card-h,
+  .home-page--revolution .hero-sub-articles--grid-3 .mini-card-h {
+    flex-direction: row;
+    align-items: start;
+  }
+
+  .home-page .rubrique-block-item {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+  }
+
+  .home-page .urgent-list-item {
+    align-items: start;
+  }
+
+  .home-page .urgent-list-item .ec-card-h-media {
+    width: var(--article-card-thumb-size-sm);
+    aspect-ratio: 1 / 1;
+    align-self: start;
+  }
+
+  .home-page .thematic-main-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page .topic-row-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page .video-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Catégories — une seule ligne */
+.home-page .ec-card-cat,
+.home-page .mini-card-cat,
+.home-page .hero-latest-cat,
+.home-page .hero-latest-item-cat,
+.home-page .rubrique-block-item-cat,
+.home-page .topic-row-card-cat,
+.home-page .video-cat,
+.home-page .latest-item-cat,
+.home-page--revolution .ec-card-cat,
+.home-page--revolution .mini-card-cat,
+.home-page--revolution .hero-latest-cat,
+.home-page--revolution .hero-latest-item-cat,
+.home-page--revolution .topic-row-card-cat,
+.home-page--revolution .video-cat,
+.home-page--revolution .rubrique-block-item-cat,
+.home-page--revolution .latest-item-cat,
+.category-page--revolution .ec-card-cat {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+}
+
+.home-page--revolution .hero-sub-articles--grid-3 .mini-card-cat,
+.home-page .hero-sub-articles--grid-3 .mini-card-cat {
+  font-size: 7px;
+  letter-spacing: 0.05em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page .ec-card-h:hover,
+  .home-page .latest-featured-h:hover,
+  .home-page .urgent-featured-h:hover,
+  .home-page .urgent-list-item:hover,
+  .home-page .mini-card-h:hover,
+  .home-page .video-row .video-card:hover,
+  .home-page .topic-row-card:hover,
+  .home-page .rubrique-block-featured:hover,
+  .home-page .rubrique-block-item:hover,
+  .category-page--revolution .ec-card-h:hover,
+  .category-page--revolution .category-card:hover,
+  .article-page--revolution .article-related-grid a:hover {
+    transform: none;
+  }
+}

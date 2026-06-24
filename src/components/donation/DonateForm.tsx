@@ -1,38 +1,81 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, CheckCircle2 } from "lucide-react";
+import {
+  DONATION_MIN_AMOUNT,
+  DONATION_PRESETS,
+  formatDonationAmount,
+  getDonationImpact,
+} from "@/lib/donation";
 
-const PRESETS = [10, 25, 50, 100] as const;
+interface DonateFormProps {
+  amount?: number;
+  frequency?: "one-time" | "monthly";
+  onAmountChange?: (amount: number) => void;
+  onFrequencyChange?: (frequency: "one-time" | "monthly") => void;
+  onTierClear?: () => void;
+}
 
-const IMPACT = [
-  { amount: 10, text: "Funds one field dispatch from a regional correspondent" },
-  { amount: 25, text: "Supports a week of fact-checking for an investigation" },
-  { amount: 50, text: "Helps produce a video report from the Global South" },
-  { amount: 100, text: "Sponsors an in-depth regional dossier" },
-];
-
-export function DonateForm() {
-  const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
-  const [amount, setAmount] = useState<number>(25);
+export function DonateForm({
+  amount: controlledAmount,
+  frequency: controlledFrequency,
+  onAmountChange,
+  onFrequencyChange,
+  onTierClear,
+}: DonateFormProps = {}) {
+  const [frequency, setFrequency] = useState<"one-time" | "monthly">(controlledFrequency ?? "one-time");
+  const [amount, setAmount] = useState<number>(controlledAmount ?? 35);
   const [custom, setCustom] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [coverFees, setCoverFees] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
+  useEffect(() => {
+    if (controlledAmount !== undefined) {
+      setAmount(controlledAmount);
+      setCustom("");
+    }
+  }, [controlledAmount]);
+
+  useEffect(() => {
+    if (controlledFrequency !== undefined) {
+      setFrequency(controlledFrequency);
+    }
+  }, [controlledFrequency]);
+
   const resolvedAmount = custom.trim() ? Number.parseFloat(custom) : amount;
-  const impactLine = IMPACT.filter((i) => i.amount <= resolvedAmount).at(-1)?.text;
+  const feeBase = Number.isFinite(resolvedAmount) ? resolvedAmount : amount;
+  const feeBuffer = coverFees ? feeBase * 0.03 : 0;
+  const chargedAmount = Number.isFinite(resolvedAmount) ? resolvedAmount + feeBuffer : amount;
+  const impactLine = Number.isFinite(resolvedAmount) ? getDonationImpact(resolvedAmount) : undefined;
+
+  const updateAmount = (next: number) => {
+    setAmount(next);
+    onAmountChange?.(next);
+    onTierClear?.();
+  };
+
+  const updateFrequency = (next: "one-time" | "monthly") => {
+    setFrequency(next);
+    onFrequencyChange?.(next);
+    onTierClear?.();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
     setErrorMsg("");
 
-    const finalAmount = custom.trim() ? Number.parseFloat(custom) : amount;
-    if (!Number.isFinite(finalAmount) || finalAmount < 1) {
-      setErrorMsg("Please enter a valid amount (minimum €1).");
+    const baseAmount = custom.trim() ? Number.parseFloat(custom) : amount;
+    const finalAmount = coverFees ? baseAmount + baseAmount * 0.03 : baseAmount;
+
+    if (!Number.isFinite(baseAmount) || baseAmount < DONATION_MIN_AMOUNT) {
+      setErrorMsg(`Please enter a valid amount (minimum ${formatDonationAmount(DONATION_MIN_AMOUNT)}).`);
       setStatus("error");
       return;
     }
@@ -42,11 +85,13 @@ export function DonateForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
+          name: anonymous ? "Anonymous donor" : name,
           email,
           amount: finalAmount,
           frequency,
           message: message.trim() || undefined,
+          coverFees,
+          anonymous,
         }),
       });
       const data = (await res.json()) as { error?: string; message?: string };
@@ -68,8 +113,8 @@ export function DonateForm() {
         <CheckCircle2 className="donate-success-icon" aria-hidden />
         <h2>Thank you for your generosity</h2>
         <p>
-          Your pledge has been recorded. In production, a secure payment step (Stripe or similar)
-          would complete the transaction.
+          Your {formatDonationAmount(chargedAmount, { frequency })} pledge has been recorded. When payment
+          processing goes live, you will receive a confirmation email with your receipt in USD.
         </p>
         <button type="button" className="donate-submit" onClick={() => setStatus("idle")}>
           Make another donation
@@ -84,46 +129,54 @@ export function DonateForm() {
         <button
           type="button"
           className={frequency === "one-time" ? "is-active" : undefined}
-          onClick={() => setFrequency("one-time")}
+          onClick={() => updateFrequency("one-time")}
         >
           One-time
         </button>
         <button
           type="button"
           className={frequency === "monthly" ? "is-active" : undefined}
-          onClick={() => setFrequency("monthly")}
+          onClick={() => updateFrequency("monthly")}
         >
           Monthly
         </button>
       </div>
 
       <fieldset className="donate-amounts">
-        <legend className="sr-only">Choose an amount</legend>
-        {PRESETS.map((preset) => (
+        <legend className="sr-only">Choose an amount in U.S. dollars</legend>
+        {DONATION_PRESETS.map((preset) => (
           <button
             key={preset}
             type="button"
             className={`donate-amount-btn${amount === preset && !custom ? " is-active" : ""}`}
             onClick={() => {
-              setAmount(preset);
+              updateAmount(preset);
               setCustom("");
             }}
           >
-            €{preset}
+            {formatDonationAmount(preset)}
           </button>
         ))}
       </fieldset>
 
       <label className="donate-field">
-        <span>Other amount (€)</span>
-        <input
-          type="number"
-          min={1}
-          step={1}
-          placeholder="Custom amount"
-          value={custom}
-          onChange={(e) => setCustom(e.target.value)}
-        />
+        <span>Other amount (USD)</span>
+        <div className="donate-amount-input">
+          <span className="donate-amount-prefix" aria-hidden>
+            $
+          </span>
+          <input
+            type="number"
+            min={DONATION_MIN_AMOUNT}
+            step={1}
+            placeholder="Custom amount"
+            value={custom}
+            onChange={(e) => {
+              setCustom(e.target.value);
+              onTierClear?.();
+            }}
+          />
+        </div>
       </label>
 
       {impactLine && (
@@ -133,12 +186,32 @@ export function DonateForm() {
         </p>
       )}
 
+      <div className="donate-checkboxes">
+        <label className="donate-checkbox">
+          <input
+            type="checkbox"
+            checked={coverFees}
+            onChange={(e) => setCoverFees(e.target.checked)}
+          />
+          <span>Add 3% to cover processing fees ({formatDonationAmount(feeBase * 0.03)})</span>
+        </label>
+        <label className="donate-checkbox">
+          <input
+            type="checkbox"
+            checked={anonymous}
+            onChange={(e) => setAnonymous(e.target.checked)}
+          />
+          <span>Give anonymously (name hidden from public lists)</span>
+        </label>
+      </div>
+
       <div className="donate-fields-row">
         <label className="donate-field">
           <span>Full name</span>
           <input
             type="text"
-            required
+            required={!anonymous}
+            disabled={anonymous}
             autoComplete="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -167,16 +240,21 @@ export function DonateForm() {
         />
       </label>
 
-      {errorMsg && <p className="donate-error" role="alert">{errorMsg}</p>}
+      {errorMsg && (
+        <p className="donate-error" role="alert">
+          {errorMsg}
+        </p>
+      )}
 
       <button type="submit" className="donate-submit" disabled={status === "loading"}>
         {status === "loading"
           ? "Processing…"
-          : `Donate €${Number.isFinite(resolvedAmount) ? resolvedAmount : amount}${frequency === "monthly" ? " / month" : ""}`}
+          : `Donate ${formatDonationAmount(chargedAmount, { frequency })}`}
       </button>
 
       <p className="donate-disclaimer">
-        Demo mode: no real payment is processed. Your pledge is stored securely for demonstration purposes.
+        Demo mode: no real payment is processed yet. Pledges are stored securely in USD for demonstration
+        purposes. Card, Apple Pay, and Google Pay will be enabled with Stripe.
       </p>
     </form>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Libre_Baskerville } from "next/font/google";
 import { SiteChrome } from "@/components/SiteChrome";
 import { getLayoutNavData } from "@/lib/data";
 import { getPublicSiteSettings } from "@/lib/site-settings";
@@ -9,12 +9,20 @@ import "./globals.css";
 import "./responsive.css";
 import "./revolution.css";
 import "./home-page.css";
+import "./article-cards.css";
 import "./images-flat.css";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const libreBaskerville = Libre_Baskerville({
+  variable: "--font-canela-fallback",
+  subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -67,7 +75,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${dmSans.variable} notranslate`}
+      className={`${dmSans.variable} ${adobeFontsKitId ? "" : libreBaskerville.variable} notranslate`}
     >
       <head>
         {adobeFontsKitId ? (

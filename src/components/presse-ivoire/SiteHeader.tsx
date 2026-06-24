@@ -150,23 +150,17 @@ export function SiteHeader() {
         <div className="header-actions">
           <button
             type="button"
-            className="btn-search btn-search--desktop"
+            className="btn-search"
             title="Search"
             onClick={() => setSearchOpen(!searchOpen)}
             aria-label="Search"
+            aria-expanded={searchOpen}
           >
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5" />
               <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </button>
-          <Link href="/donate" className="btn-donate" aria-label="Donate">
-            <span className="btn-donate-full">Donate</span>
-            <span className="btn-donate-short">Donate</span>
-          </Link>
-          <Link href="/newsletter" className="btn-subscribe" aria-label="Newsletter">
-            <span className="btn-subscribe-label">Newsletter</span>
-          </Link>
           <HeaderAuth />
         </div>
       </div>

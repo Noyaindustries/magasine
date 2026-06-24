@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { DONATION_CURRENCY, DONATION_MIN_AMOUNT } from "@/lib/donation";
 import { connectDB } from "@/lib/mongodb";
 import { Donation } from "@/models/Donation";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name is required"),
   email: z.string().email("Invalid email"),
-  amount: z.number().min(1, "Minimum donation is €1").max(100_000),
+  amount: z
+    .number()
+    .min(DONATION_MIN_AMOUNT, `Minimum donation is $${DONATION_MIN_AMOUNT} USD`)
+    .max(100_000),
   frequency: z.enum(["one-time", "monthly"]),
   message: z.string().trim().max(500).optional(),
+  coverFees: z.boolean().optional(),
+  anonymous: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -22,16 +28,23 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     await Donation.create({
-      ...parsed.data,
-      currency: "EUR",
+      name: parsed.data.name,
+      email: parsed.data.email,
+      amount: parsed.data.amount,
+      currency: DONATION_CURRENCY,
+      frequency: parsed.data.frequency,
+      message: parsed.data.message,
+      coverFees: parsed.data.coverFees ?? false,
+      anonymous: parsed.data.anonymous ?? false,
       status: "pledged",
     });
 
     return NextResponse.json(
       {
         success: true,
+        currency: DONATION_CURRENCY,
         message:
-          "Thank you for your support. In production, you would be redirected to a secure payment page.",
+          "Thank you for your support. In production, you would be redirected to a secure USD checkout.",
       },
       { status: 201 }
     );
