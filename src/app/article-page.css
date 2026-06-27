@@ -12,7 +12,7 @@
   --art-content-width: 680px;
   position: relative;
   background: linear-gradient(180deg, #faf9f7 0%, #f3f1ed 48%, #faf9f7 100%);
-  font-family: var(--f-editorial);
+  font-family: var(--f-article-body);
   padding: 0 0 clamp(64px, 8vw, 96px);
   overflow-x: clip;
 }
@@ -168,7 +168,7 @@
 }
 
 .art-title {
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-size: clamp(32px, 5.8vw, 56px);
   font-weight: 800;
   line-height: 1.06;
@@ -179,7 +179,7 @@
 }
 
 .art-subtitle {
-  font-family: var(--f-serif);
+  font-family: var(--f-article-body);
   font-size: clamp(19px, 2.6vw, 26px);
   font-weight: 400;
   font-style: normal;
@@ -420,15 +420,19 @@
 
 /* ─── Article body typography ─── */
 .article-page--premium .article-content {
-  font-family: var(--f-serif);
+  font-family: var(--f-article-body);
   font-size: clamp(18px, 1.8vw, 20px);
   line-height: 1.82;
   color: var(--charcoal);
 }
 
+.article-page--premium .article-content :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--f-article-title);
+}
+
 .article-page--premium .article-content > p:first-of-type::first-letter {
   float: left;
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-size: 3.6em;
   line-height: 0.82;
   padding: 6px 14px 0 0;
@@ -437,7 +441,7 @@
 }
 
 .article-page--premium .article-content h2 {
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-size: clamp(24px, 3vw, 30px);
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -448,7 +452,7 @@
 }
 
 .article-page--premium .article-content h3 {
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-size: clamp(19px, 2.2vw, 22px);
   font-weight: 700;
   margin: 32px 0 14px;

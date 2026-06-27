@@ -75,7 +75,7 @@ export function ArticleCard({
           />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-medium text-charcoal line-clamp-2 group-hover:text-accent transition-colors leading-snug">
+          <h3 className="font-serif text-sm font-medium text-charcoal line-clamp-2 group-hover:text-accent transition-colors leading-snug">
             {article.title}
           </h3>
           <span className="text-[11px] text-muted mt-1 block">

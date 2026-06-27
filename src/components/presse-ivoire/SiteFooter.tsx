@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FOOTER_BOTTOM_LINKS, FOOTER_COLS, SITE_TAGLINE } from "@/data/presse-ivoire-home";
 import { SocialLinks } from "@/components/ui/SocialIcons";
-import { FooterBrandLogo } from "@/components/presse-ivoire/FooterBrandLogo";
 
 const FOOTER_COLUMNS = [
   { title: "Sections", links: FOOTER_COLS.sections },
@@ -17,7 +16,6 @@ export function SiteFooter() {
       <div className="container">
         <div className="footer-top">
           <div className="footer-brand">
-            <FooterBrandLogo />
             <p className="footer-brand-tagline">{SITE_TAGLINE}</p>
             <p className="footer-brand-desc">
               Independent journalism from Africa and the Global South — news, commentary,

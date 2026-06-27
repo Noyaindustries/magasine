@@ -1045,10 +1045,10 @@ body {
   border-top: 1px dashed rgba(26, 56, 150, 0.12);
 }
 .home-page--revolution .hero-sub-title {
-  font-family: var(--f-display);
-  font-weight: 800;
-  color: var(--ink);
-  letter-spacing: -0.02em;
+  font-family: var(--f-ui);
+  font-weight: 700;
+  color: var(--brand-blue-dark, #142a70);
+  letter-spacing: 0.01em;
 }
 
 .home-page--revolution .home-band--ad {
@@ -1190,7 +1190,7 @@ body {
 
 /* Article pages inherit typography */
 .article-page .article-title {
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-weight: 800;
   letter-spacing: -0.03em;
 }
@@ -1301,7 +1301,7 @@ body {
   line-height: 1.08;
 }
 .article-page--revolution .article-subtitle {
-  font-family: var(--f-serif);
+  font-family: var(--f-article-body);
   font-size: clamp(18px, 2.5vw, 24px);
   color: var(--mid-gray);
 }
@@ -1345,7 +1345,7 @@ body {
   margin-bottom: 28px;
 }
 .article-page--revolution .article-content h2 {
-  font-family: var(--f-display);
+  font-family: var(--f-article-title);
   font-weight: 800;
   letter-spacing: -0.02em;
 }

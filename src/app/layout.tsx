@@ -75,7 +75,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${dmSans.variable} ${adobeFontsKitId ? "" : libreBaskerville.variable} notranslate`}
+      className={`${dmSans.variable} ${libreBaskerville.variable} notranslate`}
     >
       <head>
         {adobeFontsKitId ? (

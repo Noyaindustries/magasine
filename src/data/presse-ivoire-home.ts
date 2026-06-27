@@ -16,7 +16,18 @@ export const REGION_NAV = [
 
 export const ALL_NEWS_LINK = { label: "All news", href: "/news" } as const;
 
-export const VIEW_ALL_STORIES_LINK = { label: "View all stories", href: "/news" } as const;
+export const ALL_NEWS_CTA = {
+  kicker: "News feed",
+  label: "All news",
+  description: "Every story from our desks and regions",
+  href: "/news",
+} as const;
+
+/** @deprecated Use ALL_NEWS_CTA */
+export const VIEW_ALL_STORIES_LINK = {
+  label: "View all stories",
+  href: ALL_NEWS_CTA.href,
+} as const;
 
 /** News dropdown — desktop main menu */
 export const NEWS_MENU_NAV = [

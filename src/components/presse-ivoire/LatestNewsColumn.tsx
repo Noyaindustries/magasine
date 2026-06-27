@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import type { HomeLatest } from "@/types/home";
-import { VIEW_ALL_STORIES_LINK } from "@/data/presse-ivoire-home";
 import { SectionImage } from "@/components/presse-ivoire/SectionImage";
+import { HeroLatestAllNewsCta } from "@/components/presse-ivoire/HeroLatestAllNewsCta";
 import { HeroLatestNewsletter } from "@/components/presse-ivoire/HeroLatestNewsletter";
 import { formatHomeCardMeta } from "@/lib/format-article";
 
@@ -13,6 +12,7 @@ interface LatestNewsColumnProps {
 
 export function LatestNewsColumn({ data, newsletterEnabled = true }: LatestNewsColumnProps) {
   const { featured, items } = data;
+  const visibleCount = (featured.slug ? 1 : 0) + items.length;
 
   return (
     <aside className="hero-latest-column reveal visible" data-reveal-delay={160}>
@@ -63,12 +63,7 @@ export function LatestNewsColumn({ data, newsletterEnabled = true }: LatestNewsC
           })}
         </ul>
 
-        <div className="hero-latest-all-stories-wrap">
-          <Link href={VIEW_ALL_STORIES_LINK.href} className="hero-latest-all-stories">
-            <span>{VIEW_ALL_STORIES_LINK.label}</span>
-            <ArrowRight className="hero-latest-all-stories-icon" size={16} strokeWidth={2.25} aria-hidden />
-          </Link>
-        </div>
+        <HeroLatestAllNewsCta visibleCount={visibleCount} />
 
         <HeroLatestNewsletter enabled={newsletterEnabled} />
       </div>
