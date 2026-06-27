@@ -25,24 +25,32 @@ function MobileNavSection({
   label,
   links,
   onClose,
-  linkClassName = "mobile-nav-link",
+  variant = "section",
 }: {
   label: string;
   links: readonly { label: string; href: string }[];
   onClose: () => void;
-  linkClassName?: string;
+  variant?: "section" | "region" | "utility";
 }) {
   const isActive = useNavActive();
+  const linkClass =
+    variant === "region"
+      ? "mobile-nav-link mobile-nav-link--region"
+      : variant === "utility"
+        ? "mobile-nav-link mobile-nav-link--utility"
+        : "mobile-nav-link";
 
   return (
-    <>
-      <p className="mobile-nav-section-label">{label}</p>
-      <ul className="mobile-nav-list">
+    <li className="mobile-nav-group">
+      <p className="mobile-nav-section-label" id={`mobile-nav-${label.replace(/\s+/g, "-").toLowerCase()}`}>
+        {label}
+      </p>
+      <ul className="mobile-nav-sublist" aria-labelledby={`mobile-nav-${label.replace(/\s+/g, "-").toLowerCase()}`}>
         {links.map((item) => (
           <li key={item.href + item.label}>
             <Link
               href={item.href}
-              className={`${linkClassName}${isActive(item.href) ? " is-active" : ""}`}
+              className={`${linkClass}${isActive(item.href) ? " is-active" : ""}`}
               onClick={onClose}
             >
               {item.label}
@@ -50,7 +58,7 @@ function MobileNavSection({
           </li>
         ))}
       </ul>
-    </>
+    </li>
   );
 }
 
@@ -86,11 +94,10 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
     return null;
   }
 
-  const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    const base = href.split("#")[0] ?? href;
-    return pathname === base || pathname.startsWith(`${base}/`);
-  };
+  const legalLinks = [
+    ...MOBILE_NAV.legal,
+    { label: "Accessibility", href: "/accessibility" },
+  ];
 
   return createPortal(
     <>
@@ -130,92 +137,36 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
         </div>
 
         <nav className="mobile-nav-body" aria-label="Mobile navigation">
-          <MobileNavSection
-            label="News"
-            links={MOBILE_NAV.news}
-            onClose={onClose}
-          />
-
-          <MobileNavSection
-            label="Sections"
-            links={MOBILE_NAV.sections}
-            onClose={onClose}
-          />
-
-          <MobileNavSection
-            label="Regions"
-            links={MOBILE_NAV.regions}
-            onClose={onClose}
-            linkClassName="mobile-nav-link mobile-nav-link--region"
-          />
-
-          <MobileNavSection
-            label="Formats"
-            links={MOBILE_NAV.formats}
-            onClose={onClose}
-            linkClassName="mobile-nav-link mobile-nav-link--region"
-          />
+          <ul className="mobile-nav-list mobile-nav-list--unified">
+            <MobileNavSection label="News" links={MOBILE_NAV.news} onClose={onClose} />
+            <MobileNavSection label="Sections" links={MOBILE_NAV.sections} onClose={onClose} />
+            <MobileNavSection
+              label="Regions"
+              links={MOBILE_NAV.regions}
+              onClose={onClose}
+              variant="region"
+            />
+            <MobileNavSection label="Formats" links={MOBILE_NAV.formats} onClose={onClose} />
+            <MobileNavSection
+              label="About"
+              links={MOBILE_NAV.about}
+              onClose={onClose}
+              variant="utility"
+            />
+            <MobileNavSection
+              label="Support"
+              links={MOBILE_NAV.support}
+              onClose={onClose}
+              variant="utility"
+            />
+            <MobileNavSection
+              label="Legal"
+              links={legalLinks}
+              onClose={onClose}
+              variant="utility"
+            />
+          </ul>
         </nav>
-
-        <div className="mobile-nav-about">
-          <p className="mobile-nav-about-label">About</p>
-          <ul className="mobile-nav-about-list">
-            {MOBILE_NAV.about.map((item) => (
-              <li key={item.href + item.label}>
-                <Link
-                  href={item.href}
-                  className={`mobile-nav-about-link${isActive(item.href) ? " is-active" : ""}`}
-                  onClick={onClose}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mobile-nav-about mobile-nav-about--support">
-          <p className="mobile-nav-about-label">Support</p>
-          <ul className="mobile-nav-about-list">
-            {MOBILE_NAV.support.map((item) => (
-              <li key={item.href + item.label}>
-                <Link
-                  href={item.href}
-                  className={`mobile-nav-about-link${isActive(item.href) ? " is-active" : ""}`}
-                  onClick={onClose}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mobile-nav-about mobile-nav-about--legal">
-          <p className="mobile-nav-about-label">Legal</p>
-          <ul className="mobile-nav-about-list">
-            {MOBILE_NAV.legal.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`mobile-nav-about-link${isActive(item.href) ? " is-active" : ""}`}
-                  onClick={onClose}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link
-                href="/accessibility"
-                className={`mobile-nav-about-link${isActive("/accessibility") ? " is-active" : ""}`}
-                onClick={onClose}
-              >
-                Accessibility
-              </Link>
-            </li>
-          </ul>
-        </div>
 
         <div className="mobile-nav-footer">
           <Link
