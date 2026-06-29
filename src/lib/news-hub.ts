@@ -1,4 +1,4 @@
-import { NEWS_MENU_NAV } from "@/data/presse-ivoire-home";
+import { NEWS_MENU_NAV } from "@/data/site-home";
 import type { ArticleListItem } from "@/types";
 
 export const NEWS_HUB_CATEGORY_SLUGS = new Set([

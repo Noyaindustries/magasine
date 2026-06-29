@@ -14,7 +14,7 @@ import { resolveFeaturedImage } from "@/lib/images";
 import { CommentsSection } from "@/components/article/CommentsSection";
 import { NewsletterPrompt } from "@/components/article/NewsletterPrompt";
 import { ArticleBody } from "@/components/article/ArticleBody";
-import { PageBackdrop } from "@/components/presse-ivoire/PageBackdrop";
+import { PageBackdrop } from "@/components/site-chrome/PageBackdrop";
 import { ArticleCard } from "@/components/article/ArticleCard";
 import { ArticleStickyRail, ArticleMobileToolbar } from "@/components/article/ArticleStickyRail";
 

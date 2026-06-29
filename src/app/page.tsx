@@ -1,16 +1,16 @@
 import { getHomePageData } from "@/lib/data";
 import { mapHomePageData } from "@/lib/map-home-data";
 import { getPublicSiteSettings } from "@/lib/site-settings";
-import { HomeBackdrop } from "@/components/presse-ivoire/HomeBackdrop";
-import { RevolutionShell } from "@/components/presse-ivoire/RevolutionShell";
-import { HeroHome } from "@/components/presse-ivoire/HeroHome";
-import { MegaAd } from "@/components/presse-ivoire/MegaAd";
-import { EditorsChoiceSection } from "@/components/presse-ivoire/EditorsChoiceSection";
-import { LatestSection } from "@/components/presse-ivoire/LatestSection";
-import { VideoSectionHome } from "@/components/presse-ivoire/VideoSectionHome";
-import { HomeRubriquesBand } from "@/components/presse-ivoire/HomeRubriquesBand";
-import { HomeClosingBand } from "@/components/presse-ivoire/HomeClosingBand";
-import { SectionDivider } from "@/components/presse-ivoire/SectionDivider";
+import { HomeBackdrop } from "@/components/site-chrome/HomeBackdrop";
+import { RevolutionShell } from "@/components/site-chrome/RevolutionShell";
+import { HeroHome } from "@/components/site-chrome/HeroHome";
+import { MegaAd } from "@/components/site-chrome/MegaAd";
+import { EditorsChoiceSection } from "@/components/site-chrome/EditorsChoiceSection";
+import { LatestSection } from "@/components/site-chrome/LatestSection";
+import { VideoSectionHome } from "@/components/site-chrome/VideoSectionHome";
+import { HomeRubriquesBand } from "@/components/site-chrome/HomeRubriquesBand";
+import { HomeClosingBand } from "@/components/site-chrome/HomeClosingBand";
+import { SectionDivider } from "@/components/site-chrome/SectionDivider";
 
 export const revalidate = 60;
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { NEWS_MENU_NAV } from "@/data/presse-ivoire-home";
+import { NEWS_MENU_NAV } from "@/data/site-home";
 import { newsHubFilterHref } from "@/lib/news-hub";
 
 interface NewsHubSectionsProps {

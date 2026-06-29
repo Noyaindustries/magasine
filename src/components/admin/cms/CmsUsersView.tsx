@@ -41,24 +41,28 @@ function matrixCell(value: boolean | "own" | string) {
   return <span className="cms-matrix-no">—</span>;
 }
 
+function fetchAdminUsers() {
+  return fetch("/api/admin/users")
+    .then((r) => r.json())
+    .then((data) => (data.users ?? []) as UserRow[]);
+}
+
 export function CmsUsersView() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/users")
-      .then((r) => r.json())
-      .then((data) => setUsers(data.users ?? []))
+    void fetchAdminUsers()
+      .then(setUsers)
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/admin/users")
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled) setUsers(data.users ?? []);
+    void fetchAdminUsers()
+      .then((rows) => {
+        if (!cancelled) setUsers(rows);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

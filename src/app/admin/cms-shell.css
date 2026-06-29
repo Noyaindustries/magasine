@@ -1,4 +1,4 @@
-/* PressIvoire CMS shell — scoped back-office theme (light) */
+/* Global South Watch CMS shell — scoped back-office theme (light) */
 html:has(.cms-shell),
 body:has(.cms-shell) {
   background: #f3f5f9;
@@ -718,6 +718,12 @@ body:has(.cms-shell) {
   background: var(--red-a);
   border-color: var(--red-b);
   color: var(--cms-red);
+}
+
+.cms-shell .pagb--disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
 }
 
 .cms-shell input[type="checkbox"] {

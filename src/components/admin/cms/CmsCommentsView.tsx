@@ -19,6 +19,12 @@ interface CommentRow {
 
 type Filter = "all" | "pending" | "flagged" | "approved" | "rejected";
 
+function fetchAdminComments() {
+  return fetch("/api/admin/comments")
+    .then((r) => r.json())
+    .then((data) => (data.comments ?? []) as CommentRow[]);
+}
+
 export function CmsCommentsView() {
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,18 +33,16 @@ export function CmsCommentsView() {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch("/api/admin/comments")
-      .then((r) => r.json())
-      .then((data) => setComments(data.comments ?? []))
+    void fetchAdminComments()
+      .then(setComments)
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    void fetch("/api/admin/comments")
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled) setComments(data.comments ?? []);
+    void fetchAdminComments()
+      .then((rows) => {
+        if (!cancelled) setComments(rows);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -22,7 +22,7 @@ import {
   TICKER_ITEMS,
   TOP_STORIES,
   VIDEOS,
-} from "@/data/presse-ivoire-home";
+} from "@/data/site-home";
 import { IMG } from "@/lib/images";
 import {
   articleBadge,

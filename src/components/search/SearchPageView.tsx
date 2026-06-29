@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock, Search, X } from "lucide-react";
 import { ArticleCard } from "@/components/article/ArticleCard";
-import { PRIMARY_NAV, REGION_NAV } from "@/data/presse-ivoire-home";
+import { PRIMARY_NAV, REGION_NAV } from "@/data/site-home";
 import type { ArticleListItem } from "@/types";
 
 const RECENT_KEY = "gsw-recent-searches";

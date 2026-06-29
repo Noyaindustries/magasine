@@ -17,8 +17,6 @@ import {
   Plus,
   Trash2,
   Loader2,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
 import type { HomepageSectionStatus } from "@/lib/homepage-admin";
 import type { PublicSiteSettings, TrustPartner } from "@/lib/site-settings";

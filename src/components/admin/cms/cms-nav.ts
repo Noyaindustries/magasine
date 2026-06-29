@@ -1,5 +1,4 @@
 import type { UserRole } from "@/types";
-import type { AdminNavStats } from "@/lib/admin-nav";
 
 export type CmsBadgeKey = "pendingReview" | "pendingComments" | "teamMemberCount";
 
@@ -19,7 +18,9 @@ export type CmsNavGroup = {
   items: CmsNavItem[];
 };
 
-/** Navigation alignée sur la maquette HTML PressIvoire CMS */
+import { SITE_NAME } from "@/lib/site";
+
+/** Navigation du back-office CMS */
 export const CMS_NAV_GROUPS: CmsNavGroup[] = [
   {
     id: "main",
@@ -91,7 +92,7 @@ export const CMS_PAGE_META: { match: (path: string) => boolean; title: string; b
 
 export function getCmsPageMeta(pathname: string) {
   const found = CMS_PAGE_META.find((entry) => entry.match(pathname));
-  return found ?? { title: "Back-office", breadcrumb: "PressIvoire" };
+  return found ?? { title: "Back-office", breadcrumb: SITE_NAME };
 }
 
 export function canSeeCmsNav(item: CmsNavItem, role: UserRole) {

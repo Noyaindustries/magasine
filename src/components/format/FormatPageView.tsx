@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import type { ArticleListItem } from "@/types";
-import { PageBackdrop } from "@/components/presse-ivoire/PageBackdrop";
-import { SectionImage } from "@/components/presse-ivoire/SectionImage";
+import { PageBackdrop } from "@/components/site-chrome/PageBackdrop";
+import { SectionImage } from "@/components/site-chrome/SectionImage";
 import { SectionRelatedNav } from "@/components/category/SectionRelatedNav";
 import { formatArticleCardMeta } from "@/lib/format-article";
 

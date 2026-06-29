@@ -5,6 +5,7 @@ import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 interface AdZoneRow {
   _id: string;
@@ -32,7 +33,21 @@ function formatCompact(n: number) {
   return n.toLocaleString("fr-FR");
 }
 
+function fetchPublicites() {
+  return fetch("/api/admin/publicites").then(async (response) => {
+    if (!response.ok) {
+      console.error("Publicités:", response.status, await response.text());
+      return { zones: [] as AdZoneRow[], summary: null as AdSummary | null };
+    }
+    return (await response.json()) as {
+      zones?: AdZoneRow[];
+      summary?: AdSummary | null;
+    };
+  });
+}
+
 export function CmsPublicitesView() {
+  const { siteName } = useSiteBranding();
   const [zones, setZones] = useState<AdZoneRow[]>([]);
   const [summary, setSummary] = useState<AdSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,15 +55,7 @@ export function CmsPublicitesView() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/publicites");
-      if (!response.ok) {
-        console.error("Publicités:", response.status, await response.text());
-        return;
-      }
-      const data = (await response.json()) as {
-        zones?: AdZoneRow[];
-        summary?: AdSummary | null;
-      };
+      const data = await fetchPublicites();
       setZones(data.zones ?? []);
       setSummary(data.summary ?? null);
     } catch (error) {
@@ -60,27 +67,19 @@ export function CmsPublicitesView() {
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      try {
-        const response = await fetch("/api/admin/publicites");
-        if (!response.ok) {
-          console.error("Publicités:", response.status, await response.text());
-          return;
-        }
-        const data = (await response.json()) as {
-          zones?: AdZoneRow[];
-          summary?: AdSummary | null;
-        };
+    void fetchPublicites()
+      .then((data) => {
         if (!cancelled) {
           setZones(data.zones ?? []);
           setSummary(data.summary ?? null);
         }
-      } catch (error) {
+      })
+      .catch((error) => {
         console.error("Publicités:", error);
-      } finally {
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false);
-      }
-    })();
+      });
     return () => {
       cancelled = true;
     };
@@ -125,7 +124,7 @@ export function CmsPublicitesView() {
   const exportReport = () => {
     if (!summary) return;
     const lines = [
-      "Rapport revenus publicitaires — PressIvoire",
+      `Rapport revenus publicitaires — ${siteName}`,
       `Impressions: ${summary.impressions}`,
       `Revenus: ${summary.revenueFcfa} FCFA`,
       `CTR moyen: ${summary.ctr.toFixed(1)}%`,

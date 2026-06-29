@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { toast } from "@/lib/toast";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 interface CampaignRow {
   _id: string;
@@ -27,6 +28,7 @@ interface CmsNewsletterViewProps {
 }
 
 export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps) {
+  const { siteName } = useSiteBranding();
   const [stats, setStats] = useState({
     totalActive: initialTotalActive,
     monthlyNew: 0,
@@ -36,11 +38,11 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     lists: [] as ListRow[],
   });
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
-  const [subject, setSubject] = useState("L'essentiel du jour — PressIvoire");
+  const [subject, setSubject] = useState(`L'essentiel du jour — ${siteName}`);
   const [listTarget, setListTarget] = useState("all");
   const [scheduledAt, setScheduledAt] = useState("");
   const [body, setBody] = useState(
-    "Bonjour,\n\nVoici la sélection éditoriale du jour.\n\n— L'équipe PressIvoire"
+    `Bonjour,\n\nVoici la sélection éditoriale du jour.\n\n— L'équipe ${siteName}`
   );
   const [saving, setSaving] = useState(false);
 
@@ -226,9 +228,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
 
           <div className="nlprev">
             <div className="nlph">
-              <div className="nlplogo">
-                Presse<em>Ivoire</em>
-              </div>
+              <div className="nlplogo">{siteName}</div>
               <div className="nlph-meta">Aperçu en direct</div>
             </div>
             <div className="nlpbody">

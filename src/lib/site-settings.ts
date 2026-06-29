@@ -13,6 +13,7 @@ import {
   type TrustPartnerItem,
 } from "@/lib/homepage-sections";
 import { resolveFavicon, resolveSiteLogo } from "@/lib/branding";
+import { getSiteUrl } from "@/lib/site";
 
 export interface PulseStat {
   value: string;
@@ -104,7 +105,7 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     seoTitle: doc.seoTitle ?? doc.siteName,
     seoDescription: doc.seoDescription ?? doc.tagline,
     ogImage: doc.ogImage ?? "",
-    canonicalUrl: doc.canonicalUrl ?? "https://pressivoire.ci",
+    canonicalUrl: doc.canonicalUrl ?? getSiteUrl(),
     mailchimpConnected: doc.mailchimpConnected ?? false,
     brevoConnected: doc.brevoConnected ?? false,
     updatedAt: doc.updatedAt,
@@ -149,7 +150,7 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       seoTitle: "",
       seoDescription: "",
       ogImage: "",
-      canonicalUrl: "https://pressivoire.ci",
+      canonicalUrl: getSiteUrl(),
       mailchimpConnected: false,
       brevoConnected: false,
       adZones: [],

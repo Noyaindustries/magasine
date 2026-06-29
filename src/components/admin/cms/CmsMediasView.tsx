@@ -47,6 +47,18 @@ const KIND_COLORS: Record<string, string> = {
   document: "var(--green)",
 };
 
+function fetchMedias(query: string, kind: string, sort: string) {
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  if (kind) params.set("kind", kind);
+  if (sort) params.set("sort", sort);
+
+  return fetch(`/api/admin/medias?${params}`).then((r) => r.json()) as Promise<{
+    items?: MediaItem[];
+    stats?: MediaStats | null;
+  }>;
+}
+
 export function CmsMediasView() {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [stats, setStats] = useState<MediaStats | null>(null);
@@ -60,13 +72,7 @@ export function CmsMediasView() {
 
   const load = useCallback(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (kind) params.set("kind", kind);
-    if (sort) params.set("sort", sort);
-
-    fetch(`/api/admin/medias?${params}`)
-      .then((r) => r.json())
+    void fetchMedias(query, kind, sort)
       .then((data) => {
         setItems(data.items ?? []);
         setStats(data.stats ?? null);
@@ -76,13 +82,10 @@ export function CmsMediasView() {
 
   useEffect(() => {
     let cancelled = false;
-    const params = new URLSearchParams();
-    if (query.trim()) params.set("q", query.trim());
-    if (kind) params.set("kind", kind);
-    if (sort) params.set("sort", sort);
-
-    void fetch(`/api/admin/medias?${params}`)
-      .then((r) => r.json())
+    void Promise.resolve().then(() => {
+      if (!cancelled) setLoading(true);
+    });
+    void fetchMedias(query, kind, sort)
       .then((data) => {
         if (!cancelled) {
           setItems(data.items ?? []);
@@ -92,7 +95,6 @@ export function CmsMediasView() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };

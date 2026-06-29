@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Rss, Globe2, Zap, Radio } from "lucide-react";
 import { CopyFeedButton } from "@/components/utilities/CopyFeedButton";
-import { FOOTER_COLS } from "@/data/presse-ivoire-home";
+import { FOOTER_COLS } from "@/data/site-home";
 import { getFeedUrl, getSiteUrl, PUBLISHER_NAME, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 
 export const metadata: Metadata = {

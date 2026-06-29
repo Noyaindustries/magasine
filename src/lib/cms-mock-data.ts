@@ -1,4 +1,4 @@
-/** Données de démonstration alignées sur la maquette HTML PressIvoire CMS */
+/** Données de démonstration du back-office CMS */
 
 export const CMS_MEDIA_GRADIENTS = [
   { emoji: "📰", bg: "linear-gradient(135deg,#1a3a5c,#0f3460)" },

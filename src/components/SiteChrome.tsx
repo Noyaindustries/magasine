@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { SiteHeader } from "@/components/presse-ivoire/SiteHeader";
-import { HomeQuickNav } from "@/components/presse-ivoire/HomeQuickNav";
-import { SiteFooter } from "@/components/presse-ivoire/SiteFooter";
-import { ProgressBar } from "@/components/presse-ivoire/ProgressBar";
-import { ScrollReveal } from "@/components/presse-ivoire/ScrollReveal";
+import { SiteHeader } from "@/components/site-chrome/SiteHeader";
+import { HomeQuickNav } from "@/components/site-chrome/HomeQuickNav";
+import { SiteFooter } from "@/components/site-chrome/SiteFooter";
+import { ProgressBar } from "@/components/site-chrome/ProgressBar";
+import { ScrollReveal } from "@/components/site-chrome/ScrollReveal";
 interface SiteChromeProps {
   children: ReactNode;
   categories: { name: string; slug: string }[];

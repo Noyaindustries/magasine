@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import type { BrandingAssetType } from "@/lib/branding";
 import { toast } from "@/lib/toast";

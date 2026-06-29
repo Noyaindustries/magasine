@@ -11,6 +11,7 @@ import { CmsHintIcon, CmsStatusIcon, ImageIcon, Star, Trash2 } from "@/component
 import { computeSeoScore } from "@/lib/cms-seo-score";
 import { toast } from "@/lib/toast";
 import { estimateReadingTime } from "@/lib/utils";
+import { getSiteHostname } from "@/lib/site";
 
 interface Category {
   _id: string;
@@ -130,9 +131,10 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverFileRef = useRef<HTMLInputElement>(null);
   const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const loadedRef = useRef(false);
+  const dirtyRef = useRef(false);
 
   const patchForm = useCallback((patch: Partial<ArticleEditorForm>) => {
+    dirtyRef.current = true;
     setForm((prev) => ({ ...prev, ...patch }));
   }, []);
 
@@ -191,7 +193,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
         setPushNotify(article.sendPushOnPublish ?? false);
         setSlugTouched(true);
         setLastSavedAt(Date.now());
-        loadedRef.current = true;
+        dirtyRef.current = false;
       });
   }, [mode, articleId]);
 
@@ -253,14 +255,16 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
   );
 
   const saveArticle = useCallback(
-    async (options?: { redirectAfter?: boolean; publishMode?: PublishMode }) => {
+    async (options?: { redirectAfter?: boolean; publishMode?: PublishMode; silent?: boolean }) => {
       if (!form.title.trim() || !form.categoryId || !form.authorId) {
-        toast.error("Titre, rubrique et auteur sont requis.");
+        if (!options?.silent) {
+          toast.error("Titre, rubrique et auteur sont requis.");
+        }
         return false;
       }
 
       setLoading(true);
-      const toastId = toast.loading("Enregistrement de l'article…");
+      const toastId = options?.silent ? null : toast.loading("Enregistrement de l'article…");
       try {
         const payload = buildPayload(options?.publishMode);
         const url =
@@ -273,8 +277,10 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          toast.dismiss(toastId);
-          toast.error((err as { error?: string }).error ?? "Échec de l'enregistrement");
+          if (toastId) toast.dismiss(toastId);
+          if (!options?.silent) {
+            toast.error((err as { error?: string }).error ?? "Échec de l'enregistrement");
+          }
           return false;
         }
         const data = await res.json();
@@ -282,11 +288,14 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
           patchForm({ publishMode: options.publishMode });
         }
         setLastSavedAt(Date.now());
-        toast.dismiss(toastId);
-        if (options?.publishMode === "publish") {
-          toast.success("Article publié");
-        } else {
-          toast.success("Article enregistré");
+        dirtyRef.current = false;
+        if (toastId) toast.dismiss(toastId);
+        if (!options?.silent) {
+          if (options?.publishMode === "publish") {
+            toast.success("Article publié");
+          } else {
+            toast.success("Article enregistré");
+          }
         }
         if (mode === "create" && data._id) {
           router.replace(`/admin/articles/${data._id}`);
@@ -304,11 +313,12 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
 
   useEffect(() => {
     if (mode !== "edit" || !articleId) return;
-    if (!form.title.trim()) return;
+    if (!form.title.trim() || !dirtyRef.current) return;
 
     if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
     autoSaveRef.current = setTimeout(() => {
-      void saveArticle();
+      if (!dirtyRef.current) return;
+      void saveArticle({ silent: true });
     }, 8000);
 
     return () => {
@@ -496,7 +506,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
               <div className="field">
                 <label className="lbl">Slug URL</label>
                 <div className="cms-slug-row">
-                  <span className="cms-slug-prefix">pressivoire.ci/{categorySlug}/</span>
+                  <span className="cms-slug-prefix">{getSiteHostname()}/{categorySlug}/</span>
                   <input
                     className="input"
                     type="text"

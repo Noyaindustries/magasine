@@ -1,4 +1,5 @@
 import type { AdminDashboardData, CategoryStat, WeeklyReport } from "@/lib/admin-dashboard";
+import { SITE_NAME } from "@/lib/site";
 
 function downloadBlob(filename: string, content: string, mime: string) {
   const blob = new Blob([content], { type: mime });
@@ -28,7 +29,7 @@ export function exportCategoryTrafficCsv(categories: CategoryStat[]) {
 
 export function downloadWeeklyReport(report: WeeklyReport) {
   const lines = [
-    "Rapport hebdomadaire — Presse Ivoire CMS",
+    `Rapport hebdomadaire — ${SITE_NAME} CMS`,
     `Généré le ${new Date().toLocaleString("fr-FR")}`,
     "",
     `Articles publiés (7 j) : ${report.articlesPublished}`,

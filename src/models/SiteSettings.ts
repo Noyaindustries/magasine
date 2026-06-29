@@ -1,5 +1,6 @@
 import mongoose, { Schema, type Model } from "mongoose";
 import type { HomeSectionId } from "@/lib/homepage-sections";
+import { getSiteUrl } from "@/lib/site";
 
 export interface PulseStatDoc {
   value: string;
@@ -125,7 +126,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     seoTitle: { type: String, default: "" },
     seoDescription: { type: String, default: "" },
     ogImage: { type: String, default: "" },
-    canonicalUrl: { type: String, default: "https://pressivoire.ci" },
+    canonicalUrl: { type: String, default: getSiteUrl },
     mailchimpConnected: { type: Boolean, default: false },
     brevoConnected: { type: Boolean, default: false },
     adZones: {

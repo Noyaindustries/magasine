@@ -5,6 +5,7 @@ import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsStatusIcon, ImageIcon } from "@/components/admin/cms/CmsIcons";
 import { computeSeoScore } from "@/lib/cms-seo-score";
 import { toast } from "@/lib/toast";
+import { getSiteUrl, SITE_NAME } from "@/lib/site";
 
 interface SeoSettingsForm {
   siteName: string;
@@ -30,13 +31,13 @@ export function CmsSeoSettingsView() {
       .then((r) => r.json())
       .then((data) =>
         setForm({
-          siteName: data.siteName ?? "PressIvoire",
+          siteName: data.siteName ?? SITE_NAME,
           tagline: data.tagline ?? "",
           contactEmail: data.contactEmail ?? "",
           seoTitle: data.seoTitle ?? data.siteName ?? "",
           seoDescription: data.seoDescription ?? data.tagline ?? "",
           ogImage: data.ogImage ?? "",
-          canonicalUrl: data.canonicalUrl ?? "https://pressivoire.ci",
+          canonicalUrl: data.canonicalUrl ?? getSiteUrl(),
           newsletterTitle: data.newsletterTitle ?? "",
           newsletterDescription: data.newsletterDescription ?? "",
           mailchimpConnected: data.mailchimpConnected ?? false,

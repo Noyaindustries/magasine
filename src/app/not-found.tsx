@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrandLogo } from "@/components/presse-ivoire/BrandLogo";
+import { BrandLogo } from "@/components/site-chrome/BrandLogo";
 
 export default function NotFound() {
   return (

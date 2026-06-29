@@ -15,6 +15,14 @@ export function getSiteUrl(): string {
   ).replace(/\/$/, "");
 }
 
+export function getSiteHostname(): string {
+  try {
+    return new URL(getSiteUrl()).hostname;
+  } catch {
+    return "localhost";
+  }
+}
+
 export function getFeedUrl(): string {
   return `${getSiteUrl()}/feed.xml`;
 }

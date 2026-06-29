@@ -138,7 +138,10 @@ export function CmsArticlesView({
         <button type="submit" className="btn btn-ghost btn-sm">
           Filtrer
         </button>
-        <div className="fcount">{activeCount.toLocaleString("fr-FR")} résultats</div>
+        <div className="fcount">
+          {activeCount.toLocaleString("fr-FR")} résultats
+          {totalPages > 1 ? ` · ${totalPages} pages` : ""}
+        </div>
       </form>
 
       <CmsArticlesTable

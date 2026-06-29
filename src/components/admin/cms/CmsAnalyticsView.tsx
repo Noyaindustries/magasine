@@ -3,6 +3,7 @@
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { exportCategoryTrafficCsv } from "@/lib/cms-dashboard-export";
 import type { AnalyticsOverview } from "@/lib/cms-analytics";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 interface CmsAnalyticsViewProps {
   data: AnalyticsOverview;
@@ -15,6 +16,7 @@ function formatCompact(value: number) {
 }
 
 export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
+  const { siteName } = useSiteBranding();
   const avgMinutes = Math.floor(data.avgReadingMinutes);
   const avgSeconds = Math.round((data.avgReadingMinutes - avgMinutes) * 60);
 
@@ -31,7 +33,7 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
 
   const downloadReport = () => {
     const lines = [
-      "Rapport Analytics — PressIvoire",
+      `Rapport Analytics — ${siteName}`,
       `Pages vues: ${data.pageViews}`,
       `Lecteurs estimés: ${data.uniqueReaders}`,
       `Taux de rebond: ${data.bounceRate}%`,

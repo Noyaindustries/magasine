@@ -4,7 +4,7 @@ import { Map, FileCode2, Rss, ExternalLink } from "lucide-react";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { Category } from "@/models/Category";
-import { FOOTER_COLS } from "@/data/presse-ivoire-home";
+import { FOOTER_COLS } from "@/data/site-home";
 import { mockCategories } from "@/lib/mock-data";
 import { filterRetiredCategories } from "@/lib/retired-categories";
 import { getSiteUrl, getSitemapUrl, PUBLISHER_NAME, SITE_NAME } from "@/lib/site";

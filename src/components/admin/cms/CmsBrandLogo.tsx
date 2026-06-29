@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandLogo } from "@/components/presse-ivoire/BrandLogo";
+import { BrandLogo } from "@/components/site-chrome/BrandLogo";
 
 interface CmsBrandLogoProps {
   onNavigate?: () => void;

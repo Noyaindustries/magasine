@@ -7,6 +7,12 @@ import type { ArticleListRow } from "@/components/admin/cms/CmsArticlesView";
 import { CmsStatusBadge, formatArticleDate, formatRelativeFr, authorAvatarGradient, authorInitials, categoryAccent } from "@/components/admin/cms/cms-ui";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { toast } from "@/lib/toast";
+import {
+  ARTICLES_PAGE_SIZE,
+  buildPageHref,
+  getPaginationItems,
+  paginationRangeLabel,
+} from "@/lib/pagination";
 
 interface CmsArticlesTableProps {
   articles: ArticleListRow[];
@@ -101,6 +107,9 @@ export function CmsArticlesTable({
     };
     input.click();
   };
+
+  const pageItems = getPaginationItems(page, totalPages);
+  const rangeLabel = paginationRangeLabel(page, ARTICLES_PAGE_SIZE, activeCount);
 
   return (
     <>
@@ -244,24 +253,50 @@ export function CmsArticlesTable({
         </div>
       </div>
 
-      <div className="pag">
-        <div className="paginfo">
-          Page {page} / {totalPages} — {activeCount.toLocaleString("fr-FR")} articles
+      {totalPages > 1 && (
+        <div className="pag">
+          <div className="paginfo">
+            {rangeLabel} · Page {page} / {totalPages}
+          </div>
+          <div className="pagbtns">
+            {page > 1 ? (
+              <Link href={buildPageHref(baseHref, page - 1)} className="pagb" aria-label="Page précédente">
+                ←
+              </Link>
+            ) : (
+              <span className="pagb pagb--disabled" aria-hidden>
+                ←
+              </span>
+            )}
+
+            {pageItems.map((item, index) =>
+              item === "ellipsis" ? (
+                <span key={`ellipsis-${index}`} className="pagdots" aria-hidden>
+                  …
+                </span>
+              ) : item === page ? (
+                <span key={item} className="pagb on" aria-current="page">
+                  {item}
+                </span>
+              ) : (
+                <Link key={item} href={buildPageHref(baseHref, item)} className="pagb">
+                  {item}
+                </Link>
+              )
+            )}
+
+            {page < totalPages ? (
+              <Link href={buildPageHref(baseHref, page + 1)} className="pagb" aria-label="Page suivante">
+                →
+              </Link>
+            ) : (
+              <span className="pagb pagb--disabled" aria-hidden>
+                →
+              </span>
+            )}
+          </div>
         </div>
-        <div className="pagbtns">
-          {page > 1 && (
-            <Link href={`${baseHref}${baseHref.includes("?") ? "&" : "?"}page=${page - 1}`} className="pagb">
-              ←
-            </Link>
-          )}
-          <span className="pagb on">{page}</span>
-          {page < totalPages && (
-            <Link href={`${baseHref}${baseHref.includes("?") ? "&" : "?"}page=${page + 1}`} className="pagb">
-              →
-            </Link>
-          )}
-        </div>
-      </div>
+      )}
 
     </>
   );

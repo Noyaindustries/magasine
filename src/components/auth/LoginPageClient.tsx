@@ -12,7 +12,7 @@ import {
   Mail,
   Shield,
 } from "lucide-react";
-import { BrandLogo } from "@/components/presse-ivoire/BrandLogo";
+import { BrandLogo } from "@/components/site-chrome/BrandLogo";
 import { GoogleIcon } from "@/components/auth/auth-shared";
 import { AuthPasswordField, AuthTextField } from "@/components/auth/AuthFields";
 import { toast } from "@/lib/toast";

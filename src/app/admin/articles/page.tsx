@@ -8,6 +8,7 @@ import {
   type ArticleStatusCounts,
 } from "@/components/admin/cms/CmsArticlesView";
 import type { ArticleStatus } from "@/types";
+import { ARTICLES_PAGE_SIZE } from "@/lib/pagination";
 
 interface PageProps {
   searchParams: Promise<{
@@ -27,7 +28,7 @@ const STATUSES: ArticleStatus[] = [
   "archived",
 ];
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = ARTICLES_PAGE_SIZE;
 
 export default async function AdminArticlesPage({ searchParams }: PageProps) {
   const { status: statusParam, q, category, author, page: pageParam } = await searchParams;

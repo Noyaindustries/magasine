@@ -119,7 +119,7 @@ flowchart TB
 
 1. `getHomePageData()` queries MongoDB (or falls back to mock data).
 2. `mapHomePageData()` transforms documents into typed UI sections.
-3. `presse-ivoire/*` components render each editorial band.
+3. `site-chrome/*` components render each editorial band.
 
 **Category URLs** use English slugs (`news`, `politics`, `technology`, `health`, `world`, `special-reports`, etc.). Legacy French slugs (e.g. `actualites`, `politique`) are redirected to their English equivalents via `next.config.ts` and `src/lib/category-slugs.ts`.
 
@@ -249,7 +249,7 @@ magasine/
 │   │   ├── responsive.css   # Mobile breakpoints
 │   │   └── revolution.css   # “Revolution Edition” theme
 │   ├── components/
-│   │   ├── presse-ivoire/   # Homepage & site chrome
+│   │   ├── site-chrome/   # Homepage & site chrome
 │   │   ├── article/         # Article detail, paywall, comments
 │   │   ├── admin/           # Back-office components
 │   │   └── ui/              # Shared primitives

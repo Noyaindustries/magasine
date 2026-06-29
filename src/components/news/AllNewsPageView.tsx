@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { ArticleListItem } from "@/types";
-import { PageBackdrop } from "@/components/presse-ivoire/PageBackdrop";
-import { SectionImage } from "@/components/presse-ivoire/SectionImage";
+import { PageBackdrop } from "@/components/site-chrome/PageBackdrop";
+import { SectionImage } from "@/components/site-chrome/SectionImage";
 import { SectionRelatedNav } from "@/components/category/SectionRelatedNav";
-import { NEWS_MENU_NAV, REGION_NAV } from "@/data/presse-ivoire-home";
+import { NEWS_MENU_NAV, REGION_NAV } from "@/data/site-home";
 import { ALL_NEWS_SECTION } from "@/lib/sections";
 import { formatArticleCardMeta } from "@/lib/format-article";
 import { newsHubActiveHref, newsHubFilterHref, newsMenuCategorySlug } from "@/lib/news-hub";
