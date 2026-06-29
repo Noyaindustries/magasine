@@ -24,18 +24,18 @@ interface MediaStats {
 
 function formatBytes(bytes: number) {
   if (bytes >= 1024 * 1024 * 1024) {
-    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} Go`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
   }
   if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
-  if (bytes >= 1024) return `${Math.round(bytes / 1024)} Ko`;
-  return `${bytes} o`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${bytes} B`;
 }
 
 const KIND_LABELS: Record<string, string> = {
   image: "Images (JPG / WebP)",
-  video: "Vidéos (MP4)",
+  video: "Videos (MP4)",
   podcast: "Podcasts (MP3)",
   document: "Documents (PDF)",
 };
@@ -118,14 +118,14 @@ export function CmsMediasView() {
   };
 
   const deleteMedia = async (item: MediaItem) => {
-    if (!confirm(`Supprimer « ${item.title} » ?`)) return;
+    if (!confirm(`Delete "${item.title}"?`)) return;
     const res = await fetch(`/api/admin/medias/${item._id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = (await res.json()) as { error?: string };
-      toast.error(data.error ?? "Suppression impossible.");
+      toast.error(data.error ?? "Delete failed.");
       return;
     }
-    toast.success("Média supprimé");
+    toast.success("Media deleted");
     setSelected(0);
     load();
   };
@@ -149,16 +149,16 @@ export function CmsMediasView() {
     <CmsPage className="cms-medias-page">
       <div className="vhead">
         <div>
-          <div className="vh1">Médiathèque</div>
+          <div className="vh1">Media library</div>
           <div className="vh2">
-            {stats?.totalCount.toLocaleString("fr-FR") ?? "—"} fichiers ·{" "}
-            {stats ? formatBytes(stats.usedBytes) : "—"} utilisés sur{" "}
-            {stats ? formatBytes(stats.quotaBytes) : "20 Go"}
+            {stats?.totalCount.toLocaleString("en-US") ?? "—"} files ·{" "}
+            {stats ? formatBytes(stats.usedBytes) : "—"} used of{" "}
+            {stats ? formatBytes(stats.quotaBytes) : "20 GB"}
           </div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-out" onClick={deleteSelected} disabled={!items.length}>
-            Supprimer la sélection
+            Delete selection
           </button>
           <button
             type="button"
@@ -166,7 +166,7 @@ export function CmsMediasView() {
             disabled={uploading}
             onClick={() => fileRef.current?.click()}
           >
-            {uploading ? "Envoi…" : "+ Ajouter des médias"}
+            {uploading ? "Uploading…" : "+ Add media"}
           </button>
           <input
             ref={fileRef}
@@ -187,36 +187,36 @@ export function CmsMediasView() {
           </svg>
           <input
             type="search"
-            placeholder="Rechercher un média…"
+            placeholder="Search media…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <select className="fsel" value={kind} onChange={(e) => setKind(e.target.value)}>
-          <option value="">Tous les types</option>
+          <option value="">All types</option>
           <option value="image">Images</option>
-          <option value="video">Vidéos</option>
+          <option value="video">Videos</option>
           <option value="podcast">Podcasts</option>
           <option value="document">Documents</option>
         </select>
         <select className="fsel" value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="recent">Plus récents</option>
-          <option value="oldest">Plus anciens</option>
-          <option value="largest">Plus grands</option>
+          <option value="recent">Most recent</option>
+          <option value="oldest">Oldest</option>
+          <option value="largest">Largest</option>
         </select>
       </div>
 
       <div className="card mb20">
         <div className="card-header">
-          <span className="card-title">Bibliothèque</span>
+          <span className="card-title">Library</span>
           <button type="button" className="card-act" onClick={load}>
-            Actualiser
+            Refresh
           </button>
         </div>
         <div className="card-body">
-          {loading && <p className="cms-empty">Chargement…</p>}
+          {loading && <p className="cms-empty">Loading…</p>}
           {!loading && items.length === 0 && (
-            <p className="cms-empty">Aucun média. Ajoutez votre premier fichier.</p>
+            <p className="cms-empty">No media yet. Add your first file.</p>
           )}
           <div className="mgrid">
             {items.map((cell, index) => (
@@ -244,7 +244,7 @@ export function CmsMediasView() {
                 <button
                   type="button"
                   className="mcell-del btn btn-ghost btn-xs btn-icon"
-                  title="Supprimer"
+                  title="Delete"
                   onClick={() => void deleteMedia(cell)}
                 >
                   <CmsActionIcons.delete size={12} className="cms-icon cms-icon--error" aria-hidden />
@@ -258,10 +258,10 @@ export function CmsMediasView() {
       <div className="g21 ga">
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Stockage utilisé</span>
+            <span className="card-title">Storage used</span>
           </div>
           <div className="card-body">
-            {(breakdown.length ? breakdown : [{ label: "Images", value: "0 Mo", pct: 0, color: "var(--blue)" }]).map(
+            {(breakdown.length ? breakdown : [{ label: "Images", value: "0 MB", pct: 0, color: "var(--blue)" }]).map(
               (row) => (
                 <div key={row.label} className="gauge">
                   <div className="gtop">
@@ -275,7 +275,7 @@ export function CmsMediasView() {
               )
             )}
             <div className="cms-storage-total">
-              <span>Total utilisé</span>
+              <span>Total used</span>
               <span className="cms-storage-total-val">
                 {stats ? `${formatBytes(stats.usedBytes)} / ${formatBytes(stats.quotaBytes)}` : "—"}
               </span>

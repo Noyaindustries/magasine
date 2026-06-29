@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import type { ArticleListRow } from "@/components/admin/cms/CmsArticlesView";
-import { CmsStatusBadge, formatArticleDate, formatRelativeFr, authorAvatarGradient, authorInitials, categoryAccent } from "@/components/admin/cms/cms-ui";
+import { CmsStatusBadge, formatArticleDate, formatRelativeEn, authorAvatarGradient, authorInitials, categoryAccent } from "@/components/admin/cms/cms-ui";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { toast } from "@/lib/toast";
 import {
@@ -55,15 +55,15 @@ export function CmsArticlesTable({
 
   const runBulk = async (action: "publish" | "archive" | "restore" | "delete") => {
     if (selected.size === 0) return;
-    if (action === "delete" && !confirm("Supprimer les articles sélectionnés ?")) return;
+    if (action === "delete" && !confirm("Delete the selected articles?")) return;
     setBusy(true);
     try {
       await bulkAction(action, Array.from(selected));
       setSelected(new Set());
-      if (action === "delete") toast.success("Articles supprimés");
-      else if (action === "publish") toast.success("Articles publiés");
-      else if (action === "archive") toast.success("Articles archivés");
-      else toast.success("Articles restaurés");
+      if (action === "delete") toast.success("Articles deleted");
+      else if (action === "publish") toast.success("Articles published");
+      else if (action === "archive") toast.success("Articles archived");
+      else toast.success("Articles restored");
       router.refresh();
     } finally {
       setBusy(false);
@@ -71,16 +71,16 @@ export function CmsArticlesTable({
   };
 
   const rowAction = async (id: string, action: "publish" | "archive" | "restore" | "delete") => {
-    if (action === "delete" && !confirm("Supprimer cet article ?")) return;
+    if (action === "delete" && !confirm("Delete this article?")) return;
     setBusy(true);
     try {
       if (action === "delete") {
         const res = await fetch(`/api/admin/articles/${id}`, { method: "DELETE" });
-        if (res.ok) toast.success("Article supprimé");
-        else toast.error("Suppression impossible");
+        if (res.ok) toast.success("Article deleted");
+        else toast.error("Delete failed");
       } else {
         await bulkAction(action, [id]);
-        toast.success(action === "publish" ? "Article publié" : action === "archive" ? "Article archivé" : "Article restauré");
+        toast.success(action === "publish" ? "Article published" : action === "archive" ? "Article archived" : "Article restored");
       }
       router.refresh();
     } finally {
@@ -98,11 +98,11 @@ export function CmsArticlesTable({
       const text = await file.text();
       const lines = text.split(/\r?\n/).filter(Boolean);
       if (lines.length < 2) {
-        toast.error("CSV vide ou invalide.");
+        toast.error("Empty or invalid CSV.");
         return;
       }
       toast.info(
-        `Import CSV : ${lines.length - 1} ligne(s) détectée(s). Créez les articles via l'éditeur pour l'instant.`
+        `CSV import: ${lines.length - 1} row(s) detected. Create articles via the editor for now.`
       );
     };
     input.click();
@@ -115,20 +115,20 @@ export function CmsArticlesTable({
     <>
       <div className="vacts cms-articles-toolbar">
         <button type="button" className="btn btn-out" onClick={importCsv}>
-          Importer CSV
+          Import CSV
         </button>
       </div>
 
       {selected.size > 0 && (
         <div className="qarow">
           <button type="button" className="qa" disabled={busy} onClick={() => void runBulk("publish")}>
-            Publier ({selected.size})
+            Publish ({selected.size})
           </button>
           <button type="button" className="qa" disabled={busy} onClick={() => void runBulk("archive")}>
-            Archiver
+            Archive
           </button>
           <button type="button" className="qa" disabled={busy} onClick={() => void runBulk("delete")}>
-            Supprimer
+            Delete
           </button>
         </div>
       )}
@@ -141,16 +141,16 @@ export function CmsArticlesTable({
                 <th style={{ width: 36 }}>
                   <input
                     type="checkbox"
-                    aria-label="Tout sélectionner"
+                    aria-label="Select all"
                     checked={articles.length > 0 && selected.size === articles.length}
                     onChange={toggleAll}
                   />
                 </th>
-                <th>Titre</th>
-                <th>Auteur</th>
-                <th>Rubrique</th>
-                <th>Statut</th>
-                <th>Vues</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Views</th>
                 <th>Date</th>
                 <th />
               </tr>
@@ -159,7 +159,7 @@ export function CmsArticlesTable({
               {articles.length === 0 && (
                 <tr>
                   <td colSpan={8} className="cms-empty-cell">
-                    Aucun article ne correspond à vos filtres.
+                    No articles match your filters.
                   </td>
                 </tr>
               )}
@@ -171,17 +171,17 @@ export function CmsArticlesTable({
                     : article.status === "scheduled" && article.scheduledAt
                       ? formatArticleDate(article.scheduledAt)
                       : article.status === "review"
-                        ? `Soumis ${formatRelativeFr(article.updatedAt)}`
+                        ? `Submitted ${formatRelativeEn(article.updatedAt)}`
                         : article.status === "draft"
-                          ? `Modifié ${formatRelativeFr(article.updatedAt)}`
-                          : formatRelativeFr(article.updatedAt);
+                          ? `Edited ${formatRelativeEn(article.updatedAt)}`
+                          : formatRelativeEn(article.updatedAt);
 
                 return (
                   <tr key={article._id}>
                     <td>
                       <input
                         type="checkbox"
-                        aria-label={`Sélectionner ${article.title}`}
+                        aria-label={`Select ${article.title}`}
                         checked={selected.has(article._id)}
                         onChange={() => toggleOne(article._id)}
                       />
@@ -190,9 +190,9 @@ export function CmsArticlesTable({
                       <div className="tc-main">{article.title}</div>
                       <div className="tc-sub">
                         {article.readingTime > 0
-                          ? `${article.readingTime} min de lecture`
+                          ? `${article.readingTime} min read`
                           : article.status === "draft"
-                            ? "brouillon en cours"
+                            ? "draft in progress"
                             : "—"}
                       </div>
                     </td>
@@ -211,7 +211,7 @@ export function CmsArticlesTable({
                       <CmsStatusBadge status={article.status} scheduledAt={article.scheduledAt} />
                     </td>
                     <td style={{ fontFamily: "var(--mono)", fontSize: "11.5px" }}>
-                      {article.views > 0 ? article.views.toLocaleString("fr-FR") : "—"}
+                      {article.views > 0 ? article.views.toLocaleString("en-US") : "—"}
                     </td>
                     <td className="tc-muted">{dateLabel}</td>
                     <td>
@@ -223,23 +223,23 @@ export function CmsArticlesTable({
                             disabled={busy}
                             onClick={() => void rowAction(article._id, "publish")}
                           >
-                            Publier
+                            Publish
                           </button>
                         )}
-                        <Link href={`/admin/articles/${article._id}`} className="btn btn-ghost btn-xs btn-icon" title="Modifier">
+                        <Link href={`/admin/articles/${article._id}`} className="btn btn-ghost btn-xs btn-icon" title="Edit">
                           <CmsActionIcons.edit size={14} className="cms-icon" aria-hidden />
                         </Link>
                         {article.status !== "draft" && article.slug && (
-                          <Link href={`/article/${article.slug}`} className="btn btn-ghost btn-xs btn-icon" title="Voir" target="_blank">
+                          <Link href={`/article/${article.slug}`} className="btn btn-ghost btn-xs btn-icon" title="View" target="_blank">
                             <CmsActionIcons.view size={14} className="cms-icon" aria-hidden />
                           </Link>
                         )}
                         {article.status === "archived" ? (
                           <button type="button" className="btn btn-ghost btn-xs" disabled={busy} onClick={() => void rowAction(article._id, "restore")}>
-                            Restaurer
+                            Restore
                           </button>
                         ) : article.status === "draft" ? (
-                          <button type="button" className="btn btn-ghost btn-xs btn-icon" title="Supprimer" disabled={busy} onClick={() => void rowAction(article._id, "delete")}>
+                          <button type="button" className="btn btn-ghost btn-xs btn-icon" title="Delete" disabled={busy} onClick={() => void rowAction(article._id, "delete")}>
                             <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
                           </button>
                         ) : null}
@@ -256,11 +256,11 @@ export function CmsArticlesTable({
       {totalPages > 1 && (
         <div className="pag">
           <div className="paginfo">
-            {rangeLabel} · Page {page} / {totalPages}
+            {rangeLabel} · Page {page} of {totalPages}
           </div>
           <div className="pagbtns">
             {page > 1 ? (
-              <Link href={buildPageHref(baseHref, page - 1)} className="pagb" aria-label="Page précédente">
+              <Link href={buildPageHref(baseHref, page - 1)} className="pagb" aria-label="Previous page">
                 ←
               </Link>
             ) : (
@@ -286,7 +286,7 @@ export function CmsArticlesTable({
             )}
 
             {page < totalPages ? (
-              <Link href={buildPageHref(baseHref, page + 1)} className="pagb" aria-label="Page suivante">
+              <Link href={buildPageHref(baseHref, page + 1)} className="pagb" aria-label="Next page">
                 →
               </Link>
             ) : (

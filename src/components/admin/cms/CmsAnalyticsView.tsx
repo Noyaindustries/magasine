@@ -12,7 +12,7 @@ interface CmsAnalyticsViewProps {
 function formatCompact(value: number) {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(".0", "")}M`;
   if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
-  return value.toLocaleString("fr-FR");
+  return value.toLocaleString("en-US");
 }
 
 export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
@@ -33,18 +33,18 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
 
   const downloadReport = () => {
     const lines = [
-      `Rapport Analytics — ${siteName}`,
-      `Pages vues: ${data.pageViews}`,
-      `Lecteurs estimés: ${data.uniqueReaders}`,
-      `Taux de rebond: ${data.bounceRate}%`,
+      `Analytics report — ${siteName}`,
+      `Page views: ${data.pageViews}`,
+      `Estimated readers: ${data.uniqueReaders}`,
+      `Bounce rate: ${data.bounceRate}%`,
       "",
-      ...data.categoryTraffic.map((r) => `${r.label}: ${r.value} vues`),
+      ...data.categoryTraffic.map((r) => `${r.label}: ${r.value} views`),
     ];
     const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "rapport-analytics.txt";
+    a.download = "analytics-report.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -54,51 +54,51 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
       <div className="vhead">
         <div>
           <div className="vh1">Analytics</div>
-          <div className="vh2">Performances éditoriales — agrégées depuis les vues articles</div>
+          <div className="vh2">Editorial performance — aggregated from article views</div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-out" onClick={exportCsv}>
-            Exporter CSV ↗
+            Export CSV ↗
           </button>
           <button type="button" className="btn btn-gold" onClick={downloadReport}>
-            Rapport hebdomadaire
+            Weekly report
           </button>
         </div>
       </div>
 
       <div className="kgrid mb20">
         <div className="kpi k-red">
-          <div className="klbl">Pages vues</div>
+          <div className="klbl">Page views</div>
           <div className="kval">{formatCompact(data.pageViews)}</div>
           <div className="kmeta">
             <span className="kdelta up">
               ▲ {data.weekViewsDelta > 0 ? "+" : ""}
               {data.weekViewsDelta}%
             </span>{" "}
-            vs semaine dernière
+            vs last week
           </div>
         </div>
         <div className="kpi k-green">
-          <div className="klbl">Lecteurs estimés</div>
+          <div className="klbl">Estimated readers</div>
           <div className="kval">{formatCompact(data.uniqueReaders)}</div>
         </div>
         <div className="kpi k-amber">
-          <div className="klbl">Temps moyen</div>
+          <div className="klbl">Average time</div>
           <div className="kval">
             {avgMinutes}:{String(avgSeconds).padStart(2, "0")}
           </div>
         </div>
         <div className="kpi k-blue">
-          <div className="klbl">Taux de rebond</div>
+          <div className="klbl">Bounce rate</div>
           <div className="kval">{data.bounceRate}%</div>
         </div>
       </div>
 
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Trafic par rubrique</span>
+          <span className="card-title">Traffic by category</span>
           <button type="button" className="card-act" onClick={exportCsv}>
-            Exporter CSV ↗
+            Export CSV ↗
           </button>
         </div>
         <div className="card-body">
@@ -115,7 +115,7 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
                   }}
                 />
               </div>
-              <span className="bnum">{row.value.toLocaleString("fr-FR")}</span>
+              <span className="bnum">{row.value.toLocaleString("en-US")}</span>
             </div>
           ))}
         </div>

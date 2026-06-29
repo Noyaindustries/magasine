@@ -70,15 +70,15 @@ export async function POST(request: NextRequest) {
   const titleRaw = formData.get("title");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Aucun fichier fourni." }, { status: 400 });
+    return NextResponse.json({ error: "No file provided." }, { status: 400 });
   }
 
   if (!(MEDIA_MIME_TYPES as readonly string[]).includes(file.type)) {
-    return NextResponse.json({ error: "Format non supporté." }, { status: 400 });
+    return NextResponse.json({ error: "Unsupported format." }, { status: 400 });
   }
 
   if (file.size > MEDIA_MAX_BYTES) {
-    return NextResponse.json({ error: "Fichier trop volumineux (max 15 Mo)." }, { status: 400 });
+    return NextResponse.json({ error: "File too large (max 15 MB)." }, { status: 400 });
   }
 
   try {
@@ -101,6 +101,6 @@ export async function POST(request: NextRequest) {
       sizeBytes: doc.sizeBytes,
     });
   } catch {
-    return NextResponse.json({ error: "Échec de l'enregistrement du fichier." }, { status: 500 });
+    return NextResponse.json({ error: "Could not save file on server." }, { status: 500 });
   }
 }

@@ -37,7 +37,7 @@ function matrixCell(value: boolean | "own" | string) {
       </span>
     );
   }
-  if (value === "own") return <span className="cms-matrix-own">Propres articles</span>;
+  if (value === "own") return <span className="cms-matrix-own">Own articles</span>;
   return <span className="cms-matrix-no">—</span>;
 }
 
@@ -73,11 +73,11 @@ export function CmsUsersView() {
   }, []);
 
   const inviteMember = async () => {
-    const name = window.prompt("Nom du membre");
+    const name = window.prompt("Member name");
     if (!name?.trim()) return;
-    const email = window.prompt("Adresse e-mail");
+    const email = window.prompt("Email address");
     if (!email?.trim()) return;
-    const role = window.prompt("Rôle (editor, author, contributor)", "author") ?? "author";
+    const role = window.prompt("Role (editor, author, contributor)", "author") ?? "author";
 
     const res = await fetch("/api/admin/users/invite", {
       method: "POST",
@@ -86,11 +86,11 @@ export function CmsUsersView() {
     });
     const data = await res.json();
     if (!res.ok) {
-      toast.error(data.error ?? "Invitation échouée");
+      toast.error(data.error ?? "Invitation failed");
       return;
     }
-    toast.success("Membre créé", {
-      description: `E-mail : ${data.email} · Mot de passe temporaire : ${data.tempPassword}`,
+    toast.success("Member created", {
+      description: `Email: ${data.email} · Temporary password: ${data.tempPassword}`,
       duration: 8000,
     });
     load();
@@ -98,7 +98,7 @@ export function CmsUsersView() {
 
   const changeRole = async (user: UserRow) => {
     const role = window.prompt(
-      `Nouveau rôle pour ${user.name} (editor, author, contributor, admin)`,
+      `New role for ${user.name} (editor, author, contributor, admin)`,
       user.role
     );
     if (!role || role === user.role) return;
@@ -108,31 +108,31 @@ export function CmsUsersView() {
       body: JSON.stringify({ userId: user._id, role }),
     });
     if (res.ok) {
-      toast.success("Rôle mis à jour");
+      toast.success("Role updated");
       load();
     } else {
       const data = await res.json();
-      toast.error(data.error ?? "Échec de la mise à jour");
+      toast.error(data.error ?? "Update failed");
     }
   };
 
   const removeMember = async (user: UserRow) => {
     if (user.role === "super_admin") {
-      toast.error("Impossible de supprimer un super administrateur.");
+      toast.error("Cannot remove a super administrator.");
       return;
     }
-    if (!confirm(`Retirer ${user.name} de l'équipe ?`)) return;
+    if (!confirm(`Remove ${user.name} from the team?`)) return;
     const res = await fetch("/api/admin/users", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: user._id }),
     });
     if (res.ok) {
-      toast.success("Membre retiré de l'équipe");
+      toast.success("Member removed from team");
       load();
     } else {
       const data = await res.json();
-      toast.error(data.error ?? "Suppression impossible.");
+      toast.error(data.error ?? "Delete failed.");
     }
   };
 
@@ -146,21 +146,21 @@ export function CmsUsersView() {
     <CmsPage>
       <div className="vhead">
         <div>
-          <div className="vh1">Équipe éditoriale</div>
+          <div className="vh1">Editorial team</div>
           <div className="vh2">
-            {editorial.length} membres ·{" "}
-            {users.filter((u) => u.role === "super_admin" || u.role === "admin").length} administrateurs
+            {editorial.length} members ·{" "}
+            {users.filter((u) => u.role === "super_admin" || u.role === "admin").length} administrators
           </div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-red" onClick={() => void inviteMember()}>
-            + Inviter un membre
+            + Invite member
           </button>
         </div>
       </div>
 
       {loading ? (
-        <p className="cms-empty">Chargement de l&apos;équipe…</p>
+        <p className="cms-empty">Loading team…</p>
       ) : (
         <div className="ugrid">
           {editorial.slice(0, 6).map((user, index) => (
@@ -169,7 +169,7 @@ export function CmsUsersView() {
                 type="button"
                 className="ucard"
                 onClick={() => void changeRole(user)}
-                title="Cliquer pour modifier le rôle"
+                title="Click to change role"
               >
                 <div className="uav" style={{ background: authorAvatarGradient(user.name) }}>
                   {index < 3 && <div className="uonline" />}
@@ -178,7 +178,7 @@ export function CmsUsersView() {
                 <div className="uname">{user.name}</div>
                 <div className="urole" style={{ color: ROLE_COLORS[user.role] ?? "var(--t3)" }}>
                   {CMS_ROLE_LABELS[user.role]}
-                  {user.isBanned ? " · Banni" : ""}
+                  {user.isBanned ? " · Banned" : ""}
                 </div>
                 <div className="ustats">
                   <div>
@@ -201,7 +201,7 @@ export function CmsUsersView() {
                 <button
                   type="button"
                   className="ucard-del btn btn-ghost btn-xs btn-icon"
-                  title="Retirer du membre"
+                  title="Remove member"
                   onClick={() => void removeMember(user)}
                 >
                   <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
@@ -211,26 +211,26 @@ export function CmsUsersView() {
           ))}
           <button type="button" className="ucard ucard--invite" onClick={() => void inviteMember()}>
             <div className="ucard-invite-icon">+</div>
-            <div>Inviter un membre</div>
+            <div>Invite member</div>
           </button>
         </div>
       )}
 
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Matrice des rôles &amp; permissions</span>
+          <span className="card-title">Roles &amp; permissions matrix</span>
         </div>
         <div className="card-np">
           <table className="tbl">
             <thead>
               <tr>
-                <th>Rôle</th>
-                <th>Rédiger</th>
-                <th>Publier</th>
-                <th>Éditer les autres</th>
-                <th>Gérer utilisateurs</th>
-                <th>Publicités</th>
-                <th>Paramètres</th>
+                <th>Role</th>
+                <th>Write</th>
+                <th>Publish</th>
+                <th>Edit others</th>
+                <th>Manage users</th>
+                <th>Advertising</th>
+                <th>Settings</th>
               </tr>
             </thead>
             <tbody>

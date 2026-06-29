@@ -2761,3 +2761,38 @@ body:has(.cms-shell) {
   padding: 0;
   max-width: none;
 }
+
+.cms-shell .cms-branding-field + .cms-branding-field {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.cms-shell .cms-branding-path {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--t3);
+  word-break: break-all;
+}
+
+.cms-shell .cms-branding-path code {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+}
+
+.cms-shell .cms-branding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cms-shell .cms-branding-favicon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.cms-shell .cms-branding-drop {
+  margin-top: 8px;
+}

@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
+import { CmsBrandingUploadField } from "@/components/admin/cms/CmsBrandingUploadField";
 import { CmsStatusIcon, ImageIcon } from "@/components/admin/cms/CmsIcons";
 import { computeSeoScore } from "@/lib/cms-seo-score";
+import { uploadAdminMedia } from "@/lib/admin-upload";
+import { DEFAULT_FAVICON, DEFAULT_SITE_LOGO } from "@/lib/branding";
 import { toast } from "@/lib/toast";
 import { getSiteUrl, SITE_NAME } from "@/lib/site";
 
@@ -11,6 +14,8 @@ interface SeoSettingsForm {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  siteLogo: string;
+  favicon: string;
   seoTitle: string;
   seoDescription: string;
   ogImage: string;
@@ -21,7 +26,11 @@ interface SeoSettingsForm {
   brevoConnected: boolean;
 }
 
-export function CmsSeoSettingsView() {
+interface CmsSeoSettingsViewProps {
+  canManageBranding?: boolean;
+}
+
+export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettingsViewProps) {
   const [form, setForm] = useState<SeoSettingsForm | null>(null);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -34,6 +43,8 @@ export function CmsSeoSettingsView() {
           siteName: data.siteName ?? SITE_NAME,
           tagline: data.tagline ?? "",
           contactEmail: data.contactEmail ?? "",
+          siteLogo: data.siteLogo ?? DEFAULT_SITE_LOGO,
+          favicon: data.favicon ?? DEFAULT_FAVICON,
           seoTitle: data.seoTitle ?? data.siteName ?? "",
           seoDescription: data.seoDescription ?? data.tagline ?? "",
           ogImage: data.ogImage ?? "",
@@ -65,27 +76,31 @@ export function CmsSeoSettingsView() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) toast.success("Paramètres SEO enregistrés.");
-      else toast.error("Échec de l'enregistrement.");
+      if (res.ok) toast.success("SEO settings saved.");
+      else toast.error("Failed to save.");
     } finally {
       setSaving(false);
     }
   };
 
   const uploadOg = async (file: File) => {
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("title", "Image Open Graph");
-    const res = await fetch("/api/admin/medias", { method: "POST", body: fd });
-    if (!res.ok) return;
-    const data = await res.json();
-    setForm((prev) => (prev ? { ...prev, ogImage: data.url } : prev));
+    try {
+      const { url } = await uploadAdminMedia(file, "Image Open Graph");
+      setForm((prev) => (prev ? { ...prev, ogImage: url } : prev));
+      toast.success("Image saved locally.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed.");
+    }
+  };
+
+  const updateBranding = (type: "siteLogo" | "favicon", url: string) => {
+    setForm((prev) => (prev ? { ...prev, [type]: url } : prev));
   };
 
   if (!form) {
     return (
       <CmsPage>
-        <p className="cms-empty">Chargement des paramètres SEO…</p>
+        <p className="cms-empty">Loading SEO settings…</p>
       </CmsPage>
     );
   }
@@ -94,12 +109,12 @@ export function CmsSeoSettingsView() {
     <CmsPage>
       <div className="vhead">
         <div>
-          <div className="vh1">Paramètres SEO</div>
-          <div className="vh2">Référencement global, métadonnées du site et balises sociales</div>
+          <div className="vh1">SEO settings</div>
+          <div className="vh2">Global SEO, site metadata, and social tags</div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-red" disabled={saving} onClick={() => void save()}>
-            {saving ? "Enregistrement…" : "Enregistrer →"}
+            {saving ? "Saving…" : "Save →"}
           </button>
         </div>
       </div>
@@ -107,13 +122,13 @@ export function CmsSeoSettingsView() {
       <div className="g21 ga">
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Identité &amp; référencement</span>
+            <span className="card-title">Identity &amp; SEO</span>
             <div className={`seo-orb ${seo.score >= 70 ? "orb-ok" : "orb-warn"}`}>{seo.score}</div>
           </div>
           <div className="card-body cms-seo-body">
             <div className="field">
               <label className="lbl" htmlFor="seo-site-name">
-                Nom du site
+                Site name
               </label>
               <input
                 id="seo-site-name"
@@ -124,7 +139,7 @@ export function CmsSeoSettingsView() {
             </div>
             <div className="field">
               <label className="lbl" htmlFor="seo-title">
-                Titre SEO global
+                Global SEO title
               </label>
               <input
                 id="seo-title"
@@ -135,7 +150,7 @@ export function CmsSeoSettingsView() {
             </div>
             <div className="field">
               <label className="lbl" htmlFor="seo-desc">
-                Méta-description
+                Meta description
               </label>
               <textarea
                 id="seo-desc"
@@ -147,7 +162,7 @@ export function CmsSeoSettingsView() {
             </div>
             <div className="field">
               <label className="lbl" htmlFor="seo-tagline">
-                Slogan / chapô institutionnel
+                Tagline / institutional lede
               </label>
               <textarea
                 id="seo-tagline"
@@ -176,12 +191,40 @@ export function CmsSeoSettingsView() {
         <div className="cms-editor-side">
           <div className="card">
             <div className="card-header">
+              <span className="card-title">Logo &amp; favicon</span>
+            </div>
+            <div className="card-body cms-stack">
+              <p className="cms-field-hint">
+                Files stored locally in <code>public/uploads/branding/</code>.
+                {!canManageBranding && " Administrators only."}
+              </p>
+              <CmsBrandingUploadField
+                type="siteLogo"
+                label="Site logo (homepage)"
+                hint="PNG, JPG, WebP or SVG — max 2 MB. Header and footer."
+                currentUrl={form.siteLogo}
+                canEdit={canManageBranding}
+                onUploaded={(url) => updateBranding("siteLogo", url)}
+              />
+              <CmsBrandingUploadField
+                type="favicon"
+                label="Tab icon (favicon)"
+                hint="ICO, PNG or SVG — max 512 KB. Browser tab."
+                currentUrl={form.favicon}
+                canEdit={canManageBranding}
+                onUploaded={(url) => updateBranding("favicon", url)}
+              />
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
               <span className="card-title">Newsletter &amp; contact</span>
             </div>
             <div className="card-body cms-stack">
               <div className="field">
                 <label className="lbl" htmlFor="seo-email">
-                  E-mail de contact
+                  Contact email
                 </label>
                 <input
                   id="seo-email"
@@ -193,7 +236,7 @@ export function CmsSeoSettingsView() {
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="seo-nl-title">
-                  Titre bloc newsletter
+                  Newsletter block title
                 </label>
                 <input
                   id="seo-nl-title"
@@ -204,7 +247,7 @@ export function CmsSeoSettingsView() {
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="seo-nl-desc">
-                  Description newsletter
+                  Newsletter description
                 </label>
                 <textarea
                   id="seo-nl-desc"
@@ -223,7 +266,7 @@ export function CmsSeoSettingsView() {
             </div>
             <div className="card-body cms-stack">
               <div className="field">
-                <label className="lbl">Image sociale par défaut</label>
+                <label className="lbl">Default social image</label>
                 <button
                   type="button"
                   className="cms-cover-drop cms-cover-drop--sm"
@@ -237,7 +280,7 @@ export function CmsSeoSettingsView() {
                       <div className="cms-cover-icon">
                         <ImageIcon size={32} aria-hidden />
                       </div>
-                      <div>1200 × 630 px recommandé — cliquer pour téléverser</div>
+                      <div>1200 × 630 px recommended — local storage</div>
                     </>
                   )}
                 </button>
@@ -254,7 +297,7 @@ export function CmsSeoSettingsView() {
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="seo-canonical">
-                  URL canonique
+                  Canonical URL
                 </label>
                 <input
                   id="seo-canonical"

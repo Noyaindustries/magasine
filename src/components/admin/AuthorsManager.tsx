@@ -76,10 +76,10 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Échec de l'enregistrement");
+        toast.error(data.error ?? "Failed to save");
         return;
       }
-      toast.success(editing ? "Auteur mis à jour" : "Auteur créé");
+      toast.success(editing ? "Author updated" : "Author created");
       setModalOpen(false);
       reload();
     } finally {
@@ -92,10 +92,10 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
     const res = await fetch(`/api/admin/authors/${id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      toast.error(data.error ?? "Suppression impossible");
+      toast.error(data.error ?? "Delete failed");
       return;
     }
-    toast.success("Auteur supprimé");
+    toast.success("Author deleted");
     reload();
   };
 

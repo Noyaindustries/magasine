@@ -16,7 +16,7 @@ function formatCtr(impressions: number, clicks: number) {
 }
 
 function formatRevenue(n: number) {
-  if (n <= 0) return "En pause";
+  if (n <= 0) return "Paused";
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2).replace(".", ",")}M FCFA`;
   if (n >= 1000) return `${Math.round(n / 1000)}k FCFA`;
   return `${n} FCFA`;
@@ -66,7 +66,7 @@ export async function GET() {
   } catch (error) {
     console.error("GET /api/admin/publicites:", error);
     return NextResponse.json(
-      { error: "Impossible de charger les zones publicitaires." },
+      { error: "Could not load ad zones." },
       { status: 500 }
     );
   }
@@ -94,14 +94,14 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid data." }, { status: 400 });
     }
 
     const zones = [...(await loadAdZones())];
     const index = zones.findIndex((z) => z.key === parsed.data.zoneId);
 
     if (index < 0) {
-      return NextResponse.json({ error: "Zone introuvable." }, { status: 404 });
+      return NextResponse.json({ error: "Zone not found." }, { status: 404 });
     }
 
     const zone = { ...zones[index] };
@@ -116,7 +116,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ success: true, active: zone.active });
   } catch (error) {
     console.error("PATCH /api/admin/publicites:", error);
-    return NextResponse.json({ error: "Mise à jour impossible." }, { status: 500 });
+    return NextResponse.json({ error: "Update failed." }, { status: 500 });
   }
 }
 
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid data." }, { status: 400 });
     }
 
     const zones = [...(await loadAdZones())];
@@ -150,6 +150,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ _id: key, key }, { status: 201 });
   } catch (error) {
     console.error("POST /api/admin/publicites:", error);
-    return NextResponse.json({ error: "Création impossible." }, { status: 500 });
+    return NextResponse.json({ error: "Creation failed." }, { status: 500 });
   }
 }

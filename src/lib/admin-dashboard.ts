@@ -125,7 +125,7 @@ function daysAgo(n: number) {
 }
 
 function formatDayLabel(date: Date) {
-  return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
 }
 
 function firstAuthorName(authors: unknown): string | undefined {
@@ -148,13 +148,13 @@ function buildActivityFeed(input: {
   const items: DashboardActivityItem[] = [];
 
   for (const article of input.recentPublished) {
-    const author = firstAuthorName(article.authors) ?? "Un auteur";
+    const author = firstAuthorName(article.authors) ?? "An author";
     items.push({
       id: `pub-${String(article._id)}`,
       tone: "green",
       icon: "✓",
       actor: author,
-      action: "a publié",
+      action: "published",
       subject: article.title,
       subjectEmphasis: "em",
       at: article.publishedAt
@@ -169,8 +169,8 @@ function buildActivityFeed(input: {
       id: "mod-comments",
       tone: "amber",
       icon: "💬",
-      action: `${input.pendingComments} commentaire${input.pendingComments > 1 ? "s" : ""} en attente de`,
-      subject: "modération",
+      action: `${input.pendingComments} comment${input.pendingComments > 1 ? "s" : ""} awaiting`,
+      subject: "moderation",
       subjectEmphasis: "strong",
       at: input.now.toISOString(),
       href: "/admin/comments",
@@ -178,13 +178,13 @@ function buildActivityFeed(input: {
   }
 
   for (const article of input.recentEdits) {
-    const author = firstAuthorName(article.authors) ?? "Un auteur";
+    const author = firstAuthorName(article.authors) ?? "An author";
     items.push({
       id: `edit-${String(article._id)}`,
       tone: "blue",
       icon: "✏️",
       actor: author,
-      action: article.status === "review" ? "a soumis" : "a modifié",
+      action: article.status === "review" ? "submitted" : "edited",
       subject: article.title,
       subjectEmphasis: "em",
       at: article.updatedAt
@@ -200,7 +200,7 @@ function buildActivityFeed(input: {
       tone: "red",
       icon: "👤",
       actor: user.name,
-      action: "a rejoint l'équipe éditoriale",
+      action: "joined the editorial team",
       at: user.createdAt ? new Date(user.createdAt).toISOString() : input.now.toISOString(),
       href: "/admin/users",
     });
@@ -210,21 +210,21 @@ function buildActivityFeed(input: {
     const { actor, count, nextAt } = input.scheduledPlanner;
     const tomorrow = new Date(input.now);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const timeLabel = nextAt.toLocaleTimeString("fr-FR", {
+    const timeLabel = nextAt.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     });
     const when =
       nextAt.toDateString() === tomorrow.toDateString()
-        ? `demain ${timeLabel}`
-        : `${nextAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })} ${timeLabel}`;
+        ? `tomorrow ${timeLabel}`
+        : `${nextAt.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })} ${timeLabel}`;
 
     items.push({
       id: "scheduled-batch",
       tone: "green",
       icon: "📅",
       actor,
-      action: `a planifié ${count} article${count > 1 ? "s" : ""} pour ${when}`,
+      action: `scheduled ${count} article${count > 1 ? "s" : ""} for ${when}`,
       at: input.now.toISOString(),
       href: "/admin/articles?status=scheduled",
     });
@@ -371,11 +371,11 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   });
 
   const statusLabels: Record<string, string> = {
-    published: "Publiés",
-    review: "En révision",
-    draft: "Brouillons",
-    scheduled: "Planifiés",
-    archived: "Archivés",
+    published: "Published",
+    review: "In review",
+    draft: "Drafts",
+    scheduled: "Scheduled",
+    archived: "Archived",
   };
 
   const pipeline: PipelineSlice[] = (pipelineRaw as { _id: string; count: number }[]).map(
@@ -472,7 +472,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
   const scheduledPlanner =
     scheduledCount > 0
       ? {
-          actor: firstAuthorName(latestScheduled?.authors) ?? "Un éditeur",
+          actor: firstAuthorName(latestScheduled?.authors) ?? "An editor",
           count: scheduledCount,
           nextAt: latestScheduled?.scheduledAt
             ? new Date(latestScheduled.scheduledAt)

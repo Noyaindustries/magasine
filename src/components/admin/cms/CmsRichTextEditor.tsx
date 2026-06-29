@@ -6,8 +6,10 @@ import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { uploadAdminMedia } from "@/lib/admin-upload";
+import { toast } from "@/lib/toast";
 import {
   AlignCenter,
   AlignLeft,
@@ -30,8 +32,10 @@ interface CmsRichTextEditorProps {
 export function CmsRichTextEditor({
   value,
   onChange,
-  placeholder = "Continuez à rédiger votre article ici…",
+  placeholder = "Continue writing your article here…",
 }: CmsRichTextEditorProps) {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -70,7 +74,7 @@ export function CmsRichTextEditor({
     return (
       <div className="cms-editor-wrap">
         <div className="etb" />
-        <div className="ebody cms-editor-loading">Chargement de l&apos;éditeur…</div>
+        <div className="ebody cms-editor-loading">Loading editor…</div>
       </div>
     );
   }
@@ -97,10 +101,10 @@ export function CmsRichTextEditor({
             else editor.chain().focus().setParagraph().run();
           }}
         >
-          <option value="p">Paragraphe</option>
-          <option value="h2">Titre H2</option>
-          <option value="h3">Titre H3</option>
-          <option value="quote">Citation</option>
+          <option value="p">Paragraph</option>
+          <option value="h2">Heading H2</option>
+          <option value="h3">Heading H3</option>
+          <option value="quote">Quote</option>
         </select>
         <div className="etsep" />
         {toolBtn(<b>B</b>, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
@@ -126,7 +130,7 @@ export function CmsRichTextEditor({
         {toolBtn(
           <Link2 size={14} className="cms-icon" aria-hidden />,
           () => {
-            const url = window.prompt("URL du lien");
+            const url = window.prompt("Link URL");
             if (!url) return;
             editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
           },
@@ -134,23 +138,19 @@ export function CmsRichTextEditor({
         )}
         {toolBtn(
           <ImageIcon size={14} className="cms-icon" aria-hidden />,
-          () => {
-            const url = window.prompt("URL de l'image");
-            if (!url) return;
-            editor.chain().focus().setImage({ src: url }).run();
-          },
+          () => imageInputRef.current?.click(),
           editor.isActive("image")
         )}
         {toolBtn(
           <Video size={14} className="cms-icon" aria-hidden />,
           () => {
-            const url = window.prompt("URL de la vidéo (YouTube, Vimeo…)");
+            const url = window.prompt("Video URL (YouTube, Vimeo…)");
             if (!url) return;
             editor
               .chain()
               .focus()
               .insertContent(
-                `<p><a href="${url}" target="_blank" rel="noopener noreferrer">Voir la vidéo</a></p>`
+                `<p><a href="${url}" target="_blank" rel="noopener noreferrer">Watch video</a></p>`
               )
               .run();
           }
@@ -179,6 +179,27 @@ export function CmsRichTextEditor({
       <div className="ebody">
         <EditorContent editor={editor} />
       </div>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        className="cms-hidden-input"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file || !editor) return;
+          void (async () => {
+            try {
+              const { url } = await uploadAdminMedia(file, file.name);
+              editor.chain().focus().setImage({ src: url, alt: file.name }).run();
+              toast.success("Image inserted from local server.");
+            } catch (error) {
+              toast.error(error instanceof Error ? error.message : "Upload failed.");
+            } finally {
+              if (imageInputRef.current) imageInputRef.current.value = "";
+            }
+          })();
+        }}
+      />
     </div>
   );
 }

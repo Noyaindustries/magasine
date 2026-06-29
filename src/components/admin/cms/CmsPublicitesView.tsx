@@ -30,13 +30,13 @@ interface AdSummary {
 function formatCompact(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".0", "")}M`;
   if (n >= 1000) return `${Math.round(n / 1000)}k`;
-  return n.toLocaleString("fr-FR");
+  return n.toLocaleString("en-US");
 }
 
 function fetchPublicites() {
   return fetch("/api/admin/publicites").then(async (response) => {
     if (!response.ok) {
-      console.error("Publicités:", response.status, await response.text());
+      console.error("Ads:", response.status, await response.text());
       return { zones: [] as AdZoneRow[], summary: null as AdSummary | null };
     }
     return (await response.json()) as {
@@ -59,7 +59,7 @@ export function CmsPublicitesView() {
       setZones(data.zones ?? []);
       setSummary(data.summary ?? null);
     } catch (error) {
-      console.error("Publicités:", error);
+      console.error("Ads:", error);
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ export function CmsPublicitesView() {
         }
       })
       .catch((error) => {
-        console.error("Publicités:", error);
+        console.error("Ads:", error);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -95,10 +95,10 @@ export function CmsPublicitesView() {
   };
 
   const addZone = async () => {
-    const name = window.prompt("Nom de la zone publicitaire");
+    const name = window.prompt("Ad zone name");
     if (!name?.trim()) return;
-    const position = window.prompt("Emplacement sur le site") ?? "Page article";
-    const size = window.prompt("Dimensions (ex: 300 × 250 px)") ?? "300 × 250 px";
+    const position = window.prompt("Placement on site") ?? "Article page";
+    const size = window.prompt("Dimensions (e.g. 300 × 250 px)") ?? "300 × 250 px";
     await fetch("/api/admin/publicites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,26 +108,26 @@ export function CmsPublicitesView() {
   };
 
   const deleteZone = async (zone: AdZoneRow) => {
-    if (!confirm(`Supprimer la zone « ${zone.name} » ?`)) return;
+    if (!confirm(`Delete zone "${zone.name}"?`)) return;
     const res = await fetch(`/api/admin/publicites/${encodeURIComponent(zone._id)}`, {
       method: "DELETE",
     });
     if (!res.ok) {
       const data = (await res.json()) as { error?: string };
-      toast.error(data.error ?? "Suppression impossible.");
+      toast.error(data.error ?? "Delete failed.");
       return;
     }
-    toast.success("Zone publicitaire supprimée");
+    toast.success("Ad zone deleted");
     load();
   };
 
   const exportReport = () => {
     if (!summary) return;
     const lines = [
-      `Rapport revenus publicitaires — ${siteName}`,
+      `Ad revenue report — ${siteName}`,
       `Impressions: ${summary.impressions}`,
-      `Revenus: ${summary.revenueFcfa} FCFA`,
-      `CTR moyen: ${summary.ctr.toFixed(1)}%`,
+      `Revenue: ${summary.revenueFcfa} FCFA`,
+      `Average CTR: ${summary.ctr.toFixed(1)}%`,
       "",
       ...zones.map((z) => `${z.name} | ${z.active ? "Active" : "Pause"} | ${z.revenue}`),
     ];
@@ -135,7 +135,7 @@ export function CmsPublicitesView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "rapport-publicites.txt";
+    a.download = "ad-revenue-report.txt";
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -144,57 +144,57 @@ export function CmsPublicitesView() {
     <CmsPage className="cms-ads-page">
       <div className="vhead">
         <div>
-          <div className="vh1">Gestion des Publicités</div>
+          <div className="vh1">Advertising</div>
           <div className="vh2">
-            {summary?.activeCount ?? 0} zones actives · Revenus ce mois :{" "}
+            {summary?.activeCount ?? 0} active zones · Revenue this month:{" "}
             {summary ? `${formatCompact(summary.revenueFcfa)} FCFA` : "—"}
           </div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-gold" onClick={exportReport}>
-            Rapport revenus
+            Revenue report
           </button>
           <button type="button" className="btn btn-red" onClick={() => void addZone()}>
-            + Nouvelle zone
+            + New zone
           </button>
         </div>
       </div>
 
       <div className="kgrid mb20">
         <div className="kpi k-blue">
-          <div className="klbl">Impressions totales</div>
+          <div className="klbl">Total impressions</div>
           <div className="kval">{summary ? formatCompact(summary.impressions) : "—"}</div>
         </div>
         <div className="kpi k-green">
-          <div className="klbl">Revenus (FCFA)</div>
+          <div className="klbl">Revenue (FCFA)</div>
           <div className="kval">{summary ? formatCompact(summary.revenueFcfa) : "—"}</div>
         </div>
         <div className="kpi k-amber">
-          <div className="klbl">Taux de clic (CTR)</div>
-          <div className="kval">{summary ? `${summary.ctr.toFixed(1).replace(".", ",")}%` : "—"}</div>
+          <div className="klbl">Click-through rate (CTR)</div>
+          <div className="kval">{summary ? `${summary.ctr.toFixed(1)}%` : "—"}</div>
         </div>
         <div className="kpi k-purple">
-          <div className="klbl">Zones actives</div>
+          <div className="klbl">Active zones</div>
           <div className="kval">
             {summary ? `${summary.activeCount} / ${summary.totalCount}` : "—"}
           </div>
         </div>
       </div>
 
-      {loading && <p className="cms-empty">Chargement des zones…</p>}
+      {loading && <p className="cms-empty">Loading zones…</p>}
 
       <div className="azgrid">
         {zones.map((zone) => (
           <div key={zone._id} className={cn("az", zone.active ? "active" : "paused")}>
             <div className="azhead">
               <span className={cn("badge", zone.active ? "b-pub" : "b-draft")}>
-                {zone.active ? "Active" : "En pause"}
+                {zone.active ? "Active" : "Paused"}
               </span>
               <div className="azhead-actions">
                 <button
                   type="button"
                   className="btn btn-ghost btn-xs btn-icon az-del-btn"
-                  title="Supprimer la zone"
+                  title="Delete zone"
                   onClick={() => void deleteZone(zone)}
                 >
                   <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
@@ -203,7 +203,7 @@ export function CmsPublicitesView() {
                   type="button"
                   className={cn("tog", zone.active && "on")}
                   onClick={() => void toggleZone(zone)}
-                  aria-label={`Activer ${zone.name}`}
+                  aria-label={`Toggle ${zone.name}`}
                 />
               </div>
             </div>
@@ -221,7 +221,7 @@ export function CmsPublicitesView() {
               </div>
               <div className="azs">
                 <div className="azsv azsv--sm">{zone.revenue}</div>
-                <div className="azsl">Revenus</div>
+                <div className="azsl">Revenue</div>
               </div>
             </div>
           </div>

@@ -197,19 +197,19 @@ export function CmsSidebar({
         </nav>
 
         <div className="sb-stat">
-          <div className="sb-stat-title">Activité aujourd&apos;hui</div>
+          <div className="sb-stat-title">Today&apos;s activity</div>
           <div className="sb-stat-row">
-            <span className="sb-stat-lbl">Articles publiés</span>
-            <span className="sb-stat-val">{stats.publishedToday.toLocaleString("fr-FR")}</span>
+            <span className="sb-stat-lbl">Articles published</span>
+            <span className="sb-stat-val">{stats.publishedToday.toLocaleString("en-US")}</span>
           </div>
           <div className="sb-stat-row">
-            <span className="sb-stat-lbl">Lecteurs uniques</span>
+            <span className="sb-stat-lbl">Unique readers</span>
             <span className="sb-stat-val">
-              {stats.uniqueReadersToday.toLocaleString("fr-FR")}
+              {stats.uniqueReadersToday.toLocaleString("en-US")}
             </span>
           </div>
           <div className="sb-stat-row">
-            <span className="sb-stat-lbl">Nouveaux abonnés</span>
+            <span className="sb-stat-lbl">New subscribers</span>
             <span className="sb-stat-val">
               {stats.subscribersToday > 0 ? `+${stats.subscribersToday}` : "0"}
             </span>
@@ -230,12 +230,12 @@ export function CmsSidebar({
           <button
             type="button"
             className="cms-signout"
-            title="Déconnexion"
+            title="Sign out"
             onClick={() => signOut({ callbackUrl: "/" })}
           >
             <LogOut className="w-3.5 h-3.5" />
           </button>
-          <div className="sb-online" title="En ligne" />
+          <div className="sb-online" title="Online" />
         </div>
       </aside>
     </>

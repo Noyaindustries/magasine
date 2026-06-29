@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
+import { canManageUsers } from "@/lib/permissions";
 import { getPublicSiteSettings, updateSiteSettings } from "@/lib/site-settings";
+import type { UserRole } from "@/types";
 
 const homeSectionSchema = z.object({
   intro: z.boolean().optional(),
@@ -60,8 +62,35 @@ const updateSchema = z.object({
   brevoConnected: z.boolean().optional(),
 });
 
+type UpdatePayload = z.infer<typeof updateSchema>;
+
+const ADMIN_ONLY_PATCH_KEYS = new Set<keyof UpdatePayload>([
+  "breakingAlertEnabled",
+  "commentsEnabled",
+  "newsletterEnabled",
+  "maintenanceMode",
+  "homeSections",
+  "pulseStats",
+  "closingStats",
+  "trustStripLabel",
+  "trustStripEnabled",
+  "trustPartners",
+  "siteLogo",
+  "favicon",
+]);
+
+function filterSettingsPatch(data: UpdatePayload, role: UserRole) {
+  if (canManageUsers(role)) return data;
+
+  return Object.fromEntries(
+    Object.entries(data).filter(
+      ([key]) => !ADMIN_ONLY_PATCH_KEYS.has(key as keyof UpdatePayload)
+    )
+  ) as UpdatePayload;
+}
+
 export async function GET() {
-  const guard = await requireAdminApi("users");
+  const guard = await requireAdminApi("editorial");
   if (guard.error) return guard.error;
 
   const settings = await getPublicSiteSettings();
@@ -69,7 +98,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: NextRequest) {
-  const guard = await requireAdminApi("users");
+  const guard = await requireAdminApi("editorial");
   if (guard.error) return guard.error;
 
   const body = await request.json();
@@ -78,6 +107,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const settings = await updateSiteSettings(parsed.data);
+  const patch = filterSettingsPatch(parsed.data, guard.session!.user.role);
+  if (Object.keys(patch).length === 0) {
+    return NextResponse.json({ error: "Unauthorized fields" }, { status: 403 });
+  }
+
+  const settings = await updateSiteSettings(patch);
   return NextResponse.json(settings);
 }

@@ -50,7 +50,7 @@ export async function GET() {
           color: LIST_COLORS[row._id.toLowerCase()] ?? "var(--t3)",
         }))
       : [
-          { name: "Actualités générales", count: totalActive, pct: 100, color: "var(--cms-red)" },
+          { name: "General news", count: totalActive, pct: 100, color: "var(--cms-red)" },
         ];
 
   return NextResponse.json({

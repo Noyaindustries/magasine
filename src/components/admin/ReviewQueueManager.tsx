@@ -165,7 +165,7 @@ export function ReviewQueueManager({ initialItems }: ReviewQueueManagerProps) {
     async (id: string, status: "published" | "draft") => {
       setBusyId(id);
       const toastId = toast.loading(
-        status === "published" ? "Publication de l'article…" : "Retour en brouillon…"
+        status === "published" ? "Publishing article…" : "Moving back to draft…"
       );
 
       try {
@@ -183,13 +183,13 @@ export function ReviewQueueManager({ initialItems }: ReviewQueueManagerProps) {
         setItems((prev) => prev.filter((item) => item._id !== id));
         toast.dismiss(toastId);
         toast.success(
-          status === "published" ? "Article publié avec succès" : "Article repassé en brouillon"
+          status === "published" ? "Article published successfully" : "Article moved back to draft"
         );
         router.refresh();
       } catch (error) {
         toast.dismiss(toastId);
         toast.error(
-          error instanceof Error ? error.message : "Impossible de mettre à jour l'article."
+          error instanceof Error ? error.message : "Could not update the article."
         );
       } finally {
         setBusyId(null);

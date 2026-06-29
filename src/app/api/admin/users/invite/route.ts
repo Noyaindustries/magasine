@@ -20,14 +20,14 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data." }, { status: 400 });
   }
 
   await connectDB();
   const email = parsed.data.email.toLowerCase().trim();
   const existing = await User.findOne({ email });
   if (existing) {
-    return NextResponse.json({ error: "Cet e-mail est déjà utilisé." }, { status: 409 });
+    return NextResponse.json({ error: "This email is already in use." }, { status: 409 });
   }
 
   const tempPassword = randomBytes(6).toString("base64url");

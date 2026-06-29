@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     const existing = await Article.findOne({ slug });
     if (existing) {
-      return NextResponse.json({ error: "Un article avec ce slug existe déjà" }, { status: 409 });
+      return NextResponse.json({ error: "An article with this slug already exists" }, { status: 409 });
     }
 
     const article = await Article.create({

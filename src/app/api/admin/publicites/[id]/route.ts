@@ -16,7 +16,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     const index = zones.findIndex((z) => z.key === id);
 
     if (index < 0) {
-      return NextResponse.json({ error: "Zone introuvable." }, { status: 404 });
+      return NextResponse.json({ error: "Zone not found." }, { status: 404 });
     }
 
     zones.splice(index, 1);
@@ -25,6 +25,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/admin/publicites/[id]:", error);
-    return NextResponse.json({ error: "Suppression impossible." }, { status: 500 });
+    return NextResponse.json({ error: "Delete failed." }, { status: 500 });
   }
 }

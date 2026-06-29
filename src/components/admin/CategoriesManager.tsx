@@ -71,10 +71,10 @@ export function CategoriesManager({ initial }: { initial: CategoryRow[] }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Échec de l'enregistrement");
+        toast.error(data.error ?? "Failed to save");
         return;
       }
-      toast.success(editing ? "Rubrique mise à jour" : "Rubrique créée");
+      toast.success(editing ? "Category updated" : "Category created");
       setModalOpen(false);
       reload();
     } finally {
@@ -87,10 +87,10 @@ export function CategoriesManager({ initial }: { initial: CategoryRow[] }) {
     const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) {
-      toast.error(data.error ?? "Suppression impossible");
+      toast.error(data.error ?? "Delete failed");
       return;
     }
-    toast.success("Rubrique supprimée");
+    toast.success("Category deleted");
     reload();
   };
 

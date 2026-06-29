@@ -18,31 +18,31 @@ function escapeCsv(value: string | number) {
 }
 
 export function exportCategoryTrafficCsv(categories: CategoryStat[]) {
-  const header = "Rubrique,Articles,Vues";
+  const header = "Category,Articles,Views";
   const rows = categories.map(
     (cat) => `${escapeCsv(cat.name)},${cat.count},${cat.views}`
   );
   const csv = [header, ...rows].join("\n");
   const date = new Date().toISOString().slice(0, 10);
-  downloadBlob(`trafic-rubriques-${date}.csv`, csv, "text/csv;charset=utf-8");
+  downloadBlob(`category-traffic-${date}.csv`, csv, "text/csv;charset=utf-8");
 }
 
 export function downloadWeeklyReport(report: WeeklyReport) {
   const lines = [
-    `Rapport hebdomadaire — ${SITE_NAME} CMS`,
-    `Généré le ${new Date().toLocaleString("fr-FR")}`,
+    `Weekly report — ${SITE_NAME} CMS`,
+    `Generated on ${new Date().toLocaleString("en-US")}`,
     "",
-    `Articles publiés (7 j) : ${report.articlesPublished}`,
-    `Commentaires reçus (7 j) : ${report.commentsReceived}`,
-    `Nouveaux abonnés newsletter (7 j) : ${report.newSubscribers}`,
-    `Rubrique la plus lue : ${report.topCategory}`,
-    `Article le plus lu : ${report.topArticleTitle} (${report.topArticleViews.toLocaleString("fr-FR")} vues)`,
+    `Articles published (7 d): ${report.articlesPublished}`,
+    `Comments received (7 d): ${report.commentsReceived}`,
+    `New newsletter subscribers (7 d): ${report.newSubscribers}`,
+    `Top category: ${report.topCategory}`,
+    `Top article: ${report.topArticleTitle} (${report.topArticleViews.toLocaleString("en-US")} views)`,
     "",
-    `En révision : ${report.pendingReview}`,
-    `Commentaires à modérer : ${report.pendingComments}`,
+    `In review: ${report.pendingReview}`,
+    `Comments to moderate: ${report.pendingComments}`,
   ];
   const date = new Date().toISOString().slice(0, 10);
-  downloadBlob(`rapport-hebdo-${date}.txt`, lines.join("\n"), "text/plain;charset=utf-8");
+  downloadBlob(`weekly-report-${date}.txt`, lines.join("\n"), "text/plain;charset=utf-8");
 }
 
 export function buildWeeklyReportSummary(data: AdminDashboardData) {

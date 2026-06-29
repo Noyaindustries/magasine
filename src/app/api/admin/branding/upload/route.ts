@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  const guard = await requireAdminApi("users");
+  const guard = await requireAdminApi("editorial");
   if (guard.error) return guard.error;
 
   const settings = await getPublicSiteSettings();

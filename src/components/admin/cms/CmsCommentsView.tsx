@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
-import { authorAvatarGradient, authorInitials, formatRelativeFr } from "@/components/admin/cms/cms-ui";
+import { authorAvatarGradient, authorInitials, formatRelativeEn } from "@/components/admin/cms/cms-ui";
 import { toast } from "@/lib/toast";
 
 interface CommentRow {
@@ -65,18 +65,18 @@ export function CmsCommentsView() {
         body: JSON.stringify({ commentId, action, replyContent }),
       });
       if (!res.ok) {
-        toast.error("Action impossible sur ce commentaire");
+        toast.error("Could not perform this action on the comment");
         return;
       }
       const labels: Record<string, string> = {
-        approve: "Commentaire approuvé",
-        reject: "Commentaire rejeté",
-        delete: "Commentaire supprimé",
-        ignore_report: "Signalement ignoré",
-        ban_user: "Utilisateur banni",
-        reply: "Réponse publiée",
+        approve: "Comment approved",
+        reject: "Comment rejected",
+        delete: "Comment deleted",
+        ignore_report: "Report ignored",
+        ban_user: "User banned",
+        reply: "Reply published",
       };
-      toast.success(labels[action] ?? "Action effectuée");
+      toast.success(labels[action] ?? "Action completed");
       load();
     } finally {
       setBusy(false);
@@ -97,11 +97,11 @@ export function CmsCommentsView() {
   });
 
   const tabs: { id: Filter; label: string; count: number }[] = [
-    { id: "all", label: "Tous", count: comments.length },
-    { id: "pending", label: "En attente", count: pending.length },
-    { id: "flagged", label: "Signalés", count: flagged.length },
-    { id: "approved", label: "Approuvés", count: approved.length },
-    { id: "rejected", label: "Rejetés", count: rejected.length },
+    { id: "all", label: "All", count: comments.length },
+    { id: "pending", label: "Pending", count: pending.length },
+    { id: "flagged", label: "Flagged", count: flagged.length },
+    { id: "approved", label: "Approved", count: approved.length },
+    { id: "rejected", label: "Rejected", count: rejected.length },
   ];
 
   const bulkApprove = async () => {
@@ -115,7 +115,7 @@ export function CmsCommentsView() {
   };
 
   const bulkReject = async () => {
-    if (!confirm("Rejeter tous les commentaires en attente ?")) return;
+    if (!confirm("Reject all pending comments?")) return;
     setBusy(true);
     try {
       await Promise.all(pending.map((c) => moderate(c._id, "reject")));
@@ -129,17 +129,17 @@ export function CmsCommentsView() {
     <CmsPage className="cms-comments-page">
       <div className="vhead">
         <div>
-          <div className="vh1">Commentaires</div>
+          <div className="vh1">Comments</div>
           <div className="vh2">
-            {comments.length} commentaires · {flagged.length} signalés · {pending.length} en attente
+            {comments.length} comments · {flagged.length} flagged · {pending.length} pending
           </div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-out" disabled={busy || pending.length === 0} onClick={() => void bulkApprove()}>
-            Tout approuver
+            Approve all
           </button>
           <button type="button" className="btn btn-ghost cms-delete-btn" disabled={busy || pending.length === 0} onClick={() => void bulkReject()}>
-            Tout rejeter
+            Reject all
           </button>
         </div>
       </div>
@@ -157,10 +157,10 @@ export function CmsCommentsView() {
         ))}
       </div>
 
-      {loading && <p className="cms-empty">Chargement des commentaires…</p>}
+      {loading && <p className="cms-empty">Loading comments…</p>}
 
       {!loading && filtered.length === 0 && (
-        <p className="cms-empty">Aucun commentaire dans cette vue.</p>
+        <p className="cms-empty">No comments in this view.</p>
       )}
 
       {filtered.map((c) => (
@@ -171,11 +171,11 @@ export function CmsCommentsView() {
             </div>
             <div>
               <div className="ccname">
-                {c.user?.name ?? "Anonyme"}
-                {c.isReported && <span className="cc-flag"> ⚑ Signalé comme spam</span>}
+                {c.user?.name ?? "Anonymous"}
+                {c.isReported && <span className="cc-flag"> ⚑ Flagged as spam</span>}
               </div>
               <div className="ccinfo">
-                {c.user?.email ?? "—"} · {formatRelativeFr(c.createdAt)}
+                {c.user?.email ?? "—"} · {formatRelativeEn(c.createdAt)}
               </div>
             </div>
             {c.article?.slug && (
@@ -188,7 +188,7 @@ export function CmsCommentsView() {
           <div className="ccacts">
             {!c.isApproved && !c.isRejected && (
               <button type="button" className="btn btn-red btn-sm" disabled={busy} onClick={() => void moderate(c._id, "approve")}>
-                Approuver
+                Approve
               </button>
             )}
             <button
@@ -196,27 +196,27 @@ export function CmsCommentsView() {
               className="btn btn-ghost btn-sm"
               disabled={busy}
               onClick={() => {
-                const reply = window.prompt("Votre réponse (publiée au nom de l'équipe) :");
+                const reply = window.prompt("Your reply (published on behalf of the team):");
                 if (reply?.trim()) void moderate(c._id, "reply", reply.trim());
               }}
             >
-              Répondre
+              Reply
             </button>
             {c.isReported ? (
               <>
                 <button type="button" className="btn btn-ghost btn-sm cms-delete-btn" disabled={busy} onClick={() => void moderate(c._id, "delete")}>
-                  Supprimer
+                  Delete
                 </button>
                 <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={() => void moderate(c._id, "ignore_report")}>
-                  Ignorer le signalement
+                  Ignore report
                 </button>
                 <button type="button" className="btn btn-ghost btn-sm cms-delete-btn" disabled={busy} onClick={() => void moderate(c._id, "ban_user")}>
-                  Bannir l&apos;utilisateur
+                  Ban user
                 </button>
               </>
             ) : !c.isRejected ? (
               <button type="button" className="btn btn-ghost btn-sm cms-delete-btn" disabled={busy} onClick={() => void moderate(c._id, "reject")}>
-                Rejeter
+                Reject
               </button>
             ) : null}
           </div>

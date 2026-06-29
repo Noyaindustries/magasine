@@ -98,31 +98,31 @@ export async function DELETE(request: NextRequest) {
   const body = await request.json();
   const parsed = z.object({ userId: z.string() }).safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data." }, { status: 400 });
   }
 
   const { userId } = parsed.data;
 
   if (userId === guard.session!.user.id) {
-    return NextResponse.json({ error: "Vous ne pouvez pas supprimer votre propre compte." }, { status: 400 });
+    return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
   }
 
   await connectDB();
   const user = await User.findById(userId);
   if (!user) {
-    return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
   }
 
   if (user.role === "super_admin") {
     return NextResponse.json(
-      { error: "Impossible de supprimer un super administrateur." },
+      { error: "Cannot delete a super admin account." },
       { status: 403 }
     );
   }
 
   if (user.role === "admin" && guard.session!.user.role !== "super_admin") {
     return NextResponse.json(
-      { error: "Seul un super administrateur peut supprimer un administrateur." },
+      { error: "Only a super admin can delete an admin account." },
       { status: 403 }
     );
   }
@@ -130,7 +130,7 @@ export async function DELETE(request: NextRequest) {
   const articleCount = await Article.countDocuments({ authors: user._id });
   if (articleCount > 0) {
     return NextResponse.json(
-      { error: `Cet utilisateur a ${articleCount} article(s). Réassignez-les avant suppression.` },
+      { error: `This user has ${articleCount} article(s). Reassign them before deleting.` },
       { status: 409 }
     );
   }

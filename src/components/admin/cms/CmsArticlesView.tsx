@@ -27,12 +27,12 @@ export interface ArticleStatusCounts {
 }
 
 const TABS: { id?: ArticleStatus; label: string; countKey: keyof ArticleStatusCounts }[] = [
-  { label: "Tous", countKey: "all" },
-  { label: "Publiés", id: "published", countKey: "published" },
-  { label: "Brouillons", id: "draft", countKey: "draft" },
-  { label: "En révision", id: "review", countKey: "review" },
-  { label: "Planifiés", id: "scheduled", countKey: "scheduled" },
-  { label: "Archivés", id: "archived", countKey: "archived" },
+  { label: "All", countKey: "all" },
+  { label: "Published", id: "published", countKey: "published" },
+  { label: "Drafts", id: "draft", countKey: "draft" },
+  { label: "In review", id: "review", countKey: "review" },
+  { label: "Scheduled", id: "scheduled", countKey: "scheduled" },
+  { label: "Archived", id: "archived", countKey: "archived" },
 ];
 
 interface CmsArticlesViewProps {
@@ -86,13 +86,13 @@ export function CmsArticlesView({
         <div>
           <div className="vh1">Articles</div>
           <div className="vh2">
-            {counts.all.toLocaleString("fr-FR")} articles · {counts.review} en attente ·{" "}
-            {counts.scheduled} planifiés
+            {counts.all.toLocaleString("en-US")} articles · {counts.review} pending ·{" "}
+            {counts.scheduled} scheduled
           </div>
         </div>
         <div className="vacts">
           <Link href="/admin/articles/new" className="btn btn-red">
-            + Nouvel article
+            + New article
           </Link>
         </div>
       </div>
@@ -104,7 +104,7 @@ export function CmsArticlesView({
           const count = counts[tab.countKey];
           return (
             <Link key={tab.label} href={href} className={active ? "tab on" : "tab"}>
-              {tab.label} ({count.toLocaleString("fr-FR")})
+              {tab.label} ({count.toLocaleString("en-US")})
             </Link>
           );
         })}
@@ -117,10 +117,10 @@ export function CmsArticlesView({
             <circle cx="5" cy="5" r="3.5" stroke="var(--t3)" strokeWidth="1.5" />
             <path d="M8 8l2.5 2.5" stroke="var(--t3)" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <input name="q" type="search" defaultValue={query ?? ""} placeholder="Rechercher un article…" />
+          <input name="q" type="search" defaultValue={query ?? ""} placeholder="Search articles…" />
         </div>
         <select className="fsel" name="category" defaultValue={category ?? ""}>
-          <option value="">Toutes les rubriques</option>
+          <option value="">All categories</option>
           {categories.map((name) => (
             <option key={name} value={name}>
               {name}
@@ -128,7 +128,7 @@ export function CmsArticlesView({
           ))}
         </select>
         <select className="fsel" name="author" defaultValue={author ?? ""}>
-          <option value="">Tous les auteurs</option>
+          <option value="">All authors</option>
           {authors.map((name) => (
             <option key={name} value={name}>
               {name}
@@ -136,10 +136,10 @@ export function CmsArticlesView({
           ))}
         </select>
         <button type="submit" className="btn btn-ghost btn-sm">
-          Filtrer
+          Filter
         </button>
         <div className="fcount">
-          {activeCount.toLocaleString("fr-FR")} résultats
+          {activeCount.toLocaleString("en-US")} results
           {totalPages > 1 ? ` · ${totalPages} pages` : ""}
         </div>
       </form>

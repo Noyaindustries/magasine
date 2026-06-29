@@ -743,3 +743,18 @@
     padding: 18px 16px;
   }
 }
+
+.hpg-logo-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hpg-logo-upload code {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.hpg-hidden-file {
+  display: none;
+}

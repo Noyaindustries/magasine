@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
 import {
   LayoutGrid,
@@ -21,6 +21,7 @@ import {
 import type { HomepageSectionStatus } from "@/lib/homepage-admin";
 import type { PublicSiteSettings, TrustPartner } from "@/lib/site-settings";
 import type { HomeSectionId } from "@/lib/homepage-sections";
+import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
 
 interface HomepageManagerProps {
@@ -53,7 +54,7 @@ const NAV_ITEMS: { id: HpgTab; label: string; icon: ComponentType<{ className?: 
 
 const emptyPartner = (): TrustPartner => ({
   name: "",
-  logo: "/images/partners/",
+  logo: "",
   width: 120,
   height: 28,
   url: "",
@@ -93,6 +94,9 @@ export function HomepageManager({
   const [sections, setSections] = useState(initialSections);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<HpgTab>("sections");
+  const partnerLogoInputRef = useRef<HTMLInputElement>(null);
+  const [partnerLogoIndex, setPartnerLogoIndex] = useState<number | null>(null);
+  const [uploadingPartnerLogo, setUploadingPartnerLogo] = useState(false);
 
   const liveCount = useMemo(
     () => sections.filter((s) => settings.homeSections[s.id]).length,
@@ -106,7 +110,7 @@ export function HomepageManager({
 
   const save = async (patch: Partial<PublicSiteSettings>) => {
     setSaving(true);
-    const toastId = toast.loading("Enregistrement des modifications…");
+    const toastId = toast.loading("Saving changes…");
     try {
       const res = await fetch("/api/admin/homepage", {
         method: "PATCH",
@@ -116,7 +120,7 @@ export function HomepageManager({
       const data = await res.json();
       if (!res.ok) {
         toast.dismiss(toastId);
-        toast.error(data.error ?? "Échec de l'enregistrement");
+        toast.error(data.error ?? "Failed to save");
         return;
       }
       setSettings(data);
@@ -129,10 +133,10 @@ export function HomepageManager({
         );
       }
       toast.dismiss(toastId);
-      toast.success("Page d'accueil mise à jour");
+      toast.success("Homepage updated");
     } catch {
       toast.dismiss(toastId);
-      toast.error("Erreur réseau — réessayez.");
+      toast.error("Network error — please try again.");
     } finally {
       setSaving(false);
     }
@@ -170,6 +174,22 @@ export function HomepageManager({
       i === index ? { ...p, [field]: value } : p
     );
     setSettings({ ...settings, trustPartners });
+  };
+
+  const uploadPartnerLogo = async (index: number, file: File) => {
+    setUploadingPartnerLogo(true);
+    try {
+      const partner = settings.trustPartners[index];
+      const { url } = await uploadAdminMedia(file, partner?.name || file.name);
+      updatePartner(index, "logo", url);
+      toast.success("Logo saved locally.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setUploadingPartnerLogo(false);
+      if (partnerLogoInputRef.current) partnerLogoInputRef.current.value = "";
+      setPartnerLogoIndex(null);
+    }
   };
 
   const addPartner = () => {
@@ -490,12 +510,23 @@ export function HomepageManager({
                         />
                       </div>
                       <div className="hpg-field">
-                        <label>Logo URL</label>
-                        <input
-                          value={partner.logo}
-                          onChange={(e) => updatePartner(i, "logo", e.target.value)}
-                          placeholder="/images/partners/rfi.svg"
-                        />
+                        <label>Logo</label>
+                        <div className="hpg-logo-upload">
+                          <code>{partner.logo || "No file"}</code>
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn--secondary"
+                            disabled={uploadingPartnerLogo}
+                            onClick={() => {
+                              setPartnerLogoIndex(i);
+                              partnerLogoInputRef.current?.click();
+                            }}
+                          >
+                            {uploadingPartnerLogo && partnerLogoIndex === i
+                              ? "Uploading…"
+                              : "Upload"}
+                          </button>
+                        </div>
                       </div>
                       <div className="hpg-field">
                         <label>Width (px)</label>
@@ -654,6 +685,16 @@ export function HomepageManager({
           )}
         </div>
       </div>
+      <input
+        ref={partnerLogoInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+        className="hpg-hidden-file"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && partnerLogoIndex !== null) void uploadPartnerLogo(partnerLogoIndex, file);
+        }}
+      />
     </div>
   );
 }

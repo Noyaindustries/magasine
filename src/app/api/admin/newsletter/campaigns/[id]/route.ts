@@ -16,7 +16,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
   const deleted = await NewsletterCampaign.findByIdAndDelete(id);
   if (!deleted) {
-    return NextResponse.json({ error: "Campagne introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "Campaign not found." }, { status: 404 });
   }
 
   return NextResponse.json({ success: true });

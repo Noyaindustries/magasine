@@ -12,6 +12,7 @@ import { computeSeoScore } from "@/lib/cms-seo-score";
 import { toast } from "@/lib/toast";
 import { estimateReadingTime } from "@/lib/utils";
 import { getSiteHostname } from "@/lib/site";
+import { uploadAdminMedia } from "@/lib/admin-upload";
 
 interface Category {
   _id: string;
@@ -48,9 +49,6 @@ interface ArticleEditorForm {
   version: number;
 }
 
-const DEFAULT_IMAGE =
-  "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=630&fit=crop";
-
 const EMPTY_FORM: ArticleEditorForm = {
   title: "",
   subtitle: "",
@@ -84,16 +82,16 @@ function wordCount(html: string) {
 }
 
 function statusLabel(mode: PublishMode) {
-  if (mode === "draft") return "Brouillon";
-  if (mode === "review") return "En révision";
-  if (mode === "schedule") return "Planifié";
-  return "Publié";
+  if (mode === "draft") return "Draft";
+  if (mode === "review") return "In review";
+  if (mode === "schedule") return "Scheduled";
+  return "Published";
 }
 
 function formatAutoSave(seconds: number) {
-  if (seconds < 5) return "à l'instant";
-  if (seconds < 60) return `il y a ${seconds} sec`;
-  return `il y a ${Math.floor(seconds / 60)} min`;
+  if (seconds < 5) return "just now";
+  if (seconds < 60) return `${seconds} sec ago`;
+  return `${Math.floor(seconds / 60)} min ago`;
 }
 
 function mapStatusToPublishMode(status: string): PublishMode {
@@ -220,8 +218,8 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
 
   const autoSaveLabel =
     lastSavedAt === null
-      ? "Non enregistré"
-      : `Sauvegarde auto ${formatAutoSave(autoSaveAgeSec)}`;
+      ? "Not saved"
+      : `Auto-saved ${formatAutoSave(autoSaveAgeSec)}`;
 
   const buildPayload = useCallback(
     (publishModeOverride?: PublishMode) => {
@@ -232,7 +230,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
         subtitle: form.subtitle.trim(),
         excerpt,
         content: form.content,
-        featuredImage: form.featuredImage.trim() || DEFAULT_IMAGE,
+        featuredImage: form.featuredImage.trim(),
         featuredImageCaption: form.featuredImageCaption.trim() || undefined,
         categoryId: form.categoryId,
         authorId: form.authorId,
@@ -258,13 +256,13 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
     async (options?: { redirectAfter?: boolean; publishMode?: PublishMode; silent?: boolean }) => {
       if (!form.title.trim() || !form.categoryId || !form.authorId) {
         if (!options?.silent) {
-          toast.error("Titre, rubrique et auteur sont requis.");
+          toast.error("Title, category, and author are required.");
         }
         return false;
       }
 
       setLoading(true);
-      const toastId = options?.silent ? null : toast.loading("Enregistrement de l'article…");
+      const toastId = options?.silent ? null : toast.loading("Saving article…");
       try {
         const payload = buildPayload(options?.publishMode);
         const url =
@@ -279,7 +277,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
           const err = await res.json().catch(() => ({}));
           if (toastId) toast.dismiss(toastId);
           if (!options?.silent) {
-            toast.error((err as { error?: string }).error ?? "Échec de l'enregistrement");
+            toast.error((err as { error?: string }).error ?? "Failed to save");
           }
           return false;
         }
@@ -292,9 +290,9 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
         if (toastId) toast.dismiss(toastId);
         if (!options?.silent) {
           if (options?.publishMode === "publish") {
-            toast.success("Article publié");
+            toast.success("Article published");
           } else {
-            toast.success("Article enregistré");
+            toast.success("Article saved");
           }
         }
         if (mode === "create" && data._id) {
@@ -329,13 +327,11 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
   const uploadCover = async (file: File) => {
     setUploadingCover(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      fd.append("title", form.title || file.name);
-      const res = await fetch("/api/admin/medias", { method: "POST", body: fd });
-      if (!res.ok) return;
-      const data = await res.json();
-      patchForm({ featuredImage: data.url });
+      const { url } = await uploadAdminMedia(file, form.title || file.name);
+      patchForm({ featuredImage: url });
+      toast.success("Image saved locally.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed.");
     } finally {
       setUploadingCover(false);
     }
@@ -353,15 +349,15 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
   };
 
   const handleDelete = async () => {
-    if (!articleId || !confirm("Supprimer définitivement cet article ?")) return;
+    if (!articleId || !confirm("Permanently delete this article?")) return;
     setDeleting(true);
     try {
       const res = await fetch(`/api/admin/articles/${articleId}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("Article supprimé");
+        toast.success("Article deleted");
         router.push("/admin/articles");
       } else {
-        toast.error("Suppression impossible");
+        toast.error("Delete failed");
       }
     } finally {
       setDeleting(false);
@@ -375,7 +371,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
     <CmsPage className="cms-editor-page">
       <div className="vhead">
         <div>
-          <div className="vh1">Éditeur d&apos;article</div>
+          <div className="vh1">Article editor</div>
           <div className="vh2">
             {statusLabel(form.publishMode)} · {autoSaveLabel}
           </div>
@@ -387,7 +383,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
               target="_blank"
               className="btn btn-ghost"
             >
-              Prévisualiser
+              Preview
             </Link>
           )}
           <button
@@ -396,7 +392,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
             disabled={loading}
             onClick={() => void saveArticle()}
           >
-            Enregistrer brouillon
+            Save draft
           </button>
           <button
             type="button"
@@ -404,7 +400,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
             disabled={loading}
             onClick={() => void saveArticle({ publishMode: "publish", redirectAfter: true })}
           >
-            Publier maintenant →
+            Publish now →
           </button>
         </div>
       </div>
@@ -413,7 +409,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
         <div className="cms-editor-main">
           <div className="field">
             <label className="lbl">
-              Titre de l&apos;article <span className="req">*</span>
+              Article title <span className="req">*</span>
             </label>
             <input
               className="input lg"
@@ -428,25 +424,25 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                     : { slug: slugify(title, { lower: true, strict: true }) }),
                 });
               }}
-              placeholder="Titre accrocheur…"
+              placeholder="Catchy headline…"
               required
             />
           </div>
 
           <div className="field">
-            <label className="lbl">Chapô / Sous-titre</label>
+            <label className="lbl">Lede / Subtitle</label>
             <input
               className="input"
               type="text"
               value={form.subtitle}
               onChange={(e) => patchForm({ subtitle: e.target.value, excerpt: e.target.value })}
-              placeholder="Résumé accrocheur…"
+              placeholder="Engaging summary…"
             />
           </div>
 
           <div className="field">
             <label className="lbl">
-              Corps de l&apos;article <span className="req">*</span>
+              Article body <span className="req">*</span>
             </label>
             <CmsRichTextEditor
               value={form.content}
@@ -454,50 +450,50 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
             />
             <div className="cms-editor-meta-row">
               <span>
-                {words} mot{words > 1 ? "s" : ""} ·{" "}
+                {words} word{words > 1 ? "s" : ""} ·{" "}
                 <span className="cms-editor-meta-strong">
-                  Lecture estimée : {readingTime} min
+                  Estimated reading time: {readingTime} min
                 </span>
               </span>
               {mode === "edit" && (
-                <span>Historique des versions ({form.version}) →</span>
+                <span>Version history ({form.version}) →</span>
               )}
             </div>
           </div>
 
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Optimisation SEO</span>
+              <span className="card-title">SEO optimization</span>
               <div className={`seo-orb ${orbClass}`}>{seo.score}</div>
             </div>
             <div className="card-body cms-seo-body">
               <div className="field">
-                <label className="lbl">Titre SEO</label>
+                <label className="lbl">SEO title</label>
                 <input
                   className="input"
                   type="text"
                   value={form.seoTitle}
                   onChange={(e) => patchForm({ seoTitle: e.target.value })}
-                  placeholder={form.title || "Titre pour les moteurs de recherche"}
+                  placeholder={form.title || "Title for search engines"}
                 />
                 <div className="cms-field-hint">
-                  <span>50–60 caractères recommandés</span>
+                  <span>50–60 characters recommended</span>
                   <span className={seoTitleLen > 60 ? "cms-warn" : "cms-ok"}>
                     {seoTitleLen} / 60 <CmsHintIcon ok={seoTitleLen <= 60} />
                   </span>
                 </div>
               </div>
               <div className="field">
-                <label className="lbl">Méta-description</label>
+                <label className="lbl">Meta description</label>
                 <textarea
                   className="input"
                   rows={2}
                   value={form.seoDescription}
                   onChange={(e) => patchForm({ seoDescription: e.target.value })}
-                  placeholder="Résumé pour Google et les réseaux sociaux"
+                  placeholder="Summary for Google and social networks"
                 />
                 <div className="cms-field-hint">
-                  <span>Max 155 caractères</span>
+                  <span>Max 155 characters</span>
                   <span className={seoDescLen > 155 ? "cms-warn" : "cms-ok"}>
                     {seoDescLen} <CmsHintIcon ok={seoDescLen <= 155} />
                   </span>
@@ -543,7 +539,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
             </div>
             <div className="card-body cms-stack">
               <div className="field">
-                <label className="lbl">Statut</label>
+                <label className="lbl">Status</label>
                 <select
                   className="input sel"
                   value={form.publishMode}
@@ -551,14 +547,14 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                     patchForm({ publishMode: e.target.value as PublishMode })
                   }
                 >
-                  <option value="draft">Brouillon</option>
-                  <option value="review">En révision</option>
-                  <option value="publish">Publier immédiatement</option>
-                  <option value="schedule">Planifier</option>
+                  <option value="draft">Draft</option>
+                  <option value="review">In review</option>
+                  <option value="publish">Publish immediately</option>
+                  <option value="schedule">Schedule</option>
                 </select>
               </div>
               <div className="field">
-                <label className="lbl">Date de publication</label>
+                <label className="lbl">Publish date</label>
                 <input
                   className="input"
                   type="datetime-local"
@@ -577,7 +573,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                     void saveArticle({ publishMode: "publish", redirectAfter: true })
                   }
                 >
-                  Publier maintenant →
+                  Publish now →
                 </button>
                 <button
                   type="button"
@@ -586,7 +582,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                   disabled={loading}
                   onClick={() => void saveArticle()}
                 >
-                  Enregistrer brouillon
+                  Save draft
                 </button>
                 {mode === "edit" && (
                   <button
@@ -597,7 +593,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                     onClick={() => void handleDelete()}
                   >
                     <Trash2 size={14} className="cms-icon cms-icon--error" aria-hidden />
-                    Supprimer l&apos;article
+                    Delete article
                   </button>
                 )}
               </div>
@@ -611,7 +607,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
             <div className="card-body cms-stack">
               <div className="field">
                 <label className="lbl">
-                  Rubrique <span className="req">*</span>
+                  Category <span className="req">*</span>
                 </label>
                 <select
                   className="input sel"
@@ -619,7 +615,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                   onChange={(e) => patchForm({ categoryId: e.target.value })}
                   required
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">Choose…</option>
                   {categories.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
@@ -636,7 +632,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                       type="button"
                       className="cms-tag"
                       onClick={() => removeTag(tag)}
-                      title="Retirer"
+                      title="Remove"
                     >
                       {tag}
                     </button>
@@ -658,14 +654,14 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                 </div>
               </div>
               <div className="field">
-                <label className="lbl">Auteur(s)</label>
+                <label className="lbl">Author(s)</label>
                 <select
                   className="input sel"
                   value={form.authorId}
                   onChange={(e) => patchForm({ authorId: e.target.value })}
                   required
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">Choose…</option>
                   {authors.map((a) => (
                     <option key={a._id} value={a._id}>
                       {a.name}
@@ -678,7 +674,7 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
 
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Image à la une</span>
+              <span className="card-title">Featured image</span>
             </div>
             <div className="card-body">
               <label className="cms-cover-drop">
@@ -690,8 +686,8 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                     <div className="cms-cover-icon">
                       <ImageIcon size={32} aria-hidden />
                     </div>
-                    <div>{uploadingCover ? "Téléversement…" : "Cliquer pour téléverser"}</div>
-                    <div className="cms-cover-hint">JPG · PNG · WebP — max 15 Mo</div>
+                    <div>{uploadingCover ? "Uploading…" : "Click to upload"}</div>
+                    <div className="cms-cover-hint">JPG · PNG · WebP — max 15 MB · local storage</div>
                   </>
                 )}
                 <input
@@ -705,24 +701,19 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
                   }}
                 />
               </label>
+              {form.featuredImage && (
+                <p className="cms-branding-path">
+                  <code>{form.featuredImage}</code>
+                </p>
+              )}
               <div className="field">
-                <label className="lbl">URL de l&apos;image (optionnel)</label>
-                <input
-                  className="input"
-                  type="url"
-                  value={form.featuredImage}
-                  onChange={(e) => patchForm({ featuredImage: e.target.value })}
-                  placeholder="https://…"
-                />
-              </div>
-              <div className="field">
-                <label className="lbl">Légende</label>
+                <label className="lbl">Caption</label>
                 <input
                   className="input"
                   type="text"
                   value={form.featuredImageCaption}
                   onChange={(e) => patchForm({ featuredImageCaption: e.target.value })}
-                  placeholder="Légende de l'image…"
+                  placeholder="Image caption…"
                 />
               </div>
             </div>
@@ -730,37 +721,37 @@ export function CmsArticleEditor({ mode, articleId }: CmsArticleEditorProps) {
 
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Options article</span>
+              <span className="card-title">Article options</span>
             </div>
             <div className="card-body cms-stack">
               <CmsToggle
                 on={form.commentsEnabled}
                 onChange={(commentsEnabled) => patchForm({ commentsEnabled })}
-                label="Commentaires activés"
+                label="Comments enabled"
               />
               <CmsToggle
                 on={form.socialShare}
                 onChange={(socialShare) => patchForm({ socialShare })}
-                label="Partage social"
+                label="Social sharing"
               />
               <CmsToggle
                 on={form.isPremium}
                 onChange={(isPremium) => patchForm({ isPremium })}
                 label={
                   <>
-                    Article Premium <Star size={13} className="cms-icon cms-icon--premium" aria-hidden />
+                    Premium article <Star size={13} className="cms-icon cms-icon--premium" aria-hidden />
                   </>
                 }
               />
               <CmsToggle
                 on={form.isFeatured}
                 onChange={(isFeatured) => patchForm({ isFeatured })}
-                label="Mise en avant accueil"
+                label="Homepage feature"
               />
               <CmsToggle
                 on={pushNotify}
                 onChange={setPushNotify}
-                label="Notification push"
+                label="Push notification"
               />
             </div>
           </div>

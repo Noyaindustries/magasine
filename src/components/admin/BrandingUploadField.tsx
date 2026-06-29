@@ -1,7 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { BrandingAssetType } from "@/lib/branding";
+import { uploadBrandingAsset } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
 
 interface BrandingUploadFieldProps {
@@ -21,31 +23,19 @@ export function BrandingUploadField({
   defaultUrl,
   onUploaded,
 }: BrandingUploadFieldProps) {
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const upload = async (file: File) => {
     setUploading(true);
     try {
-      const body = new FormData();
-      body.append("file", file);
-      body.append("type", type);
-
-      const res = await fetch("/api/admin/branding/upload", {
-        method: "POST",
-        body,
-      });
-      const data = (await res.json()) as { error?: string; url?: string };
-
-      if (!res.ok || !data.url) {
-        toast.error(data.error ?? "Échec du téléversement");
-        return;
-      }
-
-      onUploaded(data.url);
-      toast.success("Image téléversée");
-    } catch {
-      toast.error("Erreur réseau lors du téléversement");
+      const { url } = await uploadBrandingAsset(file, type);
+      onUploaded(url);
+      router.refresh();
+      toast.success("Image uploaded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

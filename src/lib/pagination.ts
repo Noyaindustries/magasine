@@ -2,7 +2,7 @@ export const ARTICLES_PAGE_SIZE = 20;
 
 export type PaginationItem = number | "ellipsis";
 
-/** Numéros de page à afficher (avec « … » si besoin). */
+/** Page numbers to display (with "…" when needed). */
 export function getPaginationItems(current: number, total: number): PaginationItem[] {
   if (total <= 1) return [1];
   if (total <= 7) {
@@ -30,8 +30,8 @@ export function buildPageHref(baseHref: string, page: number): string {
 }
 
 export function paginationRangeLabel(page: number, pageSize: number, total: number): string {
-  if (total === 0) return "0 article";
+  if (total === 0) return "0 articles";
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
-  return `${from}–${to} sur ${total.toLocaleString("fr-FR")}`;
+  return `${from}–${to} of ${total.toLocaleString("en-US")}`;
 }

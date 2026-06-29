@@ -16,7 +16,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   await connectDB();
   const deleted = await Media.findByIdAndDelete(id);
   if (!deleted) {
-    return NextResponse.json({ error: "Média introuvable." }, { status: 404 });
+    return NextResponse.json({ error: "Media not found." }, { status: 404 });
   }
 
   try {

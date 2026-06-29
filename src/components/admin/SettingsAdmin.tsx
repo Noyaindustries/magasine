@@ -51,9 +51,9 @@ export function SettingsAdmin({ siteUrl, feedUrl, isSuperAdmin }: SettingsAdminP
       if (res.ok) {
         const data = await res.json();
         setForm(data);
-        toast.success("Paramètres enregistrés");
+        toast.success("Settings saved");
       } else {
-        toast.error("Échec de l'enregistrement");
+        toast.error("Failed to save settings");
       }
     } finally {
       setSaving(false);

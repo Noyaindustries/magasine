@@ -32,16 +32,16 @@ export function authorAvatarGradient(name: string) {
   return `linear-gradient(135deg, ${hue}, #141829)`;
 }
 
-export function formatRelativeFr(iso: string) {
+export function formatRelativeEn(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "À l'instant";
-  if (minutes < 60) return `Il y a ${minutes} min`;
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Il y a ${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `Il y a ${days}j`;
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -50,7 +50,7 @@ export function formatRelativeFr(iso: string) {
 
 export function formatArticleDate(iso: string) {
   const date = new Date(iso);
-  return `${date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })} ${date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`;
+  return `${date.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })} ${date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export function CmsStatusBadge({
@@ -60,15 +60,15 @@ export function CmsStatusBadge({
   status: string;
   scheduledAt?: string;
 }) {
-  if (status === "published") return <span className="badge b-pub">Publié</span>;
-  if (status === "review") return <span className="badge b-rev">En révision</span>;
+  if (status === "published") return <span className="badge b-pub">Published</span>;
+  if (status === "review") return <span className="badge b-rev">In review</span>;
   if (status === "scheduled") {
     const label = scheduledAt
-      ? `Planifié — ${new Date(scheduledAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })} ${new Date(scheduledAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`
-      : "Planifié";
+      ? `Scheduled — ${new Date(scheduledAt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })} ${new Date(scheduledAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`
+      : "Scheduled";
     return <span className="badge b-plan">{label}</span>;
   }
-  if (status === "draft") return <span className="badge b-draft">Brouillon</span>;
-  if (status === "archived") return <span className="badge b-arch">Archivé</span>;
+  if (status === "draft") return <span className="badge b-draft">Draft</span>;
+  if (status === "archived") return <span className="badge b-arch">Archived</span>;
   return <span className="badge b-draft">{status}</span>;
 }

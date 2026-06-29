@@ -47,8 +47,8 @@ export function CmsTopBar({ stats, onOpenMenu }: CmsTopBarProps) {
         <Search className="w-3.5 h-3.5" aria-hidden />
         <input
           type="search"
-          placeholder="Articles, médias, auteurs, tags…"
-          aria-label="Recherche"
+          placeholder="Articles, media, authors, tags…"
+          aria-label="Search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -62,13 +62,13 @@ export function CmsTopBar({ stats, onOpenMenu }: CmsTopBarProps) {
             <span className="tb-ndot">{notifications > 9 ? "9+" : notifications}</span>
           )}
         </Link>
-        <button type="button" className="tb-btn" title="Aide">
+        <button type="button" className="tb-btn" title="Help">
           <HelpCircle className="w-3.5 h-3.5" />
         </button>
         <div className="tb-sep" />
         <Link href="/admin/articles/new" className="tb-cta">
           <Plus className="w-3 h-3" strokeWidth={2.5} />
-          Nouvel article
+          New article
         </Link>
       </div>
     </header>

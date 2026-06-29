@@ -21,25 +21,25 @@ const SPARK_COLORS = ["#1A3896", "#22C55E", "#C9A227", "#60A5FA"] as const;
 function formatCompact(value: number) {
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(".0", "")}M`;
   if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
-  return value.toLocaleString("fr-FR");
+  return value.toLocaleString("en-US");
 }
 
 function formatRelative(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "À l'instant";
-  if (minutes < 60) return `Il y a ${minutes} min`;
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes} min ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `Il y a ${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `Il y a ${days}j`;
+  return `${days}d ago`;
 }
 
 function formatScheduled(iso: string) {
   const date = new Date(iso);
-  const day = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-  const time = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  return `Planifié — ${day} ${time}`;
+  const day = date.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
+  const time = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+  return `Scheduled — ${day} ${time}`;
 }
 
 function initials(name: string) {
@@ -63,16 +63,16 @@ function StatusBadge({
   status: string;
   scheduledAt?: string;
 }) {
-  if (status === "published") return <span className="badge b-pub">Publié</span>;
-  if (status === "review") return <span className="badge b-rev">En révision</span>;
+  if (status === "published") return <span className="badge b-pub">Published</span>;
+  if (status === "review") return <span className="badge b-rev">In review</span>;
   if (status === "scheduled") {
     return (
       <span className="badge b-plan">
-        {scheduledAt ? formatScheduled(scheduledAt) : "Planifié"}
+        {scheduledAt ? formatScheduled(scheduledAt) : "Scheduled"}
       </span>
     );
   }
-  if (status === "draft") return <span className="badge b-draft">Brouillon</span>;
+  if (status === "draft") return <span className="badge b-draft">Draft</span>;
   return <span className="badge b-arch">{status}</span>;
 }
 
@@ -166,13 +166,13 @@ function PublishButton({ articleId }: { articleId: string }) {
           body: JSON.stringify({ status: "published" }),
         });
         if (!res.ok) {
-          toast.error("Échec de la publication");
+          toast.error("Failed to publish");
           return;
         }
-        toast.success("Article publié");
+        toast.success("Article published");
         router.refresh();
       } catch {
-        toast.error("Échec de la publication");
+        toast.error("Failed to publish");
       }
     });
   };
@@ -184,7 +184,7 @@ function PublishButton({ articleId }: { articleId: string }) {
       onClick={handlePublish}
       disabled={pending}
     >
-      {pending ? "…" : "Publier"}
+      {pending ? "…" : "Publish"}
     </button>
   );
 }
@@ -194,31 +194,31 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
 
   const kpiCards = [
     {
-      label: "Articles publiés",
+      label: "Articles published",
       value: data.kpis[0]?.value ?? 0,
       trend: data.kpis[0]?.trend ?? 0,
       spark: data.kpis[0]?.sparkline ?? [0],
       format: "number" as const,
-      trendSuffix: "vs mois dernier",
+      trendSuffix: "vs last month",
     },
     {
-      label: "Lecteurs uniques",
+      label: "Unique readers",
       value: data.totalViews,
       trend: data.kpis[1]?.trend ?? 0,
       spark: data.kpis[1]?.sparkline ?? [0],
       format: "compact" as const,
-      trendSuffix: "cette semaine",
+      trendSuffix: "this week",
     },
     {
-      label: "Abonnés newsletter",
+      label: "Newsletter subscribers",
       value: data.kpis[2]?.value ?? 0,
       absoluteDelta: data.monthlyNewSubscribers,
       spark: data.kpis[2]?.sparkline ?? [0],
       format: "number" as const,
-      trendSuffix: "ce mois",
+      trendSuffix: "this month",
     },
     {
-      label: "Commentaires",
+      label: "Comments",
       value: data.kpis[3]?.value ?? data.totalComments,
       spark: data.kpis[3]?.sparkline ?? data.timeline.map((t) => t.comments),
       format: "number" as const,
@@ -248,25 +248,25 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
             <div className="qaico qaico--red">
               <CmsDashboardIcons.edit size={14} aria-hidden />
             </div>
-            Rédiger un article
+            Write an article
           </Link>
           <Link href="/admin/medias" className="qa">
             <div className="qaico qaico--blue">
               <CmsDashboardIcons.media size={14} aria-hidden />
             </div>
-            Ajouter un média
+            Add media
           </Link>
           <Link href="/admin/newsletter" className="qa">
             <div className="qaico qaico--green">
               <CmsDashboardIcons.newsletter size={14} aria-hidden />
             </div>
-            Envoyer newsletter
+            Send newsletter
           </Link>
           <Link href="/admin/comments" className="qa">
             <div className="qaico qaico--amber">
               <CmsDashboardIcons.comments size={14} aria-hidden />
             </div>
-            {data.pendingComments} commentaire{data.pendingComments > 1 ? "s" : ""} à modérer
+            {data.pendingComments} comment{data.pendingComments > 1 ? "s" : ""} to moderate
           </Link>
           <button
             type="button"
@@ -276,7 +276,7 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
             <div className="qaico qaico--purple">
               <CmsDashboardIcons.report size={14} aria-hidden />
             </div>
-            Rapport hebdomadaire
+            Weekly report
           </button>
         </div>
 
@@ -287,18 +287,18 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
               <div className="kval">
                 {kpi.format === "compact"
                   ? formatCompact(kpi.value)
-                  : kpi.value.toLocaleString("fr-FR")}
+                  : kpi.value.toLocaleString("en-US")}
               </div>
               <div className="kmeta">
                 {"moderationCount" in kpi && kpi.moderationCount !== undefined ? (
                   <span className="kdelta dn">
-                    ▼ {kpi.moderationCount} signalé{kpi.moderationCount > 1 ? "s" : ""}
+                    ▼ {kpi.moderationCount} flagged{kpi.moderationCount > 1 ? "" : ""}
                   </span>
                 ) : "absoluteDelta" in kpi && kpi.absoluteDelta !== undefined ? (
                   <span className={`kdelta ${kpi.absoluteDelta >= 0 ? "up" : "dn"}`}>
                     {kpi.absoluteDelta >= 0 ? "▲" : "▼"}{" "}
                     {kpi.absoluteDelta >= 0 ? "+" : ""}
-                    {kpi.absoluteDelta.toLocaleString("fr-FR")}
+                    {kpi.absoluteDelta.toLocaleString("en-US")}
                   </span>
                 ) : (
                   <span className={`kdelta ${(kpi.trend ?? 0) >= 0 ? "up" : "dn"}`}>
@@ -308,7 +308,7 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
                   </span>
                 )}
                 {"moderationCount" in kpi
-                  ? " à modérer"
+                  ? " to moderate"
                   : "trendSuffix" in kpi
                     ? ` ${kpi.trendSuffix}`
                     : null}
@@ -327,19 +327,19 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
         <div className="g21 ga mb20">
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Trafic par rubrique — 7 derniers jours</span>
+              <span className="card-title">Traffic by category — last 7 days</span>
               <button
                 type="button"
                 className="card-act card-act--btn"
                 onClick={() => exportCategoryTrafficCsv(data.categories)}
                 disabled={data.categories.length === 0}
               >
-                Exporter CSV ↗
+                Export CSV ↗
               </button>
             </div>
             <div className="card-body">
               {data.categories.length === 0 && (
-                <p className="cms-empty">Aucune donnée de rubrique pour le moment.</p>
+                <p className="cms-empty">No category data yet.</p>
               )}
               {data.categories.map((cat) => (
                 <div key={cat.name} className="brow">
@@ -353,7 +353,7 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
                       }}
                     />
                   </div>
-                  <span className="bnum">{cat.views.toLocaleString("fr-FR")}</span>
+                  <span className="bnum">{cat.views.toLocaleString("en-US")}</span>
                 </div>
               ))}
             </div>
@@ -361,14 +361,14 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
 
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Activité récente</span>
+              <span className="card-title">Recent activity</span>
               <Link href="/admin/articles" className="card-act">
-                Tout voir
+                View all
               </Link>
             </div>
             <div className="card-body cms-activity-body">
               {data.activityFeed.length === 0 && (
-                <p className="cms-empty">Aucune activité récente.</p>
+                <p className="cms-empty">No recent activity.</p>
               )}
               {data.activityFeed.map((item) => (
                 <ActivityRow key={item.id} item={item} />
@@ -379,19 +379,19 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
 
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Articles en attente de validation</span>
+            <span className="card-title">Articles awaiting approval</span>
             <Link href="/admin/articles" className="card-act">
-              Voir tous les articles →
+              View all articles →
             </Link>
           </div>
           <div className="card-np">
             <table className="tbl">
               <thead>
                 <tr>
-                  <th>Titre &amp; Rubrique</th>
-                  <th>Auteur</th>
-                  <th>Statut</th>
-                  <th>Soumis</th>
+                  <th>Title &amp; Category</th>
+                  <th>Author</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -399,7 +399,7 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
                 {data.pendingArticles.length === 0 && (
                   <tr>
                     <td colSpan={5} className="cms-empty-cell">
-                      Aucun article en attente.
+                      No articles pending.
                     </td>
                   </tr>
                 )}
@@ -431,11 +431,11 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
                         )}
                         {article.status === "scheduled" ? (
                           <Link href={`/admin/articles/${article._id}`} className="btn btn-out btn-sm">
-                            Voir
+                            View
                           </Link>
                         ) : null}
                         <Link href={`/admin/articles/${article._id}`} className="btn btn-ghost btn-sm">
-                          Modifier
+                          Edit
                         </Link>
                       </div>
                     </td>

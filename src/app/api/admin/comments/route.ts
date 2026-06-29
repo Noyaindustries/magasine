@@ -103,7 +103,7 @@ export async function PATCH(request: NextRequest) {
 
     if (action === "reply") {
       if (!replyContent?.trim()) {
-        return NextResponse.json({ error: "Réponse vide." }, { status: 400 });
+        return NextResponse.json({ error: "Reply cannot be empty." }, { status: 400 });
       }
       await Comment.create({
         article: comment.article,
