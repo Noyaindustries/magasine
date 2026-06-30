@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { RegisterPageClient, RegisterPageFallback } from "@/components/auth/RegisterPageClient";
 import { PUBLISHER_NAME, SITE_NAME } from "@/lib/site";
+import { isGoogleAuthEnabled } from "@/lib/auth-secret";
 
 export const metadata: Metadata = {
   title: "Create account",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <Suspense fallback={<RegisterPageFallback />}>
-      <RegisterPageClient />
+      <RegisterPageClient googleAuthEnabled={isGoogleAuthEnabled()} />
     </Suspense>
   );
 }

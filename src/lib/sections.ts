@@ -185,13 +185,13 @@ export const SECTION_META: Record<string, SectionMeta> = {
   },
   world: {
     slug: "world",
-    label: "World",
+    label: "Feature",
     kind: "topic",
-    eyebrow: "World",
+    eyebrow: "Feature",
     lead: "International affairs, diplomacy, and global institutions seen from the Global South.",
     relatedSlugs: ["africa", "west-asia", "south-asia", "latin-america", "politics"],
     linkHref: "/rss?category=world",
-    linkLabel: "World RSS",
+    linkLabel: "Feature RSS",
     formatLinks: [
       { label: "All news", href: "/news" },
       { label: "Politics", href: "/category/politics" },

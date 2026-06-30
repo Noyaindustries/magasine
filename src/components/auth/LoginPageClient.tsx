@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import {
   LogIn,
   Bookmark,
@@ -16,6 +16,16 @@ import { BrandLogo } from "@/components/site-chrome/BrandLogo";
 import { GoogleIcon } from "@/components/auth/auth-shared";
 import { AuthPasswordField, AuthTextField } from "@/components/auth/AuthFields";
 import { toast } from "@/lib/toast";
+import type { UserRole } from "@/types";
+
+const EDITORIAL_ROLES: UserRole[] = ["super_admin", "admin", "editor", "author"];
+
+function resolvePostLoginUrl(callbackUrl: string, role?: UserRole) {
+  const safe =
+    callbackUrl.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/";
+  if (safe !== "/" || !role || !EDITORIAL_ROLES.includes(role)) return safe;
+  return "/admin";
+}
 
 const STATS = [
   { value: "Free", label: "Reader account" },
@@ -46,7 +56,7 @@ const PERKS = [
   },
 ];
 
-export function LoginPageClient() {
+export function LoginPageClient({ googleAuthEnabled = false }: { googleAuthEnabled?: boolean }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
@@ -64,13 +74,20 @@ export function LoginPageClient() {
       redirect: false,
     });
 
-    if (result?.error) {
+    if (result?.error || result?.ok === false) {
       toast.error("E-mail ou mot de passe incorrect.");
       setLoading(false);
       return;
     }
 
-    window.location.href = callbackUrl;
+    let session = await getSession();
+    if (!session) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      session = await getSession();
+    }
+
+    const destination = resolvePostLoginUrl(callbackUrl, session?.user?.role);
+    window.location.assign(destination);
   };
 
   const handleGoogleSignIn = () => {
@@ -116,7 +133,9 @@ export function LoginPageClient() {
           <div className="auth-page-card-head">
             <h2 id="login-form-heading">Sign in</h2>
             <p className="auth-page-card-sub">
-              Use your email or continue with Google.
+              {googleAuthEnabled
+                ? "Use your email or continue with Google."
+                : "Sign in with your email and password."}
             </p>
           </div>
 
@@ -145,14 +164,18 @@ export function LoginPageClient() {
             </button>
           </form>
 
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
+          {googleAuthEnabled && (
+            <>
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
 
-          <button type="button" onClick={handleGoogleSignIn} className="auth-google-btn">
-            <GoogleIcon />
-            Continue with Google
-          </button>
+              <button type="button" onClick={handleGoogleSignIn} className="auth-google-btn">
+                <GoogleIcon />
+                Continue with Google
+              </button>
+            </>
+          )}
 
           <p className="auth-card-footer">
             Don&apos;t have an account yet?{" "}

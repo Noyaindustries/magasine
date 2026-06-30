@@ -1,7 +1,8 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
+import { getAuthSecret, isGoogleAuthEnabled } from "@/lib/auth-secret";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import type { UserRole } from "@/types";
@@ -31,6 +32,15 @@ async function findUserByEmail(email: string) {
   return user;
 }
 
+function applyUserToToken(
+  token: Record<string, unknown>,
+  user: { id?: string; role?: UserRole; isPremium?: boolean }
+) {
+  if (user.id) token.id = user.id;
+  if (user.role) token.role = user.role;
+  if (user.isPremium !== undefined) token.isPremium = user.isPremium;
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -55,24 +65,20 @@ declare module "next-auth" {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    Credentials({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+const providers: NonNullable<NextAuthConfig["providers"]> = [
+  Credentials({
+    name: "credentials",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) return null;
 
-        const email = normalizeEmail(credentials.email as string);
-        const password = (credentials.password as string).trim();
+      const email = normalizeEmail(credentials.email as string);
+      const password = (credentials.password as string).trim();
 
+      try {
         await connectDB();
 
         let user = await findUserByEmail(email);
@@ -101,34 +107,71 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           isPremium: user.isPremium,
         };
-      },
-    }),
-  ],
+      } catch (error) {
+        console.error("[auth] credentials authorize failed:", error);
+        return null;
+      }
+    },
+  }),
+];
+
+if (isGoogleAuthEnabled()) {
+  providers.unshift(
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    })
+  );
+}
+
+const authSecret = getAuthSecret();
+if (!authSecret && process.env.NODE_ENV === "production") {
+  console.error(
+    "[auth] AUTH_SECRET or NEXTAUTH_SECRET is missing — /api/auth/session will return 500 in production."
+  );
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers,
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
-        await connectDB();
-        const email = normalizeEmail(user.email);
-        const existing = await User.findOne({ email });
-        if (!existing) {
-          await User.create({
-            name: user.name ?? "Lecteur",
-            email,
-            image: user.image ?? undefined,
-            role: "reader",
-          });
+        try {
+          await connectDB();
+          const email = normalizeEmail(user.email);
+          const existing = await User.findOne({ email });
+          if (!existing) {
+            await User.create({
+              name: user.name ?? "Lecteur",
+              email,
+              image: user.image ?? undefined,
+              role: "reader",
+            });
+          }
+        } catch (error) {
+          console.error("[auth] google signIn failed:", error);
+          return false;
         }
       }
       return true;
     },
     async jwt({ token, user, trigger, session }) {
       if (user) {
-        await connectDB();
-        const dbUser = await findUserByEmail(user.email ?? "");
-        if (dbUser) {
-          token.id = dbUser._id.toString();
-          token.role = dbUser.role;
-          token.isPremium = dbUser.isPremium;
+        try {
+          await connectDB();
+          const dbUser = await findUserByEmail(user.email ?? "");
+          if (dbUser) {
+            applyUserToToken(token, {
+              id: dbUser._id.toString(),
+              role: dbUser.role,
+              isPremium: dbUser.isPremium,
+            });
+          } else {
+            applyUserToToken(token, user);
+          }
+        } catch (error) {
+          console.error("[auth] jwt callback failed:", error);
+          applyUserToToken(token, user);
         }
       }
 
@@ -140,9 +183,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
-        session.user.isPremium = token.isPremium as boolean;
+        session.user.id = (token.id as string) ?? "";
+        session.user.role = (token.role as UserRole) ?? "reader";
+        session.user.isPremium = Boolean(token.isPremium);
       }
       return session;
     },
@@ -151,6 +194,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
   },
   session: { strategy: "jwt" },
-  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  secret: authSecret,
   trustHost: true,
+  debug: process.env.NODE_ENV === "development",
 });

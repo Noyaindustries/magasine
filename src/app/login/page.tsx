@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginPageClient, LoginPageFallback } from "@/components/auth/LoginPageClient";
 import { ensureDefaultAdmin } from "@/lib/ensure-admin";
+import { isGoogleAuthEnabled } from "@/lib/auth-secret";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -16,7 +17,7 @@ export default async function LoginPage() {
 
   return (
     <Suspense fallback={<LoginPageFallback />}>
-      <LoginPageClient />
+      <LoginPageClient googleAuthEnabled={isGoogleAuthEnabled()} />
     </Suspense>
   );
 }

@@ -7,7 +7,7 @@ export const SEED_CATEGORIES = [
   { name: "Commentary", slug: "commentary", color: "#6B6B6B", order: 4, description: "Analysis, columns, and debate from experts and public intellectuals" },
   { name: "Explainer", slug: "explainer", color: "#457B9D", order: 5, description: "Context and background to help readers understand complex Global South stories" },
   { name: "Health", slug: "health", color: "#00B4D8", order: 6, description: "Public health, epidemics, and health systems across emerging economies" },
-  { name: "World", slug: "world", color: "#F77F00", order: 7, description: "International news" },
+  { name: "Feature", slug: "world", color: "#F77F00", order: 7, description: "International news" },
   { name: "Investigations", slug: "investigations", color: "#D62828", order: 7, description: "Accountability journalism and long-form probes" },
   { name: "Opinion", slug: "opinion", color: "#6B6B6B", order: 8, description: "Analysis, columns, and debate from experts and public intellectuals" },
   { name: "Multimedia", slug: "multimedia", color: "#1a3896", order: 9, description: "Video reports, podcasts, and visual storytelling" },

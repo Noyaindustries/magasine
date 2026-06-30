@@ -20,6 +20,17 @@ import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { ensureDefaultAdmin, DEFAULT_ADMIN_PASSWORD } from "@/lib/ensure-admin";
 import { resolveArticleContent } from "@/lib/article-content";
 import { migrateCategorySlugs } from "@/lib/migrate-category-slugs";
+import { isBootstrapAuthorized } from "@/lib/bootstrap-secret";
+
+function canRepairAdmin(request: NextRequest): boolean {
+  if (process.env.NODE_ENV === "development") {
+    return request.nextUrl.searchParams.get("repairAdmin") !== "false";
+  }
+  return (
+    request.nextUrl.searchParams.get("repairAdmin") === "true" &&
+    isBootstrapAuthorized(request)
+  );
+}
 
 async function clearDatabase() {
   await Promise.all([
@@ -47,22 +58,29 @@ export async function GET(request: NextRequest) {
     const existing = await Category.countDocuments();
 
     if (existing > 0 && !force) {
-      const repairAdmin =
-        request.nextUrl.searchParams.get("repairAdmin") !== "false" &&
-        process.env.NODE_ENV === "development";
-      const admin = await ensureDefaultAdmin({ resetPassword: repairAdmin });
+      const repairAdmin = canRepairAdmin(request);
+      const admin = repairAdmin
+        ? await ensureDefaultAdmin({
+            resetPassword:
+              process.env.NODE_ENV === "development" ||
+              request.nextUrl.searchParams.get("resetPassword") !== "false",
+          })
+        : null;
       const categoriesMigrated = await migrateCategorySlugs();
       return NextResponse.json({
         message: repairAdmin
-          ? "Admin account repaired. Use the credentials below to sign in."
-          : "Database already initialized. Add ?force=true to reset, or ?repairAdmin=true to reset admin password.",
+          ? "Compte admin vérifié ou réparé."
+          : "Base déjà initialisée. ?force=true pour réinitialiser, ou /api/bootstrap/admin?key=… en production.",
         seeded: false,
         categoriesMigrated,
-        admin: {
-          email: admin.email,
-          password: admin.repaired || admin.created ? DEFAULT_ADMIN_PASSWORD : undefined,
-          ensured: admin.repaired || admin.created,
-        },
+        admin: admin
+          ? {
+              email: admin.email,
+              password:
+                admin.repaired || admin.created ? DEFAULT_ADMIN_PASSWORD : undefined,
+              ensured: admin.repaired || admin.created,
+            }
+          : undefined,
       });
     }
 

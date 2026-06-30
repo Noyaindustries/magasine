@@ -62,7 +62,7 @@ export const NEWS_MENU_NAV = [
     description: "Elections, parliaments, and governance",
   },
   {
-    label: "World",
+    label: "Feature",
     href: "/category/world",
     description: "International affairs from the Global South",
   },
@@ -190,7 +190,7 @@ export const HERO_MINI_CARDS = [
     slug: "/article/le-parlement-vote-la-loi-sur-la-protection-des-donnees-personnelles",
   },
   {
-    cat: "World",
+    cat: "Feature",
     title: "AU Summit: continent adopts roadmap for food self-sufficiency",
     author: "Ama Kouassi",
     meta: "June 22, 2026",
@@ -216,12 +216,12 @@ export const HERO_MINI_CARDS = [
 ];
 
 export const TOP_STORIES = [
-  { num: "01", cat: "World", title: "UN adopts historic resolution on developing countries' sovereign debt", meta: "Nadia Mensah · June 21, 2026", image: IMG.un, slug: "/article/lonu-adopte-une-resolution-historique-sur-la-dette-souveraine-des-pays-en-developpement" },
+  { num: "01", cat: "Feature", title: "UN adopts historic resolution on developing countries' sovereign debt", meta: "Nadia Mensah · June 21, 2026", image: IMG.un, slug: "/article/lonu-adopte-une-resolution-historique-sur-la-dette-souveraine-des-pays-en-developpement" },
   { num: "02", cat: "Investigation", title: "Embezzlement probe: three ministers charged in public construction contracts case", meta: "Investigations Desk · June 22, 2026", image: IMG.investigation, slug: "/article/detournement-de-fonds-publics-trois-ministres-mis-en-examen-dans-laffaire-des-marches-de-construction" },
   { num: "03", cat: "Health", title: "RTS,S malaria vaccine: Côte d'Ivoire launches nationwide mass vaccination campaign", meta: "Dr. Fatou Bamba · June 22, 2026", image: IMG.health, slug: "/article/vaccin-antipaludisme-rtss-la-cote-divoire-lance-sa-campagne-nationale-de-vaccination-de-masse" },
   { num: "04", cat: "Culture", title: "Grand-Bassam UNESCO extension: colonial heritage site officially expanded", meta: "Marie-Jo Bamba · June 21, 2026", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
   { num: "05", cat: "Local", title: "Grand-Bassam UNESCO extension: colonial heritage site officially expanded", meta: "Marie-Jo Bamba · June 21, 2026", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
-  { num: "06", cat: "World", title: "UN adopts historic resolution on developing countries' sovereign debt", meta: "Nadia Mensah · June 21, 2026", image: IMG.un, slug: "/article/lonu-adopte-une-resolution-historique-sur-la-dette-souveraine-des-pays-en-developpement" },
+  { num: "06", cat: "Feature", title: "UN adopts historic resolution on developing countries' sovereign debt", meta: "Nadia Mensah · June 21, 2026", image: IMG.un, slug: "/article/lonu-adopte-une-resolution-historique-sur-la-dette-souveraine-des-pays-en-developpement" },
 ];
 
 export const POPULAR_TAGS = [
@@ -267,13 +267,13 @@ export const LATEST = {
   items: [
     { cat: "Politics", title: "AfDB announces $800M financing for Ivorian agri-food SMEs", time: "June 22, 2026", image: IMG.cacao, slug: "/article/la-bad-annonce-un-financement-de-800m-pour-les-pme-ivoiriennes-dans-le-secteur-agroalimentaire" },
     { cat: "Culture", title: "Grand-Bassam UNESCO extension: colonial heritage site officially expanded", time: "June 21, 2026", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
-    { cat: "World", title: "United Nations: Security Council holds emergency session on Sahel crisis", time: "June 22, 2026", image: IMG.un, slug: "/article/nations-unies-le-conseil-de-securite-se-reunit-en-urgence-sur-la-situation-au-sahel" },
+    { cat: "Feature", title: "United Nations: Security Council holds emergency session on Sahel crisis", time: "June 22, 2026", image: IMG.un, slug: "/article/nations-unies-le-conseil-de-securite-se-reunit-en-urgence-sur-la-situation-au-sahel" },
     { cat: "Health", title: "New meningitis cases in Bouaké: Health Ministry activates regional emergency protocol", time: "June 21, 2026", image: IMG.health, slug: "/article/nouveaux-cas-de-meningite-a-bouake-le-ministere-de-la-sante-active-le-protocole-durgence-regional" },
   ],
 };
 
 export const VIDEOS = [
-  { cat: "World", title: "Port of Abidjan: how it became West Africa's leading logistics hub", duration: "12:34", views: "Kofi Mensah · June 22, 2026", image: IMG.port, slug: "/article/le-port-dabidjan-comment-il-est-devenu-le-premier-hub-logistique-dafrique-de-louest" },
+  { cat: "Feature", title: "Port of Abidjan: how it became West Africa's leading logistics hub", duration: "12:34", views: "Kofi Mensah · June 22, 2026", image: IMG.port, slug: "/article/le-port-dabidjan-comment-il-est-devenu-le-premier-hub-logistique-dafrique-de-louest" },
   { cat: "Politics", title: "Exclusive interview: Prime Minister responds to criticism of education reform", duration: "08:12", views: "Ama Kouassi · June 22, 2026", image: IMG.politics, slug: "/article/interview-exclusive-le-premier-ministre-repond-aux-critiques-sur-la-reforme-de-leducation" },
   { cat: "Culture", title: "Ivorian cinema week: three films selected for Cannes Critics' Week", duration: "05:47", views: "Marie-Jo Bamba · June 21, 2026", image: IMG.heritage, slug: "/article/grand-bassam-classee-au-patrimoine-mondial-lunesco-officialise-lextension-du-site-colonial" },
   { cat: "Investigation", title: "Illegal gold mining in the north: documentary on clandestine supply chains", duration: "21:05", views: "Investigations Desk · June 20, 2026", image: IMG.forest, slug: "/article/orpaillage-illegal-dans-le-nord-le-grand-documentaire-sur-les-filieres-clandestines" },
@@ -287,9 +287,9 @@ export const OPINIONS = [
 
 export const THEMATIC = [
   {
-    title: "World",
+    title: "Feature",
     href: "/category/world",
-    main: { cat: "World", title: "UN adopts historic resolution on developing countries' sovereign debt", image: IMG.un },
+    main: { cat: "Feature", title: "UN adopts historic resolution on developing countries' sovereign debt", image: IMG.un },
     subs: [
       { num: "01", cat: "Diplomacy", title: "Security Council holds emergency session on Sahel crisis" },
       { num: "02", cat: "Africa", title: "AU Summit adopts roadmap for continental food self-sufficiency" },

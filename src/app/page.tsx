@@ -30,7 +30,6 @@ export default async function HomePage() {
             data={data}
             opinions={sections.insights ? data.opinions : []}
             latest={data.latest}
-            newsletterEnabled={siteSettings.newsletterEnabled}
           />
         </section>
       )}

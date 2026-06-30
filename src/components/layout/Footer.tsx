@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 const footerLinks = {
   sections: [
     { label: "News", href: "/category/news" },
-    { label: "World", href: "/category/world" },
+    { label: "Feature", href: "/category/world" },
     { label: "Culture", href: "/category/culture" },
     { label: "Health", href: "/category/health" },
   ],

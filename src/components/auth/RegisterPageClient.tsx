@@ -54,7 +54,7 @@ const STEPS = [
   { num: "03", title: "Go further", text: "Add newsletter editions from your profile." },
 ];
 
-export function RegisterPageClient() {
+export function RegisterPageClient({ googleAuthEnabled = false }: { googleAuthEnabled?: boolean }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
@@ -150,7 +150,9 @@ export function RegisterPageClient() {
           <div className="auth-page-card-head">
             <h2 id="register-form-heading">Sign up</h2>
             <p className="auth-page-card-sub">
-              All fields are required. You can also register with Google.
+              {googleAuthEnabled
+                ? "All fields are required. You can also register with Google."
+                : "All fields are required."}
             </p>
           </div>
 
@@ -211,14 +213,18 @@ export function RegisterPageClient() {
             </button>
           </form>
 
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
+          {googleAuthEnabled && (
+            <>
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
 
-          <button type="button" onClick={handleGoogleSignIn} className="auth-google-btn">
-            <GoogleIcon />
-            Continue with Google
-          </button>
+              <button type="button" onClick={handleGoogleSignIn} className="auth-google-btn">
+                <GoogleIcon />
+                Continue with Google
+              </button>
+            </>
+          )}
 
           <p className="auth-card-footer">
             Already have an account?{" "}

@@ -41,7 +41,7 @@ export function HeroAlsoRead({ cards }: HeroAlsoReadProps) {
   return (
     <div className="hero-sub-section">
       <div className="hero-sub-header">
-        <h3 className="hero-sub-title">Also read</h3>
+        <h3 className="hero-sub-title">Related Stories</h3>
         <Link href="/news" className="hero-sub-link">
           All news
         </Link>
