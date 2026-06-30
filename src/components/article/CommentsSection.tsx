@@ -58,8 +58,9 @@ export function CommentsSection({
       });
       if (res.ok) {
         setContent("");
-        toast.success("Comment published — pending moderation.");
-        await loadComments();
+        toast.success("Comment submitted for review.", {
+          description: "It will appear after approval by our editorial team.",
+        });
       } else {
         toast.error(await readApiError(res, "Unable to publish comment"));
       }
@@ -115,7 +116,7 @@ export function CommentsSection({
           disabled={loading || !session?.user}
           className="mt-3 px-6 py-2.5 bg-charcoal text-white text-sm rounded-sm hover:bg-charcoal/90 transition-colors disabled:opacity-50"
         >
-          {loading ? "Publishing..." : "Publish"}
+          {loading ? "Submitting..." : "Submit comment"}
         </button>
       </form>
 

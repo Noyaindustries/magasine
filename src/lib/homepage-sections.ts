@@ -58,8 +58,8 @@ export const HOME_SECTIONS: HomeSectionMeta[] = [
   },
   {
     id: "media",
-    label: "Video section",
-    description: "Featured video articles.",
+    label: "Formats",
+    description: "Videos, podcasts, and photo galleries on the homepage.",
     articleFlag: "contentType:video",
     articlesHref: "/admin/articles?flag=video",
   },
@@ -130,7 +130,7 @@ export const DEFAULT_CLOSING_STATS = [
 ];
 
 export const DEFAULT_NEWSLETTER_COPY = {
-  title: "The essentials every morning,",
+  title: "",
   titleEm: "delivered straight to your inbox.",
   description:
     "An editorial selection of the most important news from Africa and the Global South, curated by our newsroom.",

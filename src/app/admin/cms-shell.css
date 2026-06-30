@@ -1254,6 +1254,13 @@ body:has(.cms-shell) {
   padding: 10px 14px;
 }
 
+.cms-shell .cms-donation-message {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cms-shell .tc-link {
   text-decoration: none;
 }

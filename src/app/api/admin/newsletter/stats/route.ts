@@ -3,11 +3,17 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Newsletter } from "@/models/Newsletter";
 import { NewsletterCampaign } from "@/models/NewsletterCampaign";
+import { NEWSLETTER_TOPICS } from "@/lib/newsletter-topics";
 
 const LIST_COLORS: Record<string, string> = {
-  actualites: "var(--cms-red)",
-  sport: "var(--blue)",
-  finance: "var(--green)",
+  general: "var(--cms-red)",
+  weekly: "var(--blue)",
+  africa: "var(--green)",
+  "latin-america": "var(--amber)",
+  "south-asia": "var(--purple)",
+  "west-asia": "var(--t3)",
+  investigations: "var(--cms-red)",
+  breaking: "var(--amber)",
 };
 
 export async function GET() {
@@ -41,16 +47,26 @@ export async function GET() {
   const openRate = totalSent > 0 ? Math.round((totalOpens / totalSent) * 1000) / 10 : 0;
   const clickRate = totalSent > 0 ? Math.round((totalClicks / totalSent) * 1000) / 10 : 0;
 
+  const topicLabel = (id: string) =>
+    NEWSLETTER_TOPICS.find((topic) => topic.id === id)?.label ?? id;
+
   const lists =
     preferenceAgg.length > 0
       ? preferenceAgg.map((row) => ({
           name: row._id,
+          label: topicLabel(row._id),
           count: row.count,
           pct: totalActive > 0 ? Math.round((row.count / totalActive) * 100) : 0,
           color: LIST_COLORS[row._id.toLowerCase()] ?? "var(--t3)",
         }))
       : [
-          { name: "General news", count: totalActive, pct: 100, color: "var(--cms-red)" },
+          {
+            name: "general",
+            label: topicLabel("general"),
+            count: totalActive,
+            pct: 100,
+            color: "var(--cms-red)",
+          },
         ];
 
   return NextResponse.json({

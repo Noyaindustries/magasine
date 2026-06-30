@@ -17,7 +17,9 @@ export function HeroLatestAllNewsCta({ visibleCount }: HeroLatestAllNewsCtaProps
         </span>
 
         <span className="hero-latest-all-news-body">
-          <span className="hero-latest-all-news-kicker">{ALL_NEWS_CTA.kicker}</span>
+          {ALL_NEWS_CTA.kicker ? (
+            <span className="hero-latest-all-news-kicker">{ALL_NEWS_CTA.kicker}</span>
+          ) : null}
           <span className="hero-latest-all-news-title">{ALL_NEWS_CTA.label}</span>
           <span className="hero-latest-all-news-desc">{ALL_NEWS_CTA.description}</span>
         </span>

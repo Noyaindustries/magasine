@@ -17,7 +17,7 @@ export const REGION_NAV = [
 export const ALL_NEWS_LINK = { label: "All news", href: "/news" } as const;
 
 export const ALL_NEWS_CTA = {
-  kicker: "News feed",
+  kicker: "",
   label: "All news",
   description: "Every story from our desks and regions",
   href: "/news",
@@ -63,7 +63,7 @@ export const NEWS_MENU_NAV = [
   },
   {
     label: "Feature",
-    href: "/category/world",
+    href: "/category/feature",
     description: "International affairs from the Global South",
   },
 ] as const;
@@ -288,7 +288,7 @@ export const OPINIONS = [
 export const THEMATIC = [
   {
     title: "Feature",
-    href: "/category/world",
+    href: "/category/feature",
     main: { cat: "Feature", title: "UN adopts historic resolution on developing countries' sovereign debt", image: IMG.un },
     subs: [
       { num: "01", cat: "Diplomacy", title: "Security Council holds emergency session on Sahel crisis" },

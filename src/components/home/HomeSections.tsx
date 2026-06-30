@@ -102,8 +102,8 @@ export function VideoSection({ articles }: { articles: ArticleListItem[] }) {
     <section className="mb-16 luxury-gradient rounded-sm p-8 lg:p-10 border border-border-gold/30">
       <SectionTitle
         title="Featured Videos"
-        subtitle="Multimedia"
-        href="/category/multimedia"
+        subtitle="Video"
+        href="/videos"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {articles.map((article) => (

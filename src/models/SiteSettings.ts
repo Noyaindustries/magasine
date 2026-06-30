@@ -63,6 +63,7 @@ export interface ISiteSettings {
   canonicalUrl: string;
   mailchimpConnected: boolean;
   brevoConnected: boolean;
+  typographyPreset: string;
   adZones: AdZoneDoc[];
   updatedAt: Date;
 }
@@ -86,7 +87,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     closingStats: { type: [{ num: String, suffix: String, label: String }], default: [] },
     newsletterTitle: {
       type: String,
-      default: "The essentials every morning,",
+      default: "",
     },
     newsletterTitleEm: {
       type: String,
@@ -129,6 +130,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     canonicalUrl: { type: String, default: getSiteUrl },
     mailchimpConnected: { type: Boolean, default: false },
     brevoConnected: { type: Boolean, default: false },
+    typographyPreset: { type: String, default: "canela-editorial" },
     adZones: {
       type: [
         {

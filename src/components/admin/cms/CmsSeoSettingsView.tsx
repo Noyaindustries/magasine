@@ -9,6 +9,8 @@ import { uploadAdminMedia } from "@/lib/admin-upload";
 import { DEFAULT_FAVICON, DEFAULT_SITE_LOGO } from "@/lib/branding";
 import { toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
+import { getTypographyPreset, type TypographyPresetId } from "@/lib/site-fonts";
+import { CmsTypographyPicker } from "@/components/admin/cms/CmsTypographyPicker";
 import { getSiteUrl, SITE_NAME } from "@/lib/site";
 
 interface SeoSettingsForm {
@@ -25,6 +27,7 @@ interface SeoSettingsForm {
   newsletterDescription: string;
   mailchimpConnected: boolean;
   brevoConnected: boolean;
+  typographyPreset: TypographyPresetId;
 }
 
 interface CmsSeoSettingsViewProps {
@@ -58,6 +61,7 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
           newsletterDescription: data.newsletterDescription ?? "",
           mailchimpConnected: data.mailchimpConnected ?? false,
           brevoConnected: data.brevoConnected ?? false,
+          typographyPreset: getTypographyPreset(data.typographyPreset).id,
         });
       })
       .catch(() => toastNetworkError());
@@ -219,6 +223,24 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
                 currentUrl={form.favicon}
                 canEdit={canManageBranding}
                 onUploaded={(url) => updateBranding("favicon", url)}
+              />
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <span className="card-title">Site typography</span>
+            </div>
+            <div className="card-body cms-stack">
+              <p className="cms-field-hint">
+                Choose the editorial and UI font pairing for the public site. Changes apply
+                after save and a page refresh.
+                {!canManageBranding && " Administrators only."}
+              </p>
+              <CmsTypographyPicker
+                value={form.typographyPreset}
+                onChange={(typographyPreset) => setForm({ ...form, typographyPreset })}
+                disabled={!canManageBranding || saving}
               />
             </div>
           </div>

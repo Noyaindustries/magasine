@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Tags,
   X,
+  HeartHandshake,
   LogOut,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -38,6 +39,7 @@ const NAV_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   comments: MessageSquare,
   categories: Tags,
   newsletter: Mail,
+  donations: HeartHandshake,
   users: Users,
   ads: Megaphone,
   analytics: TrendingUp,
@@ -54,6 +56,7 @@ const NAV_ICON_TONES: Record<string, "red" | "blue" | "green" | "amber" | "purpl
   users: "blue",
   ads: "amber",
   newsletter: "green",
+  donations: "amber",
   analytics: "purple",
   seo: "slate",
 };

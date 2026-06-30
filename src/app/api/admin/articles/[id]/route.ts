@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { estimateReadingTime } from "@/lib/utils";
 import { canManageArticles } from "@/lib/permissions";
+import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publish";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -97,6 +98,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 
   const data = parsed.data;
+  const wasPublished = article.status === "published";
   if (data.title) article.title = data.title;
   if (data.slug) {
     article.slug = slugify(data.slug, { lower: true, strict: true });
@@ -138,6 +140,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.sendPushOnPublish !== undefined) article.sendPushOnPublish = data.sendPushOnPublish;
 
   await article.save();
+
+  if (!wasPublished && article.status === "published") {
+    void notifySubscribersOnMultimediaPublish(String(article._id)).catch((error) => {
+      console.error("[newsletter] auto publish failed", error);
+    });
+  }
+
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }
 

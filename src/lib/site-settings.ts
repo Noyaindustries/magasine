@@ -13,6 +13,7 @@ import {
   type TrustPartnerItem,
 } from "@/lib/homepage-sections";
 import { resolveFavicon, resolveSiteLogo } from "@/lib/branding";
+import { DEFAULT_TYPOGRAPHY_PRESET, getTypographyPreset } from "@/lib/site-fonts";
 import { getSiteUrl } from "@/lib/site";
 
 export interface PulseStat {
@@ -57,6 +58,7 @@ export interface PublicSiteSettings {
   canonicalUrl: string;
   mailchimpConnected: boolean;
   brevoConnected: boolean;
+  typographyPreset: string;
   updatedAt?: Date;
 }
 
@@ -72,6 +74,13 @@ function mergeHomeSections(
     }
   }
   return { ...DEFAULT_HOME_SECTIONS, ...safe };
+}
+
+const LEGACY_NEWSLETTER_TITLE = "The essentials every morning,";
+
+function resolveNewsletterTitle(value?: string | null): string {
+  const title = value ?? DEFAULT_NEWSLETTER_COPY.title;
+  return title === LEGACY_NEWSLETTER_TITLE ? "" : title;
 }
 
 export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
@@ -90,7 +99,7 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     homeSections: mergeHomeSections(doc.homeSections),
     pulseStats: doc.pulseStats?.length ? doc.pulseStats : DEFAULT_PULSE_STATS,
     closingStats: doc.closingStats?.length ? doc.closingStats : DEFAULT_CLOSING_STATS,
-    newsletterTitle: doc.newsletterTitle ?? DEFAULT_NEWSLETTER_COPY.title,
+    newsletterTitle: resolveNewsletterTitle(doc.newsletterTitle),
     newsletterTitleEm: doc.newsletterTitleEm ?? DEFAULT_NEWSLETTER_COPY.titleEm,
     newsletterDescription: doc.newsletterDescription ?? DEFAULT_NEWSLETTER_COPY.description,
     newsletterBenefits: doc.newsletterBenefits?.length
@@ -108,6 +117,7 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     canonicalUrl: doc.canonicalUrl ?? getSiteUrl(),
     mailchimpConnected: doc.mailchimpConnected ?? false,
     brevoConnected: doc.brevoConnected ?? false,
+    typographyPreset: getTypographyPreset(doc.typographyPreset).id,
     updatedAt: doc.updatedAt,
   };
 }
@@ -153,6 +163,7 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       canonicalUrl: getSiteUrl(),
       mailchimpConnected: false,
       brevoConnected: false,
+      typographyPreset: DEFAULT_TYPOGRAPHY_PRESET,
       adZones: [],
       updatedAt: new Date(),
     });
@@ -227,6 +238,7 @@ function applySettingsPatch(
     "canonicalUrl",
     "mailchimpConnected",
     "brevoConnected",
+    "typographyPreset",
   ];
 
   for (const key of assignable) {

@@ -63,7 +63,9 @@ export function AllNewsPageView({
 
           <div className="section-page-hero-main">
             <div>
-              <span className="section-page-hero-eyebrow">{ALL_NEWS_SECTION.eyebrow}</span>
+              {ALL_NEWS_SECTION.eyebrow ? (
+                <span className="section-page-hero-eyebrow">{ALL_NEWS_SECTION.eyebrow}</span>
+              ) : null}
               <h1 className="section-page-hero-title">
                 {activeLabel ? `${activeLabel}` : ALL_NEWS_SECTION.title}
               </h1>

@@ -17,9 +17,10 @@ import {
 } from "@/lib/mock-data";
 import { resolveAuthorAvatar, resolveFeaturedImage } from "@/lib/images";
 import { getPublicSiteSettings } from "@/lib/site-settings";
-import { filterRetiredCategories, filterArticlesByRetiredCategories } from "@/lib/retired-categories";
+import { filterRetiredCategories, filterArticlesByRetiredCategories, isRetiredCategorySlug } from "@/lib/retired-categories";
 import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
 import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
+import { migrateRetiredMultimediaCategory } from "@/lib/migrate-multimedia-category";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
 
@@ -115,6 +116,7 @@ export const getHomePageData = cache(async function getHomePageData() {
   await connectDB();
   await repairBrokenArticleImagesOnce();
   await migrateCategorySlugsOnce();
+  await migrateRetiredMultimediaCategory();
 
   const siteSettings = await getPublicSiteSettings();
   const baseQuery = { status: "published" as const };
@@ -127,9 +129,10 @@ export const getHomePageData = cache(async function getHomePageData() {
     editorsChoice,
     latestUpdates,
     featuredVideos,
+    featuredPodcasts,
+    featuredGalleries,
     nationalNews,
-    worldNews,
-    multimedia,
+    featureNews,
     opinion,
     investigations,
     specialReports,
@@ -171,6 +174,16 @@ export const getHomePageData = cache(async function getHomePageData() {
       .sort({ publishedAt: -1 })
       .limit(4)
       .lean(),
+    Article.find({ ...baseQuery, contentType: "podcast" })
+      .populate(articlePopulate)
+      .sort({ publishedAt: -1 })
+      .limit(4)
+      .lean(),
+    Article.find({ ...baseQuery, contentType: "gallery" })
+      .populate(articlePopulate)
+      .sort({ publishedAt: -1 })
+      .limit(4)
+      .lean(),
     Article.find(baseQuery)
       .populate({
         path: "category",
@@ -184,8 +197,7 @@ export const getHomePageData = cache(async function getHomePageData() {
       .then((docs) =>
         docs.filter((d) => (d.category as { slug?: string } | null)?.slug === "news")
       ),
-    getArticlesByCategorySlug("world", 4),
-    getArticlesByCategorySlug("multimedia", 4),
+    getArticlesByCategorySlug("feature", 4),
     getArticlesByCategorySlug("opinion", 3),
     getArticlesByCategorySlug("investigations", 3),
     getArticlesByCategorySlug("special-reports", 3),
@@ -237,9 +249,10 @@ export const getHomePageData = cache(async function getHomePageData() {
     editorsChoice: mapHomeArticles(editorsChoice, 5),
     latestUpdates: mapHomeArticles(latestUpdates, 6),
     featuredVideos: mapHomeArticles(featuredVideos, 4),
+    featuredPodcasts: mapHomeArticles(featuredPodcasts, 4),
+    featuredGalleries: mapHomeArticles(featuredGalleries, 4),
     nationalNews: mapHomeArticles(nationalNews, 6),
-    worldNews: filterHomeArticleList(worldNews, 4),
-    multimedia: filterHomeArticleList(multimedia, 4),
+    featureNews: filterHomeArticleList(featureNews, 4),
     opinion: filterHomeArticleList(opinion, 3),
     investigations: filterHomeArticleList(investigations, 3),
     specialReports: filterHomeArticleList(specialReports, 3),
@@ -554,6 +567,9 @@ export async function searchArticles(
 
 export async function getCategoryBySlug(slug: string) {
   const resolvedSlug = resolveCategorySlug(slug);
+  if (isRetiredCategorySlug(resolvedSlug)) {
+    return null;
+  }
   if (!(await hasDbArticles())) {
     return getMockCategoryBySlug(resolvedSlug);
   }

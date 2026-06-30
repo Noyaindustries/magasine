@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { canManageUsers } from "@/lib/permissions";
 import { getPublicSiteSettings, updateSiteSettings } from "@/lib/site-settings";
+import { isTypographyPresetId } from "@/lib/site-fonts";
 import type { UserRole } from "@/types";
 
 const homeSectionSchema = z.object({
@@ -60,6 +61,10 @@ const updateSchema = z.object({
   canonicalUrl: z.string().optional(),
   mailchimpConnected: z.boolean().optional(),
   brevoConnected: z.boolean().optional(),
+  typographyPreset: z
+    .string()
+    .refine((value) => isTypographyPresetId(value), { message: "Invalid typography preset" })
+    .optional(),
 });
 
 type UpdatePayload = z.infer<typeof updateSchema>;
@@ -77,6 +82,7 @@ const ADMIN_ONLY_PATCH_KEYS = new Set<keyof UpdatePayload>([
   "trustPartners",
   "siteLogo",
   "favicon",
+  "typographyPreset",
 ]);
 
 function filterSettingsPatch(data: UpdatePayload, role: UserRole) {

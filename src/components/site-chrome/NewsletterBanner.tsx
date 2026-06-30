@@ -18,7 +18,7 @@ const DEFAULT_BENEFITS = [
 
 export function NewsletterBanner({
   enabled = true,
-  title = "The essentials every morning,",
+  title = "",
   titleEm = "delivered straight to your inbox.",
   description = "An editorial selection of the most important news from Africa and the Global South, curated by our newsroom.",
   benefits = DEFAULT_BENEFITS,
@@ -33,8 +33,12 @@ export function NewsletterBanner({
           <div className="nl-emblem" aria-hidden>GSW</div>
           <div className="nl-label">Newsletter</div>
           <h2 className="nl-title">
-            {title}
-            <br />
+            {title ? (
+              <>
+                {title}
+                <br />
+              </>
+            ) : null}
             <em>{titleEm}</em>
           </h2>
           <p className="nl-desc">{description}</p>

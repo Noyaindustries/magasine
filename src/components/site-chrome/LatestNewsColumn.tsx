@@ -18,7 +18,7 @@ export function LatestNewsColumn({ data, newsletterEnabled = true }: LatestNewsC
     <aside className="hero-latest-column reveal visible" data-reveal-delay={160}>
       <div className="hero-latest-panel">
         <div className="hero-latest-header">
-          <h3 className="hero-latest-title">Latest News</h3>
+          <h3 className="hero-latest-title">Latest</h3>
         </div>
 
         {featured.slug && (

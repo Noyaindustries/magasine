@@ -1,13 +1,21 @@
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
-import { resolveFeaturedImage } from "@/lib/images";
+import { Media } from "@/models/Media";
+import { replacementForBrokenLocalMedia, resolveFeaturedImage } from "@/lib/images";
 
 const BROKEN_UNSPLASH_PATTERN =
   /photo-(1509316785289|1524492412937|1574943325722|1611162617474)/;
 
+const LOCAL_UPLOAD_PATTERN = /^\/uploads\/(media|branding)\//;
+
 let repairDone = false;
 
-/** Fixes removed Unsplash URLs in the database (once per server instance). */
+function fixLocalUploadUrl(url: string): string | null {
+  if (!LOCAL_UPLOAD_PATTERN.test(url.trim())) return null;
+  return replacementForBrokenLocalMedia(url);
+}
+
+/** Fixes removed Unsplash URLs and orphaned local upload paths (once per server instance). */
 export async function repairBrokenArticleImagesOnce() {
   if (repairDone) return;
   repairDone = true;
@@ -17,7 +25,10 @@ export async function repairBrokenArticleImagesOnce() {
     const articles = await Article.find({
       $or: [
         { featuredImage: BROKEN_UNSPLASH_PATTERN },
+        { featuredImage: LOCAL_UPLOAD_PATTERN },
         { "gallery.url": BROKEN_UNSPLASH_PATTERN },
+        { "gallery.url": LOCAL_UPLOAD_PATTERN },
+        { content: LOCAL_UPLOAD_PATTERN },
       ],
     });
 
@@ -40,8 +51,28 @@ export async function repairBrokenArticleImagesOnce() {
         }
       }
 
+      if (article.content && LOCAL_UPLOAD_PATTERN.test(article.content)) {
+        const updated = article.content.replace(
+          /\/uploads\/(media|branding)\/([a-zA-Z0-9._-]+)/g,
+          (match) => fixLocalUploadUrl(match) ?? match
+        );
+        if (updated !== article.content) {
+          article.content = updated;
+          dirty = true;
+        }
+      }
+
       if (dirty) {
         await article.save();
+      }
+    }
+
+    const mediaItems = await Media.find({ url: LOCAL_UPLOAD_PATTERN });
+    for (const item of mediaItems) {
+      const fixed = fixLocalUploadUrl(item.url);
+      if (fixed && fixed !== item.url) {
+        item.url = fixed;
+        await item.save();
       }
     }
   } catch (error) {

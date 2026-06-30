@@ -1,0 +1,99 @@
+/* Typography presets — applied via data-typography on <html> (see layout.tsx) */
+
+html[data-typography] {
+  --site-font-editorial: var(--font-canela);
+  --site-font-ui: var(--f-ui);
+}
+
+html[data-typography] body,
+html[data-typography] .home-page,
+html[data-typography] .article-page,
+html[data-typography] .article-page--premium,
+html[data-typography] .category-page,
+html[data-typography] .category-page--revolution {
+  font-family: var(--site-font-editorial, var(--f-body));
+}
+
+/* Admin typography picker preview */
+.cms-typography-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.cms-typography-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--rule, #d4cfc8);
+  background: var(--white, #fff);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+.cms-typography-option:hover {
+  border-color: rgba(26, 56, 150, 0.35);
+  box-shadow: 0 4px 16px rgba(26, 56, 150, 0.08);
+}
+
+.cms-typography-option.is-selected {
+  border-color: var(--brand-blue, #1a3896);
+  box-shadow: 0 0 0 1px var(--brand-blue, #1a3896);
+}
+
+.cms-typography-option-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cms-typography-option-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--charcoal, #2a2a2a);
+}
+
+.cms-typography-option-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-blue, #1a3896);
+  background: rgba(26, 56, 150, 0.08);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.cms-typography-option-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mid-gray, #6b6b6b);
+  margin: 0 0 12px;
+}
+
+.cms-typography-preview {
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--cream, #f7f4ef);
+  border: 1px solid var(--rule, #d4cfc8);
+}
+
+.cms-typography-preview-editorial {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  color: var(--charcoal, #2a2a2a);
+}
+
+.cms-typography-preview-ui {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--mid-gray, #6b6b6b);
+}

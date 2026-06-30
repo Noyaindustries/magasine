@@ -71,6 +71,11 @@ async function saveMediaFileToBlobInternal(file: File): Promise<string> {
 }
 
 export async function saveMediaFile(file: File): Promise<string> {
+  if (process.env.NODE_ENV === "production" && !isBlobStorageEnabled()) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is required for media uploads in production. Add it in your hosting environment variables."
+    );
+  }
   if (isBlobStorageEnabled()) {
     return saveMediaFileToBlobInternal(file);
   }

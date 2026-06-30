@@ -44,8 +44,6 @@ export function FormatPageView({ config, articles }: FormatPageViewProps) {
           <nav className="category-breadcrumb section-page-breadcrumb" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span aria-hidden>/</span>
-            <Link href="/category/multimedia">Multimedia</Link>
-            <span aria-hidden>/</span>
             <span>{config.title}</span>
           </nav>
 

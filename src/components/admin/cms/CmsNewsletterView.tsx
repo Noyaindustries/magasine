@@ -19,6 +19,7 @@ interface CampaignRow {
 
 interface ListRow {
   name: string;
+  label?: string;
   count: number;
   pct: number;
   color: string;
@@ -39,6 +40,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     lists: [] as ListRow[],
   });
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  const [mailConfigured, setMailConfigured] = useState(true);
   const [subject, setSubject] = useState(`Today's essentials — ${siteName}`);
   const [listTarget, setListTarget] = useState("all");
   const [scheduledAt, setScheduledAt] = useState("");
@@ -73,6 +75,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
         } else {
           const campaignsData = await campaignsRes.json();
           setCampaigns(campaignsData.campaigns ?? []);
+          setMailConfigured(campaignsData.mailConfigured !== false);
         }
       })
       .catch(() => toastNetworkError());
@@ -83,8 +86,13 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
   }, [load]);
 
   const scheduleCampaign = async () => {
+    if (!mailConfigured) {
+      toast.error("Configure SMTP_HOST and SMTP_FROM before sending newsletters.");
+      return;
+    }
+
     setSaving(true);
-    const toastId = toast.loading("Saving campaign…");
+    const toastId = toast.loading(scheduledAt ? "Scheduling campaign…" : "Sending to subscribers…");
     try {
       const res = await fetch("/api/admin/newsletter/campaigns", {
         method: "POST",
@@ -97,14 +105,29 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           scheduledAt: scheduledAt || undefined,
         }),
       });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        recipientCount?: number;
+        failed?: number;
+      };
+      toast.dismiss(toastId);
       if (!res.ok) {
-        toast.dismiss(toastId);
-        toast.error("Failed to schedule.");
+        toast.error(data.error ?? "Failed to send campaign.");
         return;
       }
-      toast.dismiss(toastId);
-      toast.success("Campaign saved successfully.");
+      if (data.failed && data.failed > 0) {
+        toast.success(
+          data.message ??
+            `Sent to ${data.recipientCount ?? 0} subscriber(s). ${data.failed} delivery failure(s).`
+        );
+      } else {
+        toast.success(data.message ?? "Campaign sent to subscribers.");
+      }
       load();
+    } catch {
+      toast.dismiss(toastId);
+      toastNetworkError();
     } finally {
       setSaving(false);
     }
@@ -153,11 +176,22 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           <button type="button" className="btn btn-out" onClick={exportSubscribers}>
             Export subscribers
           </button>
-          <button type="button" className="btn btn-red" onClick={() => void scheduleCampaign()}>
-            + New campaign
+          <button type="button" className="btn btn-red" disabled={saving || !mailConfigured} onClick={() => void scheduleCampaign()}>
+            {scheduledAt ? "+ Schedule campaign" : "+ Send now"}
           </button>
         </div>
       </div>
+
+      {!mailConfigured && (
+        <div className="card mb20">
+          <div className="card-body cms-stack">
+            <p className="cms-field-hint" style={{ margin: 0 }}>
+              SMTP is not configured. Add <strong>SMTP_HOST</strong> and <strong>SMTP_FROM</strong> to your
+              environment so campaigns are delivered automatically to subscribers.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="kgrid mb20">
         <div className="kpi k-green">
@@ -218,8 +252,22 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                           {rates.clicks}
                         </td>
                         <td>
-                          <span className={`badge b-${row.status === "sent" ? "pub" : "plan"}`}>
-                            {row.status === "sent" ? "Sent" : "Scheduled"}
+                          <span
+                            className={`badge b-${
+                              row.status === "sent"
+                                ? "pub"
+                                : row.status === "scheduled"
+                                  ? "plan"
+                                  : "arch"
+                            }`}
+                          >
+                            {row.status === "sent"
+                              ? "Sent"
+                              : row.status === "scheduled"
+                                ? "Scheduled"
+                                : row.status === "sending"
+                                  ? "Sending"
+                                  : "Draft"}
                           </span>
                         </td>
                         <td className="tbl-actions">
@@ -264,7 +312,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                 <div key={list.name} className="mm">
                   <div className="mml">
                     <div className="mmdot" style={{ background: list.color }} />
-                    <span className="mmname">{list.name}</span>
+                    <span className="mmname">{list.label ?? list.name}</span>
                   </div>
                   <div className="mm-right">
                     <div className="mmv">{list.count.toLocaleString("en-US")}</div>
@@ -321,7 +369,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                   </option>
                   {stats.lists.map((list) => (
                     <option key={list.name} value={list.name}>
-                      {list.name} ({list.count.toLocaleString("en-US")})
+                      {list.label ?? list.name} ({list.count.toLocaleString("en-US")})
                     </option>
                   ))}
                 </select>
@@ -341,10 +389,16 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
               <button
                 type="button"
                 className="btn btn-red cms-full-btn"
-                disabled={saving}
+                disabled={saving || !mailConfigured}
                 onClick={() => void scheduleCampaign()}
               >
-                {saving ? "Saving…" : "Schedule send →"}
+                {saving
+                  ? scheduledAt
+                    ? "Scheduling…"
+                    : "Sending…"
+                  : scheduledAt
+                    ? "Schedule send →"
+                    : "Send to subscribers →"}
               </button>
             </div>
           </div>

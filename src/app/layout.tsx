@@ -6,6 +6,7 @@ import { getPublicSiteSettings } from "@/lib/site-settings";
 import { Providers } from "@/components/Providers";
 import { MaintenanceGate } from "@/components/MaintenanceGate";
 import { getSiteUrl } from "@/lib/site";
+import { getTypographyPreset, getTypographyCssVariables } from "@/lib/site-fonts";
 import "./globals.css";
 import "./responsive.css";
 import "./revolution.css";
@@ -13,6 +14,7 @@ import "./home-page.css";
 import "./article-cards.css";
 import "./images-flat.css";
 import "./reader-space.css";
+import "./site-typography.css";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -76,15 +78,22 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { categories, siteSettings } = await getLayoutData();
+  const typography = getTypographyPreset(siteSettings.typographyPreset);
+  const typographyVars = getTypographyCssVariables(typography);
 
   return (
     <html
       lang="en"
       suppressHydrationWarning
+      data-typography={typography.id}
+      style={typographyVars as React.CSSProperties}
       className={`${dmSans.variable} ${libreBaskerville.variable} notranslate`}
     >
       <head>
-        {adobeFontsKitId ? (
+        {typography.googleFontsHref ? (
+          <link rel="stylesheet" href={typography.googleFontsHref} />
+        ) : null}
+        {adobeFontsKitId && typography.id === "canela-editorial" ? (
           <link rel="stylesheet" href={`https://use.typekit.net/${adobeFontsKitId}.css`} />
         ) : null}
       </head>

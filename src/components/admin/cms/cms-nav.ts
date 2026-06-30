@@ -1,6 +1,6 @@
 import type { UserRole } from "@/types";
 
-export type CmsBadgeKey = "pendingReview" | "pendingComments" | "teamMemberCount";
+export type CmsBadgeKey = "pendingReview" | "pendingComments" | "teamMemberCount" | "pendingDonations";
 
 export type CmsNavItem = {
   id: string;
@@ -64,6 +64,14 @@ export const CMS_NAV_GROUPS: CmsNavGroup[] = [
         href: "/admin/newsletter",
         roles: ["super_admin", "admin", "editor"],
       },
+      {
+        id: "donations",
+        label: "Donations",
+        href: "/admin/donations",
+        badge: "pendingDonations",
+        badgeTone: "amber",
+        roles: ["super_admin", "admin", "editor"],
+      },
     ],
   },
   {
@@ -91,6 +99,7 @@ export const CMS_PAGE_META: { match: (path: string) => boolean; title: string; b
   { match: (p) => p.startsWith("/admin/seo"), title: "SEO settings", breadcrumb: "SEO" },
   { match: (p) => p.startsWith("/admin/comments"), title: "Comments", breadcrumb: "Comments" },
   { match: (p) => p.startsWith("/admin/newsletter"), title: "Newsletter", breadcrumb: "Newsletter" },
+  { match: (p) => p.startsWith("/admin/donations"), title: "Donations", breadcrumb: "Donations" },
   { match: (p) => p.startsWith("/admin/users"), title: "Users", breadcrumb: "Editorial team" },
   { match: (p) => p.startsWith("/admin/alerts"), title: "Alerts", breadcrumb: "Alerts" },
   { match: (p) => p.startsWith("/admin/settings"), title: "Settings", breadcrumb: "Configuration" },

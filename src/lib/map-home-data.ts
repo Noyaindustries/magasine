@@ -37,6 +37,16 @@ import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
+const FORMAT_ROW_SOURCES: {
+  slug: string;
+  title: string;
+  href: string;
+  key: "featuredVideos" | "featuredPodcasts" | "featuredGalleries";
+}[] = [
+  { slug: "videos", title: "Videos", href: "/videos", key: "featuredVideos" },
+  { slug: "podcasts", title: "Podcasts", href: "/podcasts", key: "featuredPodcasts" },
+  { slug: "photo-galleries", title: "Photo galleries", href: "/photo-galleries", key: "featuredGalleries" },
+];
 const RUBRIQUE_SOURCES: {
   slug: string;
   title: string;
@@ -51,7 +61,6 @@ const RUBRIQUE_SOURCES: {
   { slug: "culture", title: "Culture", key: "cultureNews" },
   { slug: "investigations", title: "Investigations", key: "investigations" },
   { slug: "special-reports", title: "Special Reports", key: "specialReports" },
-  { slug: "multimedia", title: "Multimedia", key: "multimedia" },
 ];
 
 function articlePath(slug: string): string {
@@ -390,6 +399,24 @@ function buildUrgent(source: HomeDataSource): HomeUrgent {
   };
 }
 
+function buildFormatRows(source: HomeDataSource): HomeRubriqueBlock[] {
+  return FORMAT_ROW_SOURCES.flatMap(({ slug, title, href, key }) => {
+    const items = filterArticlesByRetiredCategories(
+      (source[key] as ArticleListItem[] | undefined) ?? []
+    );
+    if (!items.length) return [];
+
+    return [
+      {
+        slug,
+        title,
+        href,
+        articles: items.slice(0, 4).map(toHomeCard),
+      },
+    ];
+  });
+}
+
 function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
   return RUBRIQUE_SOURCES.flatMap(({ slug, title, key }) => {
     const items = filterArticlesByRetiredCategories(
@@ -424,5 +451,6 @@ export function mapHomePageData(source: HomeDataSource): HomePageViewModel {
     thematic: buildThematic(source),
     urgent: buildUrgent(source),
     rubriques: buildRubriques(source),
+    formatRows: buildFormatRows(source),
   };
 }

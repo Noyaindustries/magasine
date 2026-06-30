@@ -19,7 +19,7 @@ const CommentSchema = new Schema<IComment>(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     parent: { type: Schema.Types.ObjectId, ref: "Comment" },
     content: { type: String, required: true, maxlength: 2000 },
-    isApproved: { type: Boolean, default: true },
+    isApproved: { type: Boolean, default: false },
     isReported: { type: Boolean, default: false },
     isRejected: { type: Boolean, default: false },
   },

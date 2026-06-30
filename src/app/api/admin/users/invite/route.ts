@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
 import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/User";
+import { createUserAsAdmin } from "@/lib/admin-create-user";
+import { USER_ROLES } from "@/lib/user-roles";
 import type { UserRole } from "@/types";
 
 const schema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(2).max(100),
   email: z.string().email(),
-  role: z.enum(["editor", "author", "contributor"]).default("author"),
+  role: z.enum(USER_ROLES as [UserRole, ...UserRole[]]).default("author"),
+  password: z.string().min(8).optional(),
 });
 
+/** @deprecated Prefer POST /api/admin/users */
 export async function POST(request: NextRequest) {
   const guard = await requireAdminApi("users");
   if (guard.error) return guard.error;
@@ -24,27 +25,14 @@ export async function POST(request: NextRequest) {
   }
 
   await connectDB();
-  const email = parsed.data.email.toLowerCase().trim();
-  const existing = await User.findOne({ email });
-  if (existing) {
-    return NextResponse.json({ error: "This email is already in use." }, { status: 409 });
+  const result = await createUserAsAdmin({
+    ...parsed.data,
+    actorRole: guard.session!.user.role,
+  });
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
   }
 
-  const tempPassword = randomBytes(6).toString("base64url");
-  const hashed = await bcrypt.hash(tempPassword, 12);
-
-  const user = await User.create({
-    name: parsed.data.name.trim(),
-    email,
-    password: hashed,
-    role: parsed.data.role as UserRole,
-  });
-
-  return NextResponse.json({
-    _id: String(user._id),
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    tempPassword,
-  });
+  return NextResponse.json(result.user);
 }

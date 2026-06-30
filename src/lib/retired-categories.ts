@@ -7,6 +7,7 @@ export const RETIRED_CATEGORY_SLUGS = [
   "autres",
   "technology",
   "technologie",
+  "multimedia",
 ] as const;
 
 export type RetiredCategorySlug = (typeof RETIRED_CATEGORY_SLUGS)[number];
@@ -14,7 +15,7 @@ export type RetiredCategorySlug = (typeof RETIRED_CATEGORY_SLUGS)[number];
 const retiredSet = new Set<string>(RETIRED_CATEGORY_SLUGS);
 
 const RETIRED_CATEGORY_NAME =
-  /^(finance|sports?|divertissement|autres|entertainment|technology|technologie)$/i;
+  /^(finance|sports?|divertissement|autres|entertainment|technology|technologie|multimedia)$/i;
 
 export function isRetiredCategorySlug(slug: string | undefined | null): boolean {
   if (!slug) return false;

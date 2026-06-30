@@ -6,10 +6,9 @@ export const CATEGORY_SLUG = {
   commentary: "commentary",
   explainer: "explainer",
   health: "health",
-  world: "world",
+  feature: "feature",
   investigations: "investigations",
   opinion: "commentary",
-  multimedia: "multimedia",
   local: "local",
   specialReports: "special-reports",
   africa: "africa",
@@ -25,9 +24,11 @@ export const LEGACY_CATEGORY_SLUG_MAP: Record<string, string> = {
   technologie: CATEGORY_SLUG.news,
   technology: CATEGORY_SLUG.news,
   sante: CATEGORY_SLUG.health,
-  monde: CATEGORY_SLUG.world,
+  monde: CATEGORY_SLUG.feature,
+  world: CATEGORY_SLUG.feature,
   "reportages-speciaux": CATEGORY_SLUG.specialReports,
   opinion: CATEGORY_SLUG.commentary,
+  multimedia: CATEGORY_SLUG.feature,
 };
 
 export function resolveCategorySlug(slug: string): string {

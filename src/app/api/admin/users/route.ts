@@ -5,13 +5,22 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { Article } from "@/models/Article";
+import { createUserAsAdmin } from "@/lib/admin-create-user";
+import { USER_ROLES, assertCanAssignRole } from "@/lib/user-roles";
 import type { UserRole } from "@/types";
 
+const roleEnum = z.enum(USER_ROLES as [UserRole, ...UserRole[]]);
+
 const patchSchema = z.object({
-  role: z
-    .enum(["super_admin", "admin", "editor", "author", "contributor", "reader"])
-    .optional(),
+  role: roleEnum.optional(),
   isPremium: z.boolean().optional(),
+});
+
+const createSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  role: roleEnum,
+  password: z.string().min(8).optional(),
 });
 
 export async function GET() {
@@ -48,6 +57,29 @@ export async function GET() {
   });
 }
 
+export async function POST(request: NextRequest) {
+  const guard = await requireAdminApi("users");
+  if (guard.error) return guard.error;
+
+  const body = await request.json();
+  const parsed = createSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid data." }, { status: 400 });
+  }
+
+  await connectDB();
+  const result = await createUserAsAdmin({
+    ...parsed.data,
+    actorRole: guard.session!.user.role,
+  });
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
+  }
+
+  return NextResponse.json(result.user, { status: 201 });
+}
+
 export async function PATCH(request: NextRequest) {
   const guard = await requireAdminApi("users");
   if (guard.error) return guard.error;
@@ -66,8 +98,11 @@ export async function PATCH(request: NextRequest) {
 
   const { userId, role, isPremium } = parsed.data;
 
-  if (role === "super_admin" && guard.session!.user.role !== "super_admin") {
-    return NextResponse.json({ error: "Only super admins can assign super_admin role" }, { status: 403 });
+  if (role) {
+    const roleError = assertCanAssignRole(guard.session!.user.role, role);
+    if (roleError) {
+      return NextResponse.json({ error: roleError }, { status: 403 });
+    }
   }
 
   if (userId === guard.session!.user.id && role && role !== guard.session!.user.role) {

@@ -7,7 +7,7 @@ import { HeroHome } from "@/components/site-chrome/HeroHome";
 import { MegaAd } from "@/components/site-chrome/MegaAd";
 import { EditorsChoiceSection } from "@/components/site-chrome/EditorsChoiceSection";
 import { LatestSection } from "@/components/site-chrome/LatestSection";
-import { VideoSectionHome } from "@/components/site-chrome/VideoSectionHome";
+import { HomeFormatsBand } from "@/components/site-chrome/HomeFormatsBand";
 import { HomeRubriquesBand } from "@/components/site-chrome/HomeRubriquesBand";
 import { HomeClosingBand } from "@/components/site-chrome/HomeClosingBand";
 import { SectionDivider } from "@/components/site-chrome/SectionDivider";
@@ -68,9 +68,9 @@ export default async function HomePage() {
 
       {sections.media && (
         <>
-          <SectionDivider label="Multimedia" />
+          <SectionDivider label="Formats" />
           <section className="home-band home-band--media">
-            <VideoSectionHome data={data.videos} />
+            <HomeFormatsBand formats={data.formatRows} />
           </section>
         </>
       )}

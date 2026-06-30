@@ -33,6 +33,11 @@ async function saveBrandingFileToBlobInternal(
 }
 
 export async function saveBrandingFile(type: BrandingAssetType, file: File): Promise<string> {
+  if (process.env.NODE_ENV === "production" && !isBlobStorageEnabled()) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is required for branding uploads in production."
+    );
+  }
   if (isBlobStorageEnabled()) {
     return saveBrandingFileToBlobInternal(type, file);
   }

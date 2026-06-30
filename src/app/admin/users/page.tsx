@@ -9,5 +9,5 @@ export default async function AdminUsersPage() {
     redirect("/admin");
   }
 
-  return <CmsUsersView />;
+  return <CmsUsersView actorRole={session.user.role} />;
 }

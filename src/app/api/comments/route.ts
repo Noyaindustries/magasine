@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
     }
 
     await connectDB();
-    const comments = await Comment.find({ article: articleId, isApproved: true, parent: null })
+    const comments = await Comment.find({
+      article: articleId,
+      isApproved: true,
+      isRejected: false,
+      parent: null,
+    })
       .populate("user", "name image")
       .sort({ createdAt: -1 })
       .lean();
@@ -75,9 +80,14 @@ export async function POST(request: NextRequest) {
       user: session.user.id,
       content: parsed.data.content,
       parent: parsed.data.parentId,
+      isApproved: false,
+      isRejected: false,
     });
 
-    return NextResponse.json({ _id: String(comment._id) }, { status: 201 });
+    return NextResponse.json(
+      { _id: String(comment._id), pendingApproval: true },
+      { status: 201 }
+    );
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

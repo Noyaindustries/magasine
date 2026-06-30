@@ -6,7 +6,7 @@ export const NEWS_HUB_CATEGORY_SLUGS = new Set([
   "investigations",
   "special-reports",
   "politics",
-  "world",
+  "feature",
 ]);
 
 export function isNewsHubCategory(slug: string): boolean {

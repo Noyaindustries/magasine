@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 const footerLinks = {
   sections: [
     { label: "News", href: "/category/news" },
-    { label: "Feature", href: "/category/world" },
+    { label: "Feature", href: "/category/feature" },
     { label: "Culture", href: "/category/culture" },
     { label: "Health", href: "/category/health" },
   ],
@@ -18,7 +18,6 @@ const footerLinks = {
     { label: "Investigations", href: "/category/investigations" },
     { label: "Special Reports", href: "/category/special-reports" },
     { label: "Opinion", href: "/category/opinion" },
-    { label: "Multimedia", href: "/category/multimedia" },
   ],
   legal: [
     { label: "Legal notice", href: "/legal" },

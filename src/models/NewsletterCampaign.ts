@@ -1,6 +1,6 @@
 import mongoose, { Schema, type Model } from "mongoose";
 
-export type NewsletterCampaignStatus = "draft" | "scheduled" | "sent";
+export type NewsletterCampaignStatus = "draft" | "scheduled" | "sending" | "sent";
 
 export interface INewsletterCampaign {
   _id: mongoose.Types.ObjectId;
@@ -28,7 +28,7 @@ const NewsletterCampaignSchema = new Schema<INewsletterCampaign>(
     listTarget: { type: String, default: "all" },
     status: {
       type: String,
-      enum: ["draft", "scheduled", "sent"],
+      enum: ["draft", "scheduled", "sending", "sent"],
       default: "draft",
     },
     scheduledAt: { type: Date },

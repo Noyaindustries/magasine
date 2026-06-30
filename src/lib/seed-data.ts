@@ -7,10 +7,9 @@ export const SEED_CATEGORIES = [
   { name: "Commentary", slug: "commentary", color: "#6B6B6B", order: 4, description: "Analysis, columns, and debate from experts and public intellectuals" },
   { name: "Explainer", slug: "explainer", color: "#457B9D", order: 5, description: "Context and background to help readers understand complex Global South stories" },
   { name: "Health", slug: "health", color: "#00B4D8", order: 6, description: "Public health, epidemics, and health systems across emerging economies" },
-  { name: "Feature", slug: "world", color: "#F77F00", order: 7, description: "International news" },
+  { name: "Feature", slug: "feature", color: "#F77F00", order: 7, description: "International news" },
   { name: "Investigations", slug: "investigations", color: "#D62828", order: 7, description: "Accountability journalism and long-form probes" },
   { name: "Opinion", slug: "opinion", color: "#6B6B6B", order: 8, description: "Analysis, columns, and debate from experts and public intellectuals" },
-  { name: "Multimedia", slug: "multimedia", color: "#1a3896", order: 9, description: "Video reports, podcasts, and visual storytelling" },
   { name: "Local", slug: "local", color: "#588157", order: 10, description: "City and regional stories beyond the capital" },
   { name: "Special Reports", slug: "special-reports", color: "#94563c", order: 11, description: "In-depth features and cross-border narrative journalism" },
   { name: "Africa", slug: "africa", color: "#1a3896", order: 12, description: "News, analysis, and investigations across the African continent" },
@@ -192,7 +191,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "AI for agriculture: Agrotech CI deploys voice assistant in Dioula and Baoulé",
     slug: "lia-au-service-de-lagriculture-agrotech-ci-deploie-son-assistant-vocal-en-dioula-et-baoule",
-    category: "world",
+    category: "feature",
     excerpt: "The app gives farmers personalized advice on crops, weather, and market prices.",
     content: `<p>Agrotech CI launches a multilingual voice assistant for smallholder farmers. The tool works offline and covers 12 main crops.</p>`,
     tags: ["AI", "agriculture", "innovation"],
@@ -225,7 +224,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Port of Abidjan: how it became West Africa's leading logistics hub",
     slug: "le-port-dabidjan-comment-il-est-devenu-le-premier-hub-logistique-dafrique-de-louest",
-    category: "multimedia",
+    category: "news",
     excerpt: "Video report on the port's transformation into a continental logistics platform.",
     content: `<p>With 25 million tonnes of freight handled per year, the Port of Abidjan has become the commercial gateway to the West African hinterland.</p>`,
     tags: ["port", "logistics", "economy", "Abidjan"],
@@ -249,7 +248,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "UN adopts historic resolution on developing countries' sovereign debt",
     slug: "lonu-adopte-une-resolution-historique-sur-la-dette-souveraine-des-pays-en-developpement",
-    category: "world",
+    category: "feature",
     excerpt: "The Security Council calls for coordinated restructuring of debt for the most vulnerable countries.",
     content: `<p>A historic resolution on sovereign debt was adopted at the UN, paving the way for fairer restructuring mechanisms for Global South countries.</p>`,
     tags: ["UN", "debt", "development"],
@@ -301,7 +300,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "United Nations: Security Council meets urgently on Sahel situation",
     slug: "nations-unies-le-conseil-de-securite-se-reunit-en-urgence-sur-la-situation-au-sahel",
-    category: "world",
+    category: "feature",
     excerpt: "Deteriorating security in the Sahel puts the UN before a humanitarian and political dilemma.",
     content: `<p>The Security Council is holding an extraordinary session on the Sahel crisis.</p>`,
     tags: ["UN", "Sahel", "security"],
@@ -312,7 +311,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
   {
     title: "Meta deploys WhatsApp Pay in Côte d'Ivoire with native CinetPay integration",
     slug: "meta-deploie-son-service-whatsapp-pay-en-cote-divoire-avec-integration-cinetpay-native",
-    category: "world",
+    category: "feature",
     excerpt: "Payment via WhatsApp arrives in Côte d'Ivoire through a partnership with CinetPay.",
     content: `<p>Meta launches WhatsApp Pay in Côte d'Ivoire with CinetPay.</p>`,
     tags: ["Meta", "WhatsApp", "FinTech"],

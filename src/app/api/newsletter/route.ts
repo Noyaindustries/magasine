@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Newsletter } from "@/models/Newsletter";
 import { NEWSLETTER_TOPICS, type NewsletterTopicId } from "@/lib/newsletter-topics";
 import { getPublicSiteSettings } from "@/lib/site-settings";
+import { sendWelcomeNewsletterEmail } from "@/lib/newsletter-send";
 
 const topicIds = NEWSLETTER_TOPICS.map((t) => t.id) as NewsletterTopicId[];
 
@@ -82,6 +83,10 @@ export async function POST(request: NextRequest) {
     }
 
     await Newsletter.create({ email, preferences });
+
+    void sendWelcomeNewsletterEmail(email).catch((error) => {
+      console.error("[newsletter] welcome email failed", email, error);
+    });
 
     return NextResponse.json(
       {
