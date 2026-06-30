@@ -41,9 +41,9 @@ export function SaveArticleButton({ articleId, variant = "default" }: SaveArticl
       if (res.ok) {
         const data = await res.json();
         setSaved(data.saved);
-        toast.success(data.saved ? "Article enregistré" : "Article retiré des favoris");
+        toast.success(data.saved ? "Article saved" : "Removed from saved");
       } else {
-        toast.error("Action impossible");
+        toast.error("Action failed");
       }
     } finally {
       setLoading(false);

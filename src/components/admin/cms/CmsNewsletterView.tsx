@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
+import { readApiError, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import { useSiteBranding } from "@/components/SiteBranding";
 
@@ -48,21 +49,33 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
 
   const load = useCallback(() => {
     Promise.all([
-      fetch("/api/admin/newsletter/stats").then((r) => r.json()),
-      fetch("/api/admin/newsletter/campaigns").then((r) => r.json()),
-    ]).then(([statsData, campaignsData]) => {
-      if (statsData.totalActive !== undefined) {
-        setStats({
-          totalActive: statsData.totalActive,
-          monthlyNew: statsData.monthlyNew ?? 0,
-          openRate: statsData.openRate ?? 0,
-          clickRate: statsData.clickRate ?? 0,
-          unsubscribes: statsData.unsubscribes ?? 0,
-          lists: statsData.lists ?? [],
-        });
-      }
-      setCampaigns(campaignsData.campaigns ?? []);
-    });
+      fetch("/api/admin/newsletter/stats"),
+      fetch("/api/admin/newsletter/campaigns"),
+    ])
+      .then(async ([statsRes, campaignsRes]) => {
+        if (!statsRes.ok) {
+          toast.error(await readApiError(statsRes, "Unable to load statistics"));
+        } else {
+          const statsData = await statsRes.json();
+          if (statsData.totalActive !== undefined) {
+            setStats({
+              totalActive: statsData.totalActive,
+              monthlyNew: statsData.monthlyNew ?? 0,
+              openRate: statsData.openRate ?? 0,
+              clickRate: statsData.clickRate ?? 0,
+              unsubscribes: statsData.unsubscribes ?? 0,
+              lists: statsData.lists ?? [],
+            });
+          }
+        }
+        if (!campaignsRes.ok) {
+          toast.error(await readApiError(campaignsRes, "Unable to load campaigns"));
+        } else {
+          const campaignsData = await campaignsRes.json();
+          setCampaigns(campaignsData.campaigns ?? []);
+        }
+      })
+      .catch(() => toastNetworkError());
   }, []);
 
   useEffect(() => {
@@ -99,6 +112,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
 
   const exportSubscribers = () => {
     window.open("/api/admin/newsletter/export", "_blank");
+    toast.success("Subscriber export started");
   };
 
   const deleteCampaign = async (campaign: CampaignRow) => {

@@ -26,12 +26,12 @@ export default function ContactPage() {
       if (res.ok) {
         setSuccess(true);
         setForm({ name: "", email: "", subject: "", message: "" });
-        toast.success("Message envoyé — nous vous répondrons sous 48 h.");
+        toast.success("Message sent — we will reply within 48 hours.");
       } else {
-        toast.error(data.error ?? "Erreur lors de l'envoi");
+        toast.error(data.error ?? "Failed to send message");
       }
     } catch {
-      toast.error("Erreur réseau");
+      toast.error("Network error");
     } finally {
       setLoading(false);
     }

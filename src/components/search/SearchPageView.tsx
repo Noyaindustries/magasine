@@ -6,6 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock, Search, X } from "lucide-react";
 import { ArticleCard } from "@/components/article/ArticleCard";
 import { PRIMARY_NAV, REGION_NAV } from "@/data/site-home";
+import { toastNetworkError } from "@/lib/api-toast";
+import { toast } from "@/lib/toast";
 import type { ArticleListItem } from "@/types";
 
 const RECENT_KEY = "gsw-recent-searches";
@@ -133,7 +135,10 @@ export function SearchPageView() {
         if (!cancelled) setResults(data.results ?? []);
       })
       .catch(() => {
-        if (!cancelled) setResults([]);
+        if (!cancelled) {
+          setResults([]);
+          toast.error("Search failed. Please try again.");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

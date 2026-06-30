@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
   if (!getAuthSecret()) {
     return NextResponse.json(
       {
-        error: "AUTH_SECRET ou NEXTAUTH_SECRET manquant sur le serveur",
-        hint: "Ajoutez AUTH_SECRET dans les variables d'environnement de production, puis redéployez.",
+        error: "AUTH_SECRET or NEXTAUTH_SECRET is missing on the server",
+        hint: "Add AUTH_SECRET to your production environment variables, then redeploy.",
       },
       { status: 503 }
     );
@@ -46,15 +46,15 @@ export async function GET(request: NextRequest) {
       adminUrl: "/admin",
       message:
         admin.created || admin.repaired
-          ? "Compte admin prêt. Connectez-vous puis changez le mot de passe."
-          : "Compte admin déjà présent. Utilisez ?resetPassword=true pour réinitialiser le mot de passe.",
+          ? "Admin account ready. Sign in and change the password."
+          : "Admin account already exists. Use ?resetPassword=true to reset the password.",
     });
   } catch (error) {
     console.error("[bootstrap/admin]", error);
     return NextResponse.json(
       {
-        error: "Impossible de joindre la base de données",
-        hint: "Vérifiez MONGODB_URI et l'accès réseau MongoDB Atlas (0.0.0.0/0).",
+        error: "Unable to connect to the database",
+        hint: "Check MONGODB_URI and MongoDB Atlas network access (0.0.0.0/0).",
       },
       { status: 500 }
     );

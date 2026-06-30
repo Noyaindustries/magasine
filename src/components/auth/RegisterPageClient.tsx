@@ -67,7 +67,7 @@ export function RegisterPageClient({ googleAuthEnabled = false }: { googleAuthEn
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!acceptTerms) {
-      toast.error("Acceptez les conditions d'utilisation pour continuer.");
+      toast.error("Please accept the terms of use to continue.");
       return;
     }
 
@@ -83,8 +83,8 @@ export function RegisterPageClient({ googleAuthEnabled = false }: { googleAuthEn
       const data = (await res.json()) as { error?: string };
       toast.error(
         data.error === "Email already in use"
-          ? "Cet e-mail est déjà enregistré."
-          : (data.error ?? "Inscription échouée. Réessayez.")
+          ? "This email is already registered."
+          : (data.error ?? "Registration failed. Please try again.")
       );
       setLoading(false);
       return;
@@ -97,12 +97,12 @@ export function RegisterPageClient({ googleAuthEnabled = false }: { googleAuthEn
     });
 
     if (result?.error) {
-      toast.warning("Compte créé — connectez-vous manuellement.");
+      toast.warning("Account created — please sign in manually.");
       setLoading(false);
       return;
     }
 
-    toast.success("Bienvenue !");
+    toast.success("Welcome!");
 
     window.location.href = callbackUrl;
   };

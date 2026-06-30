@@ -86,12 +86,12 @@ function CategoryModal({
       >
         <div className="admin-modal-header">
           <h2 id="cms-category-modal-title">
-            {editing ? "Modifier la catégorie" : "Créer une catégorie"}
+            {editing ? "Edit category" : "Create category"}
           </h2>
         </div>
         <div className="admin-modal-body admin-form-grid">
           <div className="admin-field">
-            <label htmlFor="cat-name">Nom</label>
+            <label htmlFor="cat-name">Name</label>
             <input
               id="cat-name"
               value={form.name}
@@ -112,7 +112,7 @@ function CategoryModal({
               id="cat-slug"
               value={form.slug}
               onChange={(e) => onSlugChange(e.target.value)}
-              placeholder="Généré automatiquement si vide"
+              placeholder="Auto-generated if empty"
             />
             {previewSlug && (
               <p className="text-xs text-[var(--t3)] mt-1">/category/{previewSlug}</p>
@@ -128,7 +128,7 @@ function CategoryModal({
             />
           </div>
           <div className="admin-field">
-            <label htmlFor="cat-color">Couleur</label>
+            <label htmlFor="cat-color">Color</label>
             <input
               id="cat-color"
               type="color"
@@ -137,7 +137,7 @@ function CategoryModal({
             />
           </div>
           <div className="admin-field">
-            <label htmlFor="cat-order">Ordre d&apos;affichage</label>
+            <label htmlFor="cat-order">Display order</label>
             <input
               id="cat-order"
               type="number"
@@ -151,12 +151,12 @@ function CategoryModal({
               checked={form.isActive}
               onChange={(e) => onChange({ isActive: e.target.checked })}
             />
-            Catégorie active
+            Active category
           </label>
         </div>
         <div className="admin-modal-footer">
           <button type="button" className="btn btn-out" onClick={onClose}>
-            Annuler
+            Cancel
           </button>
           <button
             type="button"
@@ -164,7 +164,7 @@ function CategoryModal({
             disabled={loading || !form.name.trim()}
             onClick={onSave}
           >
-            {loading ? "Enregistrement…" : editing ? "Enregistrer" : "Créer la catégorie"}
+            {loading ? "Saving…" : editing ? "Save" : "Create category"}
           </button>
         </div>
       </div>
@@ -217,13 +217,13 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
   const save = async () => {
     const name = form.name.trim();
     if (!name) {
-      toast.error("Le nom est obligatoire.");
+      toast.error("Name is required.");
       return;
     }
 
     const slug = categorySlugFromName(name, form.slug);
     if (!slug) {
-      toast.error("Impossible de générer un slug valide pour cette catégorie.");
+      toast.error("Unable to generate a valid slug for this category.");
       return;
     }
 
@@ -245,10 +245,10 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) {
-        toast.error(data.error ?? "Échec de l'enregistrement");
+        toast.error(data.error ?? "Failed to save");
         return;
       }
-      toast.success(editing ? "Catégorie mise à jour" : "Catégorie créée");
+      toast.success(editing ? "Category updated" : "Category created");
       setModalOpen(false);
       reload();
     } finally {
@@ -257,14 +257,14 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
   };
 
   const remove = async (id: string) => {
-    if (!globalThis.confirm("Supprimer cette catégorie ?")) return;
+    if (!globalThis.confirm("Delete this category?")) return;
     const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
     const data = (await res.json()) as { error?: string };
     if (!res.ok) {
-      toast.error(data.error ?? "Suppression impossible");
+      toast.error(data.error ?? "Delete failed");
       return;
     }
-    toast.success("Catégorie supprimée");
+    toast.success("Category deleted");
     reload();
   };
 
@@ -274,27 +274,26 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
     <CmsPage>
       <div className="vhead">
         <div>
-          <div className="vh1">Catégories</div>
+          <div className="vh1">Categories</div>
           <div className="vh2">
-            {categories.length} rubrique{categories.length > 1 ? "s" : ""} · {activeCount} active
-            {activeCount > 1 ? "s" : ""}
+            {categories.length} section{categories.length === 1 ? "" : "s"} · {activeCount} active
           </div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-red cms-btn-icon" onClick={openCreate}>
             <Plus className="w-4 h-4" aria-hidden />
-            Créer une catégorie
+            Create category
           </button>
         </div>
       </div>
 
       {loading && categories.length === 0 ? (
-        <p className="text-sm text-[var(--t3)]">Chargement…</p>
+        <p className="text-sm text-[var(--t3)]">Loading…</p>
       ) : categories.length === 0 ? (
         <div className="cms-empty-panel">
-          <p>Aucune catégorie pour le moment.</p>
+          <p>No categories yet.</p>
           <button type="button" className="btn btn-red" onClick={openCreate}>
-            Créer la première catégorie
+            Create the first category
           </button>
         </div>
       ) : (
@@ -302,10 +301,10 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
           <table className="tbl tbl-compact">
             <thead>
               <tr>
-                <th>Nom</th>
+                <th>Name</th>
                 <th>Slug</th>
-                <th>Ordre</th>
-                <th>Statut</th>
+                <th>Order</th>
+                <th>Status</th>
                 <th aria-label="Actions" />
               </tr>
             </thead>
@@ -337,7 +336,7 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
                       {cat.isActive ? "Active" : "Inactive"}
                     </span>
                     {isRetiredCategorySlug(cat.slug) && (
-                      <span className="cms-pill cms-pill--amber ml-1">Masquée</span>
+                      <span className="cms-pill cms-pill--amber ml-1">Hidden</span>
                     )}
                   </td>
                   <td>
@@ -346,7 +345,7 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
                         type="button"
                         className="btn btn-out btn-sm"
                         onClick={() => openEdit(cat)}
-                        title="Modifier"
+                        title="Edit"
                       >
                         <Pencil className="w-3.5 h-3.5" aria-hidden />
                       </button>
@@ -354,7 +353,7 @@ export function CmsCategoriesView({ initial }: { initial: CategoryRow[] }) {
                         type="button"
                         className="btn btn-out btn-sm"
                         onClick={() => void remove(cat._id)}
-                        title="Supprimer"
+                        title="Delete"
                       >
                         <Trash2 className="w-3.5 h-3.5" aria-hidden />
                       </button>

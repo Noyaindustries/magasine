@@ -1,11 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import slugify from "slugify";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
-import { CmsRichTextEditor } from "@/components/admin/cms/CmsRichTextEditor";
+
+const CmsRichTextEditor = dynamic(
+  () =>
+    import("@/components/admin/cms/CmsRichTextEditor").then((module) => module.CmsRichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="cms-editor-wrap">
+        <div className="etb" />
+        <div className="ebody cms-editor-loading">Loading editor…</div>
+      </div>
+    ),
+  }
+);
 import { CmsToggle } from "@/components/admin/cms/CmsToggle";
 import { CmsHintIcon, CmsStatusIcon, ImageIcon, Star, Trash2 } from "@/components/admin/cms/CmsIcons";
 import { computeSeoScore } from "@/lib/cms-seo-score";

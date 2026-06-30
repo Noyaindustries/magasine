@@ -20,7 +20,7 @@ export function NewsTicker({ alerts }: { alerts: AlertItem[] }) {
         <div className="flex items-center gap-2 px-4 py-2.5 bg-accent shrink-0 z-10">
           <AlertCircle className="w-3.5 h-3.5" />
           <span className="text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
-            Alertes
+            Alerts
           </span>
         </div>
         <div className="overflow-hidden flex-1 relative">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons, CmsMediaKindIcon } from "@/components/admin/cms/CmsIcons";
 import { CMS_MEDIA_GRADIENTS } from "@/lib/cms-mock-data";
+import { readApiError, toastIfNotOk, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -53,10 +54,18 @@ function fetchMedias(query: string, kind: string, sort: string) {
   if (kind) params.set("kind", kind);
   if (sort) params.set("sort", sort);
 
-  return fetch(`/api/admin/medias?${params}`).then((r) => r.json()) as Promise<{
-    items?: MediaItem[];
-    stats?: MediaStats | null;
-  }>;
+  return fetch(`/api/admin/medias?${params}`)
+    .then(async (r) => {
+      if (!r.ok) {
+        toast.error(await readApiError(r, "Unable to load media"));
+        return { items: [] as MediaItem[], stats: null as MediaStats | null };
+      }
+      return r.json() as Promise<{ items?: MediaItem[]; stats?: MediaStats | null }>;
+    })
+    .catch(() => {
+      toastNetworkError();
+      return { items: [] as MediaItem[], stats: null as MediaStats | null };
+    });
 }
 
 export function CmsMediasView() {
@@ -103,14 +112,27 @@ export function CmsMediasView() {
   const uploadFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     setUploading(true);
+    let uploaded = 0;
     try {
       for (const file of Array.from(files)) {
         const form = new FormData();
         form.append("file", file);
         form.append("title", file.name);
-        await fetch("/api/admin/medias", { method: "POST", body: form });
+        const res = await fetch("/api/admin/medias", { method: "POST", body: form });
+        if (res.ok) {
+          uploaded++;
+        } else {
+          toast.error(await readApiError(res, `Failed to upload "${file.name}"`));
+        }
       }
-      load();
+      if (uploaded > 0) {
+        toast.success(
+          uploaded === 1 ? "File uploaded" : `${uploaded} files uploaded`
+        );
+        load();
+      }
+    } catch {
+      toastNetworkError();
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -119,15 +141,15 @@ export function CmsMediasView() {
 
   const deleteMedia = async (item: MediaItem) => {
     if (!confirm(`Delete "${item.title}"?`)) return;
-    const res = await fetch(`/api/admin/medias/${item._id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = (await res.json()) as { error?: string };
-      toast.error(data.error ?? "Delete failed.");
-      return;
+    try {
+      const res = await fetch(`/api/admin/medias/${item._id}`, { method: "DELETE" });
+      if (await toastIfNotOk(res, "Unable to delete media")) return;
+      toast.success("Media deleted");
+      setSelected(0);
+      load();
+    } catch {
+      toastNetworkError();
     }
-    toast.success("Media deleted");
-    setSelected(0);
-    load();
   };
 
   const deleteSelected = async () => {
@@ -151,7 +173,7 @@ export function CmsMediasView() {
         <div>
           <div className="vh1">Media library</div>
           <div className="vh2">
-            {stats?.totalCount.toLocaleString("en-US") ?? "—"} files ·{" "}
+            {(stats?.totalCount ?? 0).toLocaleString("en-US")} files ·{" "}
             {stats ? formatBytes(stats.usedBytes) : "—"} used of{" "}
             {stats ? formatBytes(stats.quotaBytes) : "20 GB"}
           </div>

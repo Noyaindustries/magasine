@@ -6,8 +6,9 @@ import {
   brandingFileBaseName,
   extensionFromMime,
 } from "@/lib/branding";
+import { isBlobStorageEnabled, uploadBlobFile } from "@/lib/blob-storage";
 
-export async function saveBrandingFileToDisk(
+async function saveBrandingFileToDiskInternal(
   type: BrandingAssetType,
   file: File
 ): Promise<string> {
@@ -21,3 +22,22 @@ export async function saveBrandingFileToDisk(
 
   return `/uploads/branding/${filename}`;
 }
+
+async function saveBrandingFileToBlobInternal(
+  type: BrandingAssetType,
+  file: File
+): Promise<string> {
+  const ext = extensionFromMime(file.type);
+  const filename = `${brandingFileBaseName(type)}${ext}`;
+  return uploadBlobFile(`branding/${filename}`, file, file.type);
+}
+
+export async function saveBrandingFile(type: BrandingAssetType, file: File): Promise<string> {
+  if (isBlobStorageEnabled()) {
+    return saveBrandingFileToBlobInternal(type, file);
+  }
+  return saveBrandingFileToDiskInternal(type, file);
+}
+
+/** @deprecated Use `saveBrandingFile` */
+export const saveBrandingFileToDisk = saveBrandingFile;

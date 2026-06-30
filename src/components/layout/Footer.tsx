@@ -52,14 +52,14 @@ export function Footer() {
       if (res.ok) {
         setStatus("success");
         setEmail("");
-        toast.success("Inscription à la newsletter réussie !");
+        toast.success("Newsletter subscription successful!");
       } else {
         setStatus("error");
-        toast.error("Inscription impossible. Réessayez.");
+        toast.error("Subscription failed. Please try again.");
       }
     } catch {
       setStatus("error");
-      toast.error("Erreur réseau");
+      toast.error("Network error");
     }
   };
 

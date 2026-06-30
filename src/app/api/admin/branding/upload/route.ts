@@ -6,7 +6,7 @@ import {
   BRANDING_MIME_TYPES,
   type BrandingAssetType,
 } from "@/lib/branding";
-import { saveBrandingFileToDisk } from "@/lib/branding-storage";
+import { saveBrandingFile } from "@/lib/branding-storage";
 import { getPublicSiteSettings, updateSiteSettings } from "@/lib/site-settings";
 
 const typeSchema = z.enum(["siteLogo", "favicon"]);
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const url = await saveBrandingFileToDisk(type, file);
+    const url = await saveBrandingFile(type, file);
     const settings = await updateSiteSettings({ [type]: url });
     return NextResponse.json({ url, settings });
   } catch {

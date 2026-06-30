@@ -7,6 +7,7 @@ import { CmsStatusIcon, ImageIcon } from "@/components/admin/cms/CmsIcons";
 import { computeSeoScore } from "@/lib/cms-seo-score";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { DEFAULT_FAVICON, DEFAULT_SITE_LOGO } from "@/lib/branding";
+import { toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import { getSiteUrl, SITE_NAME } from "@/lib/site";
 
@@ -37,8 +38,12 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
 
   useEffect(() => {
     fetch("/api/admin/settings")
-      .then((r) => r.json())
-      .then((data) =>
+      .then(async (r) => {
+        if (!r.ok) {
+          toast.error("Unable to load SEO settings.");
+          return;
+        }
+        const data = await r.json();
         setForm({
           siteName: data.siteName ?? SITE_NAME,
           tagline: data.tagline ?? "",
@@ -53,8 +58,9 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
           newsletterDescription: data.newsletterDescription ?? "",
           mailchimpConnected: data.mailchimpConnected ?? false,
           brevoConnected: data.brevoConnected ?? false,
-        })
-      );
+        });
+      })
+      .catch(() => toastNetworkError());
   }, []);
 
   const seo = form

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Radio, Trash2 } from "lucide-react";
 import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
+import { readApiError, toastIfNotOk, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 
 interface AlertRow {
@@ -23,8 +24,15 @@ export function AlertsManager({ initial }: { initial: AlertRow[] }) {
 
   const reload = useCallback(() => {
     fetch("/api/admin/alerts")
-      .then((r) => r.json())
-      .then((data) => setAlerts(data.alerts ?? []));
+      .then(async (r) => {
+        if (!r.ok) {
+          toast.error(await readApiError(r, "Unable to load alerts"));
+          return;
+        }
+        const data = await r.json();
+        setAlerts(data.alerts ?? []);
+      })
+      .catch(() => toastNetworkError());
   }, []);
 
   useEffect(() => {
@@ -45,28 +53,40 @@ export function AlertsManager({ initial }: { initial: AlertRow[] }) {
         toast.success("Alert created");
         reload();
       } else {
-        toast.error("Failed to create alert");
+        toast.error(await readApiError(res, "Unable to create alert"));
       }
+    } catch {
+      toastNetworkError();
     } finally {
       setLoading(false);
     }
   };
 
   const toggle = async (alert: AlertRow) => {
-    await fetch(`/api/admin/alerts/${alert._id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !alert.isActive }),
-    });
-    toast.success(alert.isActive ? "Alert deactivated" : "Alert activated");
-    reload();
+    try {
+      const res = await fetch(`/api/admin/alerts/${alert._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: !alert.isActive }),
+      });
+      if (await toastIfNotOk(res, "Unable to update alert")) return;
+      toast.success(alert.isActive ? "Alert deactivated" : "Alert activated");
+      reload();
+    } catch {
+      toastNetworkError();
+    }
   };
 
   const remove = async (id: string) => {
     if (!globalThis.confirm("Delete this alert?")) return;
-    await fetch(`/api/admin/alerts/${id}`, { method: "DELETE" });
-    toast.success("Alert deleted");
-    reload();
+    try {
+      const res = await fetch(`/api/admin/alerts/${id}`, { method: "DELETE" });
+      if (await toastIfNotOk(res, "Unable to delete alert")) return;
+      toast.success("Alert deleted");
+      reload();
+    } catch {
+      toastNetworkError();
+    }
   };
 
   const liveCount = alerts.filter((a) => a.isActive).length;

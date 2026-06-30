@@ -22,7 +22,7 @@ export function HeaderAuth() {
 
   return (
     <div className="header-auth">
-      <Link href="/profile" className="btn-login" title="My profile">
+      <Link href="/profile" className="btn-login" title="Reader space">
         <User className="w-4 h-4" />
       </Link>
       {isAdminRole(session.user.role) && (

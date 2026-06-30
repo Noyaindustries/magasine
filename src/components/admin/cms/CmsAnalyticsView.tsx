@@ -3,6 +3,7 @@
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { exportCategoryTrafficCsv } from "@/lib/cms-dashboard-export";
 import type { AnalyticsOverview } from "@/lib/cms-analytics";
+import { toast } from "@/lib/toast";
 import { useSiteBranding } from "@/components/SiteBranding";
 
 interface CmsAnalyticsViewProps {
@@ -29,6 +30,7 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
         color: row.color,
       }))
     );
+    toast.success("CSV export downloaded");
   };
 
   const downloadReport = () => {
@@ -47,6 +49,7 @@ export function CmsAnalyticsView({ data }: CmsAnalyticsViewProps) {
     a.download = "analytics-report.txt";
     a.click();
     URL.revokeObjectURL(url);
+    toast.success("Weekly report downloaded");
   };
 
   return (

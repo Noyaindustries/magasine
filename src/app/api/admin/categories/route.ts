@@ -56,14 +56,14 @@ export async function POST(request: NextRequest) {
   const body = preprocessCreateBody(await request.json());
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
   await connectDB();
   const slug = categorySlugFromName(parsed.data.name, parsed.data.slug);
   if (!slug) {
     return NextResponse.json(
-      { error: "Impossible de générer un slug valide pour cette catégorie" },
+      { error: "Unable to generate a valid slug for this category" },
       { status: 400 }
     );
   }

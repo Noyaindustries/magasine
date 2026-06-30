@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.dicebear.com" },
       { protocol: "https", hostname: "globalsouthwatch.org" },
       { protocol: "https", hostname: "www.globalsouthwatch.org" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
   async redirects() {

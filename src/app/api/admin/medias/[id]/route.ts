@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
-import { deleteMediaFileFromDisk } from "@/lib/media-storage";
+import { deleteMediaFile } from "@/lib/media-storage";
 import { connectDB } from "@/lib/mongodb";
 import { Media } from "@/models/Media";
 
@@ -20,7 +20,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   }
 
   try {
-    await deleteMediaFileFromDisk(deleted.url);
+    await deleteMediaFile(deleted.url);
   } catch (error) {
     console.error("DELETE media file:", error);
   }

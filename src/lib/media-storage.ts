@@ -1,6 +1,7 @@
 import { mkdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { randomBytes } from "crypto";
+import { deleteBlobFile, isBlobStorageEnabled, isBlobUrl, uploadBlobFile } from "@/lib/blob-storage";
 
 export const MEDIA_UPLOAD_DIR = "public/uploads/media";
 
@@ -48,9 +49,13 @@ export function extensionFromMediaMime(mime: string): string {
   }
 }
 
-export async function saveMediaFileToDisk(file: File): Promise<string> {
-  const ext = extensionFromMediaMime(file.type);
-  const filename = `${Date.now()}-${randomBytes(6).toString("hex")}${ext}`;
+function uniqueMediaFilename(mime: string): string {
+  const ext = extensionFromMediaMime(mime);
+  return `${Date.now()}-${randomBytes(6).toString("hex")}${ext}`;
+}
+
+async function saveMediaFileToDiskInternal(file: File): Promise<string> {
+  const filename = uniqueMediaFilename(file.type);
   const dir = path.join(process.cwd(), MEDIA_UPLOAD_DIR);
   await mkdir(dir, { recursive: true });
 
@@ -60,7 +65,22 @@ export async function saveMediaFileToDisk(file: File): Promise<string> {
   return `/uploads/media/${filename}`;
 }
 
-export async function deleteMediaFileFromDisk(url: string): Promise<void> {
+async function saveMediaFileToBlobInternal(file: File): Promise<string> {
+  const filename = uniqueMediaFilename(file.type);
+  return uploadBlobFile(`media/${filename}`, file, file.type);
+}
+
+export async function saveMediaFile(file: File): Promise<string> {
+  if (isBlobStorageEnabled()) {
+    return saveMediaFileToBlobInternal(file);
+  }
+  return saveMediaFileToDiskInternal(file);
+}
+
+/** @deprecated Use `saveMediaFile` */
+export const saveMediaFileToDisk = saveMediaFile;
+
+async function deleteMediaFileFromDiskInternal(url: string): Promise<void> {
   if (!url.startsWith("/uploads/media/")) return;
 
   const filename = path.basename(url);
@@ -74,3 +94,14 @@ export async function deleteMediaFileFromDisk(url: string): Promise<void> {
     if (code !== "ENOENT") throw error;
   }
 }
+
+export async function deleteMediaFile(url: string): Promise<void> {
+  if (isBlobUrl(url)) {
+    await deleteBlobFile(url);
+    return;
+  }
+  await deleteMediaFileFromDiskInternal(url);
+}
+
+/** @deprecated Use `deleteMediaFile` */
+export const deleteMediaFileFromDisk = deleteMediaFile;

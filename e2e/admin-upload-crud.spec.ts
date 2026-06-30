@@ -41,7 +41,9 @@ test.describe("Admin — médiathèque (API)", () => {
       title: string;
     };
     expect(uploaded._id).toBeTruthy();
-    expect(uploaded.url).toMatch(/^\/uploads\/media\//);
+    expect(uploaded.url).toMatch(
+      /^(\/uploads\/media\/|https:\/\/[^/]+\.blob\.vercel-storage\.com\/)/
+    );
 
     const downloadRes = await page.request.get(uploaded.url);
     expect(downloadRes.ok()).toBeTruthy();

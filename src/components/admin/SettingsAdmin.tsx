@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
 import { BrandingUploadField } from "@/components/admin/BrandingUploadField";
 import { DEFAULT_FAVICON, DEFAULT_SITE_LOGO } from "@/lib/branding";
+import { toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 
 interface SettingsData {
@@ -33,8 +34,14 @@ export function SettingsAdmin({ siteUrl, feedUrl, isSuperAdmin }: SettingsAdminP
 
   useEffect(() => {
     fetch("/api/admin/settings")
-      .then((r) => r.json())
-      .then((data) => setForm(data))
+      .then(async (r) => {
+        if (!r.ok) {
+          toast.error("Unable to load settings.");
+          return;
+        }
+        setForm(await r.json());
+      })
+      .catch(() => toastNetworkError())
       .finally(() => setLoading(false));
   }, []);
 

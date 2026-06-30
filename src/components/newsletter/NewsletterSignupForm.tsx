@@ -52,17 +52,17 @@ export function NewsletterSignupForm({
       const data = (await res.json()) as { error?: string; message?: string };
 
       if (!res.ok) {
-        toast.error(data.error ?? "Une erreur est survenue. Réessayez.");
+        toast.error(data.error ?? "Something went wrong. Please try again.");
         setStatus("error");
         return;
       }
 
       setStatus("success");
-      setMessage(data.message ?? "Inscription réussie. Merci !");
-      toast.success(data.message ?? "Inscription réussie. Merci !");
+      setMessage(data.message ?? "Subscription successful. Thank you!");
+      toast.success(data.message ?? "Subscription successful. Thank you!");
       onSuccess?.();
     } catch {
-      toast.error("Erreur réseau. Réessayez.");
+      toast.error("Network error. Please try again.");
       setStatus("error");
     }
   };

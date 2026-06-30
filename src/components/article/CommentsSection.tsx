@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { readApiError, toastNetworkError } from "@/lib/api-toast";
+import { toast } from "@/lib/toast";
 import { formatRelativeDate } from "@/lib/utils";
 
 interface Comment {
@@ -25,24 +27,29 @@ export function CommentsSection({
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState("");
-
   const loadComments = async () => {
-    const res = await fetch(`/api/comments?articleId=${articleId}`);
-    const data = await res.json();
-    setComments(data.comments ?? []);
-    setLoaded(true);
+    try {
+      const res = await fetch(`/api/comments?articleId=${articleId}`);
+      if (!res.ok) {
+        toast.error(await readApiError(res, "Unable to load comments"));
+        return;
+      }
+      const data = await res.json();
+      setComments(data.comments ?? []);
+      setLoaded(true);
+    } catch {
+      toastNetworkError();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
     if (!session?.user) {
-      setError("Sign in to comment.");
+      toast.warning("Sign in to leave a comment.");
       return;
     }
     setLoading(true);
-    setError("");
     try {
       const res = await fetch("/api/comments", {
         method: "POST",
@@ -51,11 +58,13 @@ export function CommentsSection({
       });
       if (res.ok) {
         setContent("");
+        toast.success("Comment published — pending moderation.");
         await loadComments();
       } else {
-        const data = await res.json();
-        setError(data.error ?? "Unable to publish comment");
+        toast.error(await readApiError(res, "Unable to publish comment"));
       }
+    } catch {
+      toastNetworkError();
     } finally {
       setLoading(false);
     }
@@ -101,7 +110,6 @@ export function CommentsSection({
           rows={3}
           className="w-full p-4 bg-muted-bg border border-border rounded-sm text-charcoal placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-gold/30 resize-none"
         />
-        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
         <button
           type="submit"
           disabled={loading || !session?.user}

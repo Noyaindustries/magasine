@@ -67,7 +67,7 @@ export function DonateForm({
     const finalAmount = coverFees ? baseAmount + baseAmount * 0.03 : baseAmount;
 
     if (!Number.isFinite(baseAmount) || baseAmount < DONATION_MIN_AMOUNT) {
-      toast.error(`Montant minimum : ${formatDonationAmount(DONATION_MIN_AMOUNT)}`);
+      toast.error(`Minimum amount: ${formatDonationAmount(DONATION_MIN_AMOUNT)}`);
       setStatus("error");
       return;
     }
@@ -88,14 +88,14 @@ export function DonateForm({
       });
       const data = (await res.json()) as { error?: string; message?: string };
       if (!res.ok) {
-        toast.error(data.error ?? "Une erreur est survenue.");
+        toast.error(data.error ?? "Something went wrong.");
         setStatus("error");
         return;
       }
       setStatus("success");
-      toast.success("Merci pour votre générosité !");
+      toast.success("Thank you for your generosity!");
     } catch {
-      toast.error("Erreur réseau. Réessayez.");
+      toast.error("Network error. Please try again.");
       setStatus("error");
     }
   };

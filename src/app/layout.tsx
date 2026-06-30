@@ -12,6 +12,7 @@ import "./revolution.css";
 import "./home-page.css";
 import "./article-cards.css";
 import "./images-flat.css";
+import "./reader-space.css";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",

@@ -38,7 +38,9 @@ export function CmsRichTextEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        link: false,
+      }),
       Link.configure({ openOnClick: false }),
       Image.configure({ inline: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),

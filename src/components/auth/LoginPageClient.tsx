@@ -75,7 +75,7 @@ export function LoginPageClient({ googleAuthEnabled = false }: { googleAuthEnabl
     });
 
     if (result?.error || result?.ok === false) {
-      toast.error("E-mail ou mot de passe incorrect.");
+      toast.error("Incorrect email or password.");
       setLoading(false);
       return;
     }
@@ -87,6 +87,7 @@ export function LoginPageClient({ googleAuthEnabled = false }: { googleAuthEnabl
     }
 
     const destination = resolvePostLoginUrl(callbackUrl, session?.user?.role);
+    toast.success("Signed in successfully");
     window.location.assign(destination);
   };
 

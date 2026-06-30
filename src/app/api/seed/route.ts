@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
       const categoriesMigrated = await migrateCategorySlugs();
       return NextResponse.json({
         message: repairAdmin
-          ? "Compte admin vérifié ou réparé."
-          : "Base déjà initialisée. ?force=true pour réinitialiser, ou /api/bootstrap/admin?key=… en production.",
+          ? "Admin account verified or repaired."
+          : "Database already initialized. Use ?force=true to reset, or /api/bootstrap/admin?key=… in production.",
         seeded: false,
         categoriesMigrated,
         admin: admin

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { cn } from "@/lib/utils";
+import { readApiError, toastIfNotOk, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import { useSiteBranding } from "@/components/SiteBranding";
 
@@ -34,16 +35,21 @@ function formatCompact(n: number) {
 }
 
 function fetchPublicites() {
-  return fetch("/api/admin/publicites").then(async (response) => {
-    if (!response.ok) {
-      console.error("Ads:", response.status, await response.text());
+  return fetch("/api/admin/publicites")
+    .then(async (response) => {
+      if (!response.ok) {
+        toast.error(await readApiError(response, "Unable to load ad zones"));
+        return { zones: [] as AdZoneRow[], summary: null as AdSummary | null };
+      }
+      return (await response.json()) as {
+        zones?: AdZoneRow[];
+        summary?: AdSummary | null;
+      };
+    })
+    .catch(() => {
+      toastNetworkError();
       return { zones: [] as AdZoneRow[], summary: null as AdSummary | null };
-    }
-    return (await response.json()) as {
-      zones?: AdZoneRow[];
-      summary?: AdSummary | null;
-    };
-  });
+    });
 }
 
 export function CmsPublicitesView() {
@@ -58,8 +64,8 @@ export function CmsPublicitesView() {
       const data = await fetchPublicites();
       setZones(data.zones ?? []);
       setSummary(data.summary ?? null);
-    } catch (error) {
-      console.error("Ads:", error);
+    } catch {
+      toastNetworkError();
     } finally {
       setLoading(false);
     }
@@ -74,8 +80,8 @@ export function CmsPublicitesView() {
           setSummary(data.summary ?? null);
         }
       })
-      .catch((error) => {
-        console.error("Ads:", error);
+      .catch(() => {
+        toastNetworkError();
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -86,12 +92,18 @@ export function CmsPublicitesView() {
   }, []);
 
   const toggleZone = async (zone: AdZoneRow) => {
-    await fetch("/api/admin/publicites", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ zoneId: zone._id, active: !zone.active }),
-    });
-    load();
+    try {
+      const res = await fetch("/api/admin/publicites", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zoneId: zone._id, active: !zone.active }),
+      });
+      if (await toastIfNotOk(res, "Unable to update zone")) return;
+      toast.success(zone.active ? "Zone paused" : "Zone activated");
+      load();
+    } catch {
+      toastNetworkError();
+    }
   };
 
   const addZone = async () => {
@@ -99,30 +111,39 @@ export function CmsPublicitesView() {
     if (!name?.trim()) return;
     const position = window.prompt("Placement on site") ?? "Article page";
     const size = window.prompt("Dimensions (e.g. 300 × 250 px)") ?? "300 × 250 px";
-    await fetch("/api/admin/publicites", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), position, size }),
-    });
-    load();
+    try {
+      const res = await fetch("/api/admin/publicites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), position, size }),
+      });
+      if (await toastIfNotOk(res, "Unable to create zone")) return;
+      toast.success("Ad zone created");
+      load();
+    } catch {
+      toastNetworkError();
+    }
   };
 
   const deleteZone = async (zone: AdZoneRow) => {
     if (!confirm(`Delete zone "${zone.name}"?`)) return;
-    const res = await fetch(`/api/admin/publicites/${encodeURIComponent(zone._id)}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) {
-      const data = (await res.json()) as { error?: string };
-      toast.error(data.error ?? "Delete failed.");
-      return;
+    try {
+      const res = await fetch(`/api/admin/publicites/${encodeURIComponent(zone._id)}`, {
+        method: "DELETE",
+      });
+      if (await toastIfNotOk(res, "Unable to delete zone")) return;
+      toast.success("Zone deleted");
+      load();
+    } catch {
+      toastNetworkError();
     }
-    toast.success("Ad zone deleted");
-    load();
   };
 
   const exportReport = () => {
-    if (!summary) return;
+    if (!summary) {
+      toast.warning("No data to export.");
+      return;
+    }
     const lines = [
       `Ad revenue report — ${siteName}`,
       `Impressions: ${summary.impressions}`,
@@ -138,6 +159,7 @@ export function CmsPublicitesView() {
     a.download = "ad-revenue-report.txt";
     a.click();
     URL.revokeObjectURL(url);
+    toast.success("Report exported");
   };
 
   return (
