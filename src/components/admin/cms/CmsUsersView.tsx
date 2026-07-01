@@ -1,29 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons, Check, Star } from "@/components/admin/cms/CmsIcons";
 import { CmsUserFormModal, type CmsUserFormValues } from "@/components/admin/cms/CmsUserFormModal";
-import { CMS_ROLE_MATRIX } from "@/lib/cms-mock-data";
+import { CmsUsersTable } from "@/components/admin/cms/CmsUsersTable";
+import { getRolePermissionsMatrix, type RoleMatrixRow } from "@/lib/role-permissions-matrix";
+import type { AdminUserCounts, AdminUserRow, UserListFilter } from "@/lib/admin-users";
 import { toast } from "@/lib/toast";
 import { toastNetworkError } from "@/lib/api-toast";
 import { authorAvatarGradient, authorInitials } from "@/components/admin/cms/cms-ui";
 import { CMS_ROLE_LABELS } from "@/components/admin/cms/cms-nav";
-import { EDITORIAL_ROLES } from "@/lib/user-roles";
 import type { UserRole } from "@/types";
-
-interface UserRow {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  isPremium: boolean;
-  isBanned: boolean;
-  articleCount: number;
-  createdAt: string;
-}
-
-type UserFilter = "all" | "editorial" | "readers";
 
 const ROLE_COLORS: Partial<Record<UserRole, string>> = {
   super_admin: "var(--cms-red)",
@@ -34,8 +24,35 @@ const ROLE_COLORS: Partial<Record<UserRole, string>> = {
   reader: "var(--t3)",
 };
 
+const FILTER_TABS: { id: UserListFilter; label: string; countKey: keyof AdminUserCounts }[] = [
+  { id: "all", label: "All", countKey: "all" },
+  { id: "editorial", label: "Editorial", countKey: "editorial" },
+  { id: "readers", label: "Readers", countKey: "readers" },
+  { id: "premium", label: "Premium", countKey: "premium" },
+  { id: "banned", label: "Banned", countKey: "banned" },
+];
+
 interface CmsUsersViewProps {
   actorRole: UserRole;
+  actorId: string;
+  users: AdminUserRow[];
+  counts: AdminUserCounts;
+  editorialTeam: AdminUserRow[];
+  filter: UserListFilter;
+  query?: string;
+  page: number;
+  totalPages: number;
+  totalFiltered: number;
+  roleMatrix: RoleMatrixRow[];
+}
+
+function buildUsersHref(params: { filter?: UserListFilter; q?: string; page?: number }) {
+  const sp = new URLSearchParams();
+  if (params.filter && params.filter !== "all") sp.set("filter", params.filter);
+  if (params.q?.trim()) sp.set("q", params.q.trim());
+  if (params.page && params.page > 1) sp.set("page", String(params.page));
+  const qs = sp.toString();
+  return qs ? `/admin/users?${qs}` : "/admin/users";
 }
 
 function matrixCell(value: boolean | "own" | string) {
@@ -46,72 +63,32 @@ function matrixCell(value: boolean | "own" | string) {
       </span>
     );
   }
-  if (value === "own") return <span className="cms-matrix-own">Own articles</span>;
+  if (value === "own") return <span className="cms-matrix-own">Own content</span>;
   return <span className="cms-matrix-no">—</span>;
 }
 
-function fetchAdminUsers() {
-  return fetch("/api/admin/users")
-    .then((r) => r.json())
-    .then((data) => (data.users ?? []) as UserRow[]);
-}
-
-function formatDate(value: string) {
-  try {
-    return new Date(value).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
-
-export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
-  const [users, setUsers] = useState<UserRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<UserFilter>("all");
+export function CmsUsersView({
+  actorRole,
+  actorId,
+  users,
+  counts,
+  editorialTeam,
+  filter,
+  query,
+  page,
+  totalPages,
+  totalFiltered,
+  roleMatrix,
+}: CmsUsersViewProps) {
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState(query ?? "");
   const [createOpen, setCreateOpen] = useState(false);
-  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [editUser, setEditUser] = useState<AdminUserRow | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(() => {
-    setLoading(true);
-    void fetchAdminUsers()
-      .then(setUsers)
-      .catch(() => toastNetworkError())
-      .finally(() => setLoading(false));
-  }, []);
+  const paginationBase = buildUsersHref({ filter, q: query });
 
-  useEffect(() => {
-    let cancelled = false;
-    void fetchAdminUsers()
-      .then((rows) => {
-        if (!cancelled) setUsers(rows);
-      })
-      .catch(() => {
-        if (!cancelled) toastNetworkError();
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filteredUsers = useMemo(() => {
-    if (filter === "editorial") {
-      return users.filter((u) => EDITORIAL_ROLES.includes(u.role));
-    }
-    if (filter === "readers") {
-      return users.filter((u) => u.role === "reader");
-    }
-    return users;
-  }, [users, filter]);
-
-  const editorial = users.filter((u) => EDITORIAL_ROLES.includes(u.role));
+  const refresh = () => router.refresh();
 
   const createUser = async (values: CmsUserFormValues) => {
     setSaving(true);
@@ -145,7 +122,7 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
       } else {
         toast.success("User created", { description: data.email });
       }
-      load();
+      refresh();
     } catch {
       toastNetworkError();
     } finally {
@@ -153,27 +130,36 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
     }
   };
 
-  const updateRole = async (values: CmsUserFormValues) => {
-    if (!editUser || values.role === editUser.role) {
-      setEditUser(null);
-      return;
-    }
+  const updateUser = async (values: CmsUserFormValues) => {
+    if (!editUser) return;
 
     setSaving(true);
     try {
+      const payload: Record<string, string | boolean> = {
+        userId: editUser._id,
+        name: values.name.trim(),
+        role: values.role,
+        isPremium: values.isPremium,
+        isBanned: values.isBanned,
+      };
+      if (values.password.trim()) {
+        payload.password = values.password.trim();
+      }
+
       const res = await fetch("/api/admin/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: editUser._id, role: values.role }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Failed to update role.");
+        toast.error(data.error ?? "Failed to update user.");
         return;
       }
-      toast.success("Role updated");
+
+      toast.success("User updated");
       setEditUser(null);
-      load();
+      refresh();
     } catch {
       toastNetworkError();
     } finally {
@@ -181,12 +167,13 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
     }
   };
 
-  const removeMember = async (user: UserRow) => {
+  const removeMember = async (user: AdminUserRow) => {
     if (user.role === "super_admin") {
       toast.error("Cannot remove a super administrator.");
       return;
     }
-    if (!confirm(`Remove ${user.name} from the team?`)) return;
+    if (!confirm(`Remove ${user.name} (${user.email})? This cannot be undone.`)) return;
+
     const res = await fetch("/api/admin/users", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -194,14 +181,12 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
     });
     if (res.ok) {
       toast.success("User removed");
-      load();
+      refresh();
     } else {
       const data = await res.json();
       toast.error(data.error ?? "Delete failed.");
     }
   };
-
-  const canRemoveMember = (user: UserRow) => user.role !== "super_admin";
 
   return (
     <CmsPage>
@@ -209,8 +194,8 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
         <div>
           <div className="vh1">Users</div>
           <div className="vh2">
-            {users.length} accounts · {editorial.length} editorial ·{" "}
-            {users.filter((u) => u.role === "super_admin" || u.role === "admin").length} administrators
+            {counts.all.toLocaleString("en-US")} accounts · {counts.editorial.toLocaleString("en-US")}{" "}
+            editorial · {counts.admins.toLocaleString("en-US")} administrators
           </div>
         </div>
         <div className="vacts">
@@ -220,148 +205,118 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card mb20">
         <div className="card-header">
           <span className="card-title">Editorial team</span>
         </div>
         <div className="card-body">
-          {loading ? (
-            <p className="cms-empty">Loading team…</p>
-          ) : (
-            <div className="ugrid">
-              {editorial.slice(0, 6).map((user, index) => (
-                <div key={user._id} className="ucard-wrap">
+          <div className="ugrid">
+            {editorialTeam.map((user) => (
+              <div key={user._id} className="ucard-wrap">
+                <button
+                  type="button"
+                  className="ucard"
+                  onClick={() => setEditUser(user)}
+                  title="Edit user"
+                >
+                  <div className="uav" style={{ background: authorAvatarGradient(user.name) }}>
+                    {authorInitials(user.name)}
+                  </div>
+                  <div className="uname">{user.name}</div>
+                  <div className="urole" style={{ color: ROLE_COLORS[user.role] ?? "var(--t3)" }}>
+                    {CMS_ROLE_LABELS[user.role]}
+                    {user.isBanned ? " · Banned" : ""}
+                  </div>
+                  <div className="ustats">
+                    <div>
+                      <div className="usv">{user.articleCount}</div>
+                      <div className="usl">Articles</div>
+                    </div>
+                    <div>
+                      <div className="usv">
+                        {user.isPremium ? (
+                          <Star size={14} className="cms-icon cms-icon--premium" aria-hidden />
+                        ) : (
+                          "—"
+                        )}
+                      </div>
+                      <div className="usl">{user.isPremium ? "Premium" : "Standard"}</div>
+                    </div>
+                  </div>
+                </button>
+                {user._id !== actorId && user.role !== "super_admin" && (
                   <button
                     type="button"
-                    className="ucard"
-                    onClick={() => setEditUser(user)}
-                    title="Change role"
+                    className="ucard-del btn btn-ghost btn-xs btn-icon"
+                    title="Remove user"
+                    onClick={() => void removeMember(user)}
                   >
-                    <div className="uav" style={{ background: authorAvatarGradient(user.name) }}>
-                      {index < 3 && <div className="uonline" />}
-                      {authorInitials(user.name)}
-                    </div>
-                    <div className="uname">{user.name}</div>
-                    <div className="urole" style={{ color: ROLE_COLORS[user.role] ?? "var(--t3)" }}>
-                      {CMS_ROLE_LABELS[user.role]}
-                      {user.isBanned ? " · Banned" : ""}
-                    </div>
-                    <div className="ustats">
-                      <div>
-                        <div className="usv">{user.articleCount}</div>
-                        <div className="usl">Articles</div>
-                      </div>
-                      <div>
-                        <div className="usv">
-                          {user.isPremium ? (
-                            <Star size={14} className="cms-icon cms-icon--premium" aria-hidden />
-                          ) : (
-                            "—"
-                          )}
-                        </div>
-                        <div className="usl">{user.isPremium ? "Premium" : "Standard"}</div>
-                      </div>
-                    </div>
+                    <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
                   </button>
-                  {canRemoveMember(user) && (
-                    <button
-                      type="button"
-                      className="ucard-del btn btn-ghost btn-xs btn-icon"
-                      title="Remove user"
-                      onClick={() => void removeMember(user)}
-                    >
-                      <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button type="button" className="ucard ucard--invite" onClick={() => setCreateOpen(true)}>
-                <div className="ucard-invite-icon">+</div>
-                <div>Create user</div>
-              </button>
-            </div>
-          )}
+                )}
+              </div>
+            ))}
+            <button type="button" className="ucard ucard--invite" onClick={() => setCreateOpen(true)}>
+              <div className="ucard-invite-icon">+</div>
+              <div>Create user</div>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="card">
+      <div className="tabs">
+        {FILTER_TABS.map((tab) => {
+          const href = buildUsersHref({ filter: tab.id, q: query });
+          const active = filter === tab.id;
+          return (
+            <Link key={tab.id} href={href} className={active ? "tab on" : "tab"}>
+              {tab.label} ({counts[tab.countKey].toLocaleString("en-US")})
+            </Link>
+          );
+        })}
+      </div>
+
+      <form className="fbar" action="/admin/users" method="get">
+        {filter !== "all" && <input type="hidden" name="filter" value={filter} />}
+        <input
+          className="input"
+          type="search"
+          name="q"
+          placeholder="Search by name or email…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          aria-label="Search users"
+        />
+        <button type="submit" className="btn btn-out">
+          Search
+        </button>
+        {query ? (
+          <Link href={buildUsersHref({ filter })} className="btn btn-ghost">
+            Clear
+          </Link>
+        ) : null}
+      </form>
+
+      <div className="card mb20">
         <div className="card-header">
           <span className="card-title">All accounts</span>
-          <div className="card-actions" style={{ display: "flex", gap: 6 }}>
-            {(["all", "editorial", "readers"] as UserFilter[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                className={`btn btn-xs btn-ghost${filter === key ? " is-active" : ""}`}
-                onClick={() => setFilter(key)}
-              >
-                {key === "all" ? "All" : key === "editorial" ? "Editorial" : "Readers"}
-              </button>
-            ))}
-          </div>
         </div>
         <div className="card-np">
-          {loading ? (
-            <p className="cms-empty" style={{ padding: "1.5rem" }}>
-              Loading users…
-            </p>
-          ) : filteredUsers.length === 0 ? (
+          {users.length === 0 ? (
             <p className="cms-empty" style={{ padding: "1.5rem" }}>
               No users match this filter.
             </p>
           ) : (
-            <table className="tbl tbl-compact">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Articles</th>
-                  <th>Joined</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user._id}>
-                    <td>
-                      <strong>{user.name}</strong>
-                      {user.isPremium ? (
-                        <span className="cms-field-hint" style={{ marginLeft: 8 }}>
-                          Premium
-                        </span>
-                      ) : null}
-                    </td>
-                    <td>{user.email}</td>
-                    <td style={{ color: ROLE_COLORS[user.role] ?? "inherit", fontWeight: 600 }}>
-                      {CMS_ROLE_LABELS[user.role]}
-                    </td>
-                    <td>{user.articleCount}</td>
-                    <td>{formatDate(user.createdAt)}</td>
-                    <td>
-                      <div className="tbl-actions">
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-ghost"
-                          onClick={() => setEditUser(user)}
-                        >
-                          Role
-                        </button>
-                        {canRemoveMember(user) ? (
-                          <button
-                            type="button"
-                            className="btn btn-xs btn-ghost"
-                            onClick={() => void removeMember(user)}
-                          >
-                            Remove
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <CmsUsersTable
+              users={users}
+              page={page}
+              totalPages={totalPages}
+              totalFiltered={totalFiltered}
+              baseHref={paginationBase}
+              actorId={actorId}
+              onEdit={setEditUser}
+              onDelete={(user) => void removeMember(user)}
+            />
           )}
         </div>
       </div>
@@ -375,6 +330,7 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
             <thead>
               <tr>
                 <th>Role</th>
+                <th>CMS</th>
                 <th>Write</th>
                 <th>Publish</th>
                 <th>Edit others</th>
@@ -384,15 +340,16 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
               </tr>
             </thead>
             <tbody>
-              {CMS_ROLE_MATRIX.map((row) => (
+              {roleMatrix.map((row) => (
                 <tr key={row.role}>
-                  <td style={{ fontWeight: 700, color: row.color }}>{row.role}</td>
+                  <td style={{ fontWeight: 700, color: row.color }}>{row.label}</td>
+                  <td>{matrixCell(row.cmsAccess)}</td>
                   <td>{matrixCell(row.write)}</td>
                   <td>{matrixCell(row.publish)}</td>
                   <td>{matrixCell(row.editOthers)}</td>
-                  <td>{matrixCell(row.users)}</td>
-                  <td>{matrixCell(row.ads)}</td>
-                  <td>{matrixCell(row.settings)}</td>
+                  <td>{matrixCell(row.manageUsers)}</td>
+                  <td>{matrixCell(row.manageAds)}</td>
+                  <td>{matrixCell(row.manageSettings)}</td>
                 </tr>
               ))}
             </tbody>
@@ -411,16 +368,22 @@ export function CmsUsersView({ actorRole }: CmsUsersViewProps) {
 
       <CmsUserFormModal
         open={editUser !== null}
-        mode="edit-role"
+        mode="edit"
         actorRole={actorRole}
         initial={
           editUser
-            ? { name: editUser.name, email: editUser.email, role: editUser.role }
+            ? {
+                name: editUser.name,
+                email: editUser.email,
+                role: editUser.role,
+                isPremium: editUser.isPremium,
+                isBanned: editUser.isBanned,
+              }
             : undefined
         }
         saving={saving}
         onClose={() => setEditUser(null)}
-        onSubmit={(values) => void updateRole(values)}
+        onSubmit={(values) => void updateUser(values)}
       />
     </CmsPage>
   );

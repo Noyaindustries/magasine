@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import mongoose from "mongoose";
 import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/User";
-import { Article } from "@/models/Article";
 import { createUserAsAdmin } from "@/lib/admin-create-user";
+import { deleteUserAsAdmin, updateUserAsAdmin } from "@/lib/admin-update-user";
+import { getAdminUsers, type UserListFilter } from "@/lib/admin-users";
 import { USER_ROLES, assertCanAssignRole } from "@/lib/user-roles";
 import type { UserRole } from "@/types";
 
 const roleEnum = z.enum(USER_ROLES as [UserRole, ...UserRole[]]);
 
-const patchSchema = z.object({
-  role: roleEnum.optional(),
-  isPremium: z.boolean().optional(),
-});
+const filterEnum = z.enum(["all", "editorial", "readers", "banned", "premium"]);
 
 const createSchema = z.object({
   name: z.string().min(2).max(100),
@@ -23,38 +19,29 @@ const createSchema = z.object({
   password: z.string().min(8).optional(),
 });
 
-export async function GET() {
+const patchSchema = z.object({
+  userId: z.string(),
+  name: z.string().min(2).max(100).optional(),
+  role: roleEnum.optional(),
+  isPremium: z.boolean().optional(),
+  isBanned: z.boolean().optional(),
+  password: z.string().min(8).optional(),
+});
+
+export async function GET(request: NextRequest) {
   const guard = await requireAdminApi("users");
   if (guard.error) return guard.error;
 
   await connectDB();
-  const users = await User.find()
-    .select("name email role isPremium isBanned createdAt")
-    .sort({ createdAt: -1 })
-    .limit(200)
-    .lean();
 
-  const articleCounts = await Article.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
-    { $unwind: "$authors" },
-    { $group: { _id: "$authors", count: { $sum: 1 } } },
-  ]);
+  const q = request.nextUrl.searchParams.get("q") ?? undefined;
+  const filterParam = request.nextUrl.searchParams.get("filter") ?? "all";
+  const filterParsed = filterEnum.safeParse(filterParam);
+  const filter: UserListFilter = filterParsed.success ? filterParsed.data : "all";
+  const page = Math.max(1, Number(request.nextUrl.searchParams.get("page")) || 1);
 
-  const countMap = new Map(
-    articleCounts.map((row) => [String(row._id), row.count])
-  );
-
-  return NextResponse.json({
-    users: users.map((u) => ({
-      _id: String(u._id),
-      name: u.name,
-      email: u.email,
-      role: u.role as UserRole,
-      isPremium: u.isPremium,
-      isBanned: u.isBanned ?? false,
-      articleCount: countMap.get(String(u._id)) ?? 0,
-      createdAt: u.createdAt,
-    })),
-  });
+  const result = await getAdminUsers({ q, filter, page });
+  return NextResponse.json(result);
 }
 
 export async function POST(request: NextRequest) {
@@ -85,45 +72,35 @@ export async function PATCH(request: NextRequest) {
   if (guard.error) return guard.error;
 
   const body = await request.json();
-  const parsed = z
-    .object({
-      userId: z.string(),
-      ...patchSchema.shape,
-    })
-    .safeParse(body);
-
+  const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid data" }, { status: 400 });
   }
 
-  const { userId, role, isPremium } = parsed.data;
-
-  if (role) {
-    const roleError = assertCanAssignRole(guard.session!.user.role, role);
+  if (parsed.data.role) {
+    const roleError = assertCanAssignRole(guard.session!.user.role, parsed.data.role);
     if (roleError) {
       return NextResponse.json({ error: roleError }, { status: 403 });
     }
   }
 
-  if (userId === guard.session!.user.id && role && role !== guard.session!.user.role) {
-    return NextResponse.json({ error: "You cannot change your own role" }, { status: 400 });
-  }
-
   await connectDB();
-  const user = await User.findById(userId);
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  const result = await updateUserAsAdmin({
+    userId: parsed.data.userId,
+    actorId: guard.session!.user.id,
+    actorRole: guard.session!.user.role,
+    name: parsed.data.name,
+    role: parsed.data.role,
+    isPremium: parsed.data.isPremium,
+    isBanned: parsed.data.isBanned,
+    password: parsed.data.password,
+  });
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
   }
 
-  if (role) user.role = role;
-  if (isPremium !== undefined) user.isPremium = isPremium;
-
-  await user.save();
-  return NextResponse.json({
-    _id: String(user._id),
-    role: user.role,
-    isPremium: user.isPremium,
-  });
+  return NextResponse.json(result.user);
 }
 
 export async function DELETE(request: NextRequest) {
@@ -136,40 +113,16 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: "Invalid data." }, { status: 400 });
   }
 
-  const { userId } = parsed.data;
-
-  if (userId === guard.session!.user.id) {
-    return NextResponse.json({ error: "You cannot delete your own account." }, { status: 400 });
-  }
-
   await connectDB();
-  const user = await User.findById(userId);
-  if (!user) {
-    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  const result = await deleteUserAsAdmin({
+    userId: parsed.data.userId,
+    actorId: guard.session!.user.id,
+    actorRole: guard.session!.user.role,
+  });
+
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
   }
 
-  if (user.role === "super_admin") {
-    return NextResponse.json(
-      { error: "Cannot delete a super admin account." },
-      { status: 403 }
-    );
-  }
-
-  if (user.role === "admin" && guard.session!.user.role !== "super_admin") {
-    return NextResponse.json(
-      { error: "Only a super admin can delete an admin account." },
-      { status: 403 }
-    );
-  }
-
-  const articleCount = await Article.countDocuments({ authors: user._id });
-  if (articleCount > 0) {
-    return NextResponse.json(
-      { error: `This user has ${articleCount} article(s). Reassign them before deleting.` },
-      { status: 409 }
-    );
-  }
-
-  await User.findByIdAndDelete(userId);
   return NextResponse.json({ success: true });
 }

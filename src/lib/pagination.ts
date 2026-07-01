@@ -1,4 +1,5 @@
 export const ARTICLES_PAGE_SIZE = 20;
+export const USERS_PAGE_SIZE = 25;
 
 export type PaginationItem = number | "ellipsis";
 
@@ -34,4 +35,11 @@ export function paginationRangeLabel(page: number, pageSize: number, total: numb
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
   return `${from}–${to} of ${total.toLocaleString("en-US")}`;
+}
+
+export function userPaginationRangeLabel(page: number, pageSize: number, total: number): string {
+  if (total === 0) return "0 users";
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  return `${from}–${to} of ${total.toLocaleString("en-US")} users`;
 }

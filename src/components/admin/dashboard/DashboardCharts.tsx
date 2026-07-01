@@ -8,6 +8,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
+  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -18,18 +20,12 @@ import {
 import type { AdminDashboardData, CategoryStat, PipelineSlice, TimelinePoint } from "@/lib/admin-dashboard";
 import { ClientOnly } from "@/components/admin/dashboard/ClientOnly";
 import { ChartSkeleton } from "@/components/admin/dashboard/ChartSkeleton";
-
-const CHART_TOOLTIP_STYLE = {
-  background: "rgba(26, 26, 26, 0.92)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 10,
-  color: "#fff",
-  fontSize: 12,
-  padding: "10px 14px",
-  boxShadow: "0 12px 40px rgba(0,0,0,0.25)",
-};
-
-const PIPELINE_COLORS = ["#1a3896", "#c9a227", "#6b6b6b", "#2D6A4F"];
+import {
+  CHART_ANIMATION,
+  CHART_COLORS,
+  CHART_TOOLTIP_STYLE,
+  PIPELINE_COLORS,
+} from "@/lib/chart-theme";
 
 function ChartEmpty({ message }: { message: string }) {
   return <p className="dash-chart-empty">{message}</p>;
@@ -42,31 +38,7 @@ function ChartFrame({
   children: ReactNode;
   tall?: boolean;
 }) {
-  return (
-    <ClientOnly fallback={<ChartSkeleton tall={tall} />}>{children}</ClientOnly>
-  );
-}
-
-function PublishingTooltip({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: { value: number; dataKey: string; color: string }[];
-  label?: string;
-}) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div style={CHART_TOOLTIP_STYLE}>
-      <p style={{ margin: "0 0 6px", opacity: 0.7, fontSize: 11 }}>{label}</p>
-      {payload.map((entry) => (
-        <p key={entry.dataKey} style={{ margin: 0, color: entry.color }}>
-          {entry.dataKey === "articles" ? "Articles" : "Comments"}: <strong>{entry.value}</strong>
-        </p>
-      ))}
-    </div>
-  );
+  return <ClientOnly fallback={<ChartSkeleton tall={tall} />}>{children}</ClientOnly>;
 }
 
 function CategoryTooltip({
@@ -80,7 +52,7 @@ function CategoryTooltip({
   const row = payload[0].payload;
   return (
     <div style={CHART_TOOLTIP_STYLE}>
-      <p style={{ margin: "0 0 4px", fontWeight: 600 }}>{row.name}</p>
+      <p style={{ margin: "0 0 6px", fontWeight: 700, fontSize: 13 }}>{row.name}</p>
       <p style={{ margin: 0, fontSize: 11, opacity: 0.85 }}>
         {row.count} articles · {row.views.toLocaleString()} views
       </p>
@@ -88,9 +60,11 @@ function CategoryTooltip({
   );
 }
 
+const axisTick = { fontSize: 11, fill: CHART_COLORS.muted };
+
 export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
   return (
-    <div className="dash-chart-card dash-chart-card--wide">
+    <div className="dash-chart-card dash-chart-card--wide dash-chart-card--animate">
       <div className="dash-chart-header">
         <div>
           <p className="dash-chart-eyebrow">Editorial output</p>
@@ -98,10 +72,10 @@ export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
         </div>
         <div className="dash-chart-legend">
           <span className="dash-legend-item">
-            <i style={{ background: "#1a3896" }} /> Articles
+            <i style={{ background: CHART_COLORS.primary }} /> Articles
           </span>
           <span className="dash-legend-item">
-            <i style={{ background: "#c9a227" }} /> Comments
+            <i style={{ background: CHART_COLORS.gold }} /> Comments
           </span>
         </div>
       </div>
@@ -111,41 +85,127 @@ export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
         ) : (
           <ChartFrame tall>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={timeline} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+              <ComposedChart data={timeline} margin={{ top: 12, right: 12, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradArticles" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#1a3896" stopOpacity={0.28} />
-                    <stop offset="100%" stopColor="#1a3896" stopOpacity={0} />
+                    <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.35} />
+                    <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="gradComments" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#c9a227" stopOpacity={0.22} />
-                    <stop offset="100%" stopColor="#c9a227" stopOpacity={0} />
+                  <linearGradient id="gradCommentsLine" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor={CHART_COLORS.gold} stopOpacity={0.4} />
+                    <stop offset="100%" stopColor={CHART_COLORS.gold} stopOpacity={1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(0,0,0,0.05)" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 11, fill: "#6b6b6b" }}
-                  axisLine={false}
-                  tickLine={false}
+                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} strokeDasharray="4 6" />
+                <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} />
+                <YAxis tick={axisTick} axisLine={false} tickLine={false} />
+                <Tooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div style={CHART_TOOLTIP_STYLE}>
+                        {label ? (
+                          <p style={{ margin: "0 0 8px", opacity: 0.65, fontSize: 11 }}>{label}</p>
+                        ) : null}
+                        {payload.map((entry) => (
+                          <p
+                            key={String(entry.dataKey)}
+                            style={{ margin: "4px 0 0", color: entry.color, fontWeight: 600 }}
+                          >
+                            {entry.dataKey === "articles"
+                              ? `Articles: ${entry.value}`
+                              : `Comments: ${entry.value}`}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }}
                 />
-                <YAxis tick={{ fontSize: 11, fill: "#6b6b6b" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<PublishingTooltip />} />
                 <Area
                   type="monotone"
                   dataKey="articles"
-                  stroke="#1a3896"
+                  stroke={CHART_COLORS.primary}
                   strokeWidth={2.5}
                   fill="url(#gradArticles)"
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
-                <Area
+                <Line
                   type="monotone"
                   dataKey="comments"
-                  stroke="#c9a227"
-                  strokeWidth={2}
-                  fill="url(#gradComments)"
+                  stroke="url(#gradCommentsLine)"
+                  strokeWidth={2.5}
+                  dot={{ r: 3, fill: CHART_COLORS.gold, strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: CHART_COLORS.gold }}
+                  animationDuration={CHART_ANIMATION.duration + 200}
+                  animationEasing={CHART_ANIMATION.easing}
                 />
-              </AreaChart>
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartFrame>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function CategoryTrafficChart({
+  categories,
+  onExportCsv,
+}: {
+  categories: CategoryStat[];
+  onExportCsv?: () => void;
+}) {
+  const data = [...categories].sort((a, b) => b.views - a.views).slice(0, 8);
+
+  return (
+    <div className="dash-chart-card dash-chart-card--animate dash-chart-card--delay-2">
+      <div className="dash-chart-header">
+        <div>
+          <p className="dash-chart-eyebrow">Audience</p>
+          <h3 className="dash-chart-title">Traffic by category</h3>
+        </div>
+        {onExportCsv ? (
+          <button
+            type="button"
+            className="card-act card-act--btn"
+            onClick={onExportCsv}
+            disabled={categories.length === 0}
+          >
+            Export CSV ↗
+          </button>
+        ) : null}
+      </div>
+      <div className="dash-chart-body">
+        {data.length === 0 ? (
+          <ChartEmpty message="No category traffic data yet." />
+        ) : (
+          <ChartFrame>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} strokeDasharray="4 6" />
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={92}
+                  tick={{ fontSize: 11, fill: "#3d3d3d", fontWeight: 500 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<CategoryTooltip />} cursor={{ fill: "rgba(26,56,150,0.05)" }} />
+                <Bar
+                  dataKey="views"
+                  radius={[0, 8, 8, 0]}
+                  barSize={16}
+                  animationDuration={CHART_ANIMATION.barDuration}
+                  animationEasing={CHART_ANIMATION.easing}
+                >
+                  {data.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
             </ResponsiveContainer>
           </ChartFrame>
         )}
@@ -156,11 +216,11 @@ export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
 
 export function CategoryChart({ categories }: { categories: CategoryStat[] }) {
   return (
-    <div className="dash-chart-card">
+    <div className="dash-chart-card dash-chart-card--animate dash-chart-card--delay-3">
       <div className="dash-chart-header">
         <div>
           <p className="dash-chart-eyebrow">Coverage</p>
-          <h3 className="dash-chart-title">By category</h3>
+          <h3 className="dash-chart-title">Articles by category</h3>
         </div>
       </div>
       <div className="dash-chart-body">
@@ -170,18 +230,24 @@ export function CategoryChart({ categories }: { categories: CategoryStat[] }) {
           <ChartFrame>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categories} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(0,0,0,0.05)" horizontal={false} />
+                <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} strokeDasharray="4 6" />
                 <XAxis type="number" hide />
                 <YAxis
                   type="category"
                   dataKey="name"
                   width={88}
-                  tick={{ fontSize: 11, fill: "#3d3d3d" }}
+                  tick={axisTick}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip content={<CategoryTooltip />} cursor={{ fill: "rgba(26,56,150,0.06)" }} />
-                <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={14}>
+                <Tooltip content={<CategoryTooltip />} cursor={{ fill: "rgba(26,56,150,0.05)" }} />
+                <Bar
+                  dataKey="count"
+                  radius={[0, 8, 8, 0]}
+                  barSize={14}
+                  animationDuration={CHART_ANIMATION.barDuration}
+                  animationEasing={CHART_ANIMATION.easing}
+                >
                   {categories.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
@@ -199,7 +265,7 @@ export function PipelineChart({ pipeline }: { pipeline: PipelineSlice[] }) {
   const total = pipeline.reduce((sum, p) => sum + p.count, 0);
 
   return (
-    <div className="dash-chart-card">
+    <div className="dash-chart-card dash-chart-card--animate dash-chart-card--delay-1">
       <div className="dash-chart-header">
         <div>
           <p className="dash-chart-eyebrow">Workflow</p>
@@ -213,19 +279,29 @@ export function PipelineChart({ pipeline }: { pipeline: PipelineSlice[] }) {
           <ChartFrame>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
+                <defs>
+                  {PIPELINE_COLORS.map((color, i) => (
+                    <linearGradient key={color} id={`pipeGrad${i}`} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity={1} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0.65} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <Pie
                   data={pipeline}
                   dataKey="count"
                   nameKey="label"
                   cx="50%"
                   cy="50%"
-                  innerRadius="58%"
-                  outerRadius="82%"
-                  paddingAngle={3}
+                  innerRadius="56%"
+                  outerRadius="84%"
+                  paddingAngle={4}
                   stroke="none"
+                  animationDuration={CHART_ANIMATION.pieDuration}
+                  animationEasing={CHART_ANIMATION.easing}
                 >
                   {pipeline.map((_, i) => (
-                    <Cell key={i} fill={PIPELINE_COLORS[i % PIPELINE_COLORS.length]} />
+                    <Cell key={i} fill={`url(#pipeGrad${i % PIPELINE_COLORS.length})`} />
                   ))}
                 </Pie>
                 <Tooltip
@@ -262,10 +338,10 @@ export function PipelineChart({ pipeline }: { pipeline: PipelineSlice[] }) {
 
 export function SubscriberChart({ timeline }: { timeline: TimelinePoint[] }) {
   return (
-    <div className="dash-chart-card">
+    <div className="dash-chart-card dash-chart-card--animate dash-chart-card--delay-4">
       <div className="dash-chart-header">
         <div>
-          <p className="dash-chart-eyebrow">Audience</p>
+          <p className="dash-chart-eyebrow">Growth</p>
           <h3 className="dash-chart-title">Newsletter sign-ups</h3>
         </div>
       </div>
@@ -275,24 +351,27 @@ export function SubscriberChart({ timeline }: { timeline: TimelinePoint[] }) {
         ) : (
           <ChartFrame>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={timeline} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart data={timeline} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradSubs" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#2D6A4F" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#2D6A4F" stopOpacity={0.55} />
+                    <stop offset="0%" stopColor={CHART_COLORS.green} stopOpacity={0.45} />
+                    <stop offset="100%" stopColor={CHART_COLORS.green} stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(0,0,0,0.05)" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 10, fill: "#6b6b6b" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis tick={{ fontSize: 10, fill: "#6b6b6b" }} axisLine={false} tickLine={false} />
+                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} strokeDasharray="4 6" />
+                <XAxis dataKey="label" tick={{ fontSize: 10, fill: CHART_COLORS.muted }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: CHART_COLORS.muted }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-                <Bar dataKey="subscribers" fill="url(#gradSubs)" radius={[6, 6, 0, 0]} maxBarSize={28} />
-              </BarChart>
+                <Area
+                  type="monotone"
+                  dataKey="subscribers"
+                  stroke={CHART_COLORS.green}
+                  strokeWidth={2.5}
+                  fill="url(#gradSubs)"
+                  animationDuration={CHART_ANIMATION.duration}
+                  animationEasing={CHART_ANIMATION.easing}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </ChartFrame>
         )}
@@ -308,11 +387,11 @@ export function TopArticlesChart({
 }) {
   const data = articles.map((a) => ({
     ...a,
-    shortTitle: a.title.length > 42 ? `${a.title.slice(0, 42)}…` : a.title,
+    shortTitle: a.title.length > 36 ? `${a.title.slice(0, 36)}…` : a.title,
   }));
 
   return (
-    <div className="dash-chart-card dash-chart-card--wide">
+    <div className="dash-chart-card dash-chart-card--wide dash-chart-card--animate dash-chart-card--delay-5">
       <div className="dash-chart-header">
         <div>
           <p className="dash-chart-eyebrow">Performance</p>
@@ -325,19 +404,25 @@ export function TopArticlesChart({
         ) : (
           <ChartFrame>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 8, right: 8, left: -10, bottom: 48 }}>
-                <CartesianGrid stroke="rgba(0,0,0,0.05)" vertical={false} />
+              <BarChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 52 }}>
+                <defs>
+                  <linearGradient id="gradTopViews" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={1} />
+                    <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0.55} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} strokeDasharray="4 6" />
                 <XAxis
                   dataKey="shortTitle"
-                  tick={{ fontSize: 10, fill: "#6b6b6b" }}
+                  tick={{ fontSize: 10, fill: CHART_COLORS.muted }}
                   axisLine={false}
                   tickLine={false}
                   interval={0}
-                  angle={-28}
+                  angle={-24}
                   textAnchor="end"
-                  height={70}
+                  height={72}
                 />
-                <YAxis tick={{ fontSize: 11, fill: "#6b6b6b" }} axisLine={false} tickLine={false} />
+                <YAxis tick={axisTick} axisLine={false} tickLine={false} />
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
                   formatter={(value) => {
@@ -348,8 +433,74 @@ export function TopArticlesChart({
                     (payload?.[0]?.payload as { title?: string })?.title ?? ""
                   }
                 />
-                <Bar dataKey="views" fill="#1a3896" radius={[6, 6, 0, 0]} maxBarSize={36} />
+                <Bar
+                  dataKey="views"
+                  fill="url(#gradTopViews)"
+                  radius={[8, 8, 0, 0]}
+                  maxBarSize={40}
+                  animationDuration={CHART_ANIMATION.barDuration}
+                  animationEasing={CHART_ANIMATION.easing}
+                />
               </BarChart>
+            </ResponsiveContainer>
+          </ChartFrame>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function TodayPulseChart({ timeline }: { timeline: TimelinePoint[] }) {
+  const last7 = timeline.slice(-7);
+  const data = last7.map((point) => ({ ...point }));
+
+  return (
+    <div className="dash-chart-card dash-chart-card--animate dash-chart-card--delay-2">
+      <div className="dash-chart-header">
+        <div>
+          <p className="dash-chart-eyebrow">Live pulse</p>
+          <h3 className="dash-chart-title">Reader activity</h3>
+        </div>
+        <div className="dash-chart-legend">
+          <span className="dash-legend-item">
+            <i style={{ background: CHART_COLORS.blue }} /> Engagement
+          </span>
+        </div>
+      </div>
+      <div className="dash-chart-body">
+        {data.length === 0 ? (
+          <ChartEmpty message="No reader activity data yet." />
+        ) : (
+          <ChartFrame>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={data} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradPulse" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CHART_COLORS.blue} stopOpacity={0.4} />
+                    <stop offset="100%" stopColor={CHART_COLORS.blue} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} strokeDasharray="4 6" />
+                <XAxis dataKey="label" tick={axisTick} axisLine={false} tickLine={false} />
+                <YAxis tick={axisTick} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                <Area
+                  type="monotone"
+                  dataKey="articles"
+                  stroke={CHART_COLORS.blue}
+                  strokeWidth={2}
+                  fill="url(#gradPulse)"
+                  animationDuration={CHART_ANIMATION.duration}
+                />
+                <Bar
+                  dataKey="comments"
+                  fill={CHART_COLORS.purple}
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={18}
+                  opacity={0.85}
+                  animationDuration={CHART_ANIMATION.barDuration}
+                />
+              </ComposedChart>
             </ResponsiveContainer>
           </ChartFrame>
         )}

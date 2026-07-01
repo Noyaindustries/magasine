@@ -1,28 +1,33 @@
 "use client";
 
-import { useEffect, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Clock, Eye, MessageSquare, Sparkles } from "lucide-react";
 import type { AdminDashboardData, DashboardActivityItem } from "@/lib/admin-dashboard";
 import {
   downloadWeeklyReport,
   exportCategoryTrafficCsv,
 } from "@/lib/cms-dashboard-export";
 import { CmsDashboardIcons } from "@/components/admin/cms/CmsIcons";
+import { DashboardKpiCard } from "@/components/admin/dashboard/DashboardKpiCard";
+import {
+  CategoryChart,
+  CategoryTrafficChart,
+  PipelineChart,
+  PublishingChart,
+  SubscriberChart,
+  TodayPulseChart,
+  TopArticlesChart,
+} from "@/components/admin/dashboard/DashboardCharts";
 import { toast } from "@/lib/toast";
 
 interface CmsDashboardViewProps {
   data: AdminDashboardData;
+  userName: string;
 }
 
-const KPI_TONES = ["k-red", "k-green", "k-amber", "k-blue"] as const;
-const SPARK_COLORS = ["#1A3896", "#22C55E", "#C9A227", "#60A5FA"] as const;
-
-function formatCompact(value: number) {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace(".0", "")}M`;
-  if (value >= 1_000) return `${Math.round(value / 1_000)}k`;
-  return value.toLocaleString("en-US");
-}
+const KPI_ACCENTS = ["#1a3896", "#22C55E", "#C9A227", "#9B2226"];
 
 function formatRelative(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -74,44 +79,6 @@ function StatusBadge({
   }
   if (status === "draft") return <span className="badge b-draft">Draft</span>;
   return <span className="badge b-arch">{status}</span>;
-}
-
-function Sparkline({ values, color, id }: { values: number[]; color: string; id: string }) {
-  const max = Math.max(...values, 1);
-  const points = values
-    .map((v, i) => {
-      const x = (i / Math.max(values.length - 1, 1)) * 120;
-      const y = 28 - (v / max) * 22;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  const lastValue = values[values.length - 1] ?? 0;
-  const lastX = 120;
-  const lastY = 28 - (lastValue / max) * 22;
-  const area = `0,30 0,${28 - ((values[0] ?? 0) / max) * 22} ${points} 120,30`;
-
-  return (
-    <svg viewBox="0 0 120 30" width="100%" height="30" overflow="visible" aria-hidden>
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polyline fill={`url(#${id})`} stroke="none" points={area} />
-      <polyline
-        fill="none"
-        stroke={color}
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-        points={points}
-        opacity="0.85"
-      />
-      <circle cx={lastX} cy={lastY} r="3" fill={color} />
-    </svg>
-  );
 }
 
 function ActivityRow({ item }: { item: DashboardActivityItem }) {
@@ -189,8 +156,13 @@ function PublishButton({ articleId }: { articleId: string }) {
   );
 }
 
-export function CmsDashboardView({ data }: CmsDashboardViewProps) {
-  const maxCategoryViews = Math.max(...data.categories.map((c) => c.views), 1);
+export function CmsDashboardView({ data, userName }: CmsDashboardViewProps) {
+  const today = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   const kpiCards = [
     {
@@ -199,50 +171,39 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
       trend: data.kpis[0]?.trend ?? 0,
       spark: data.kpis[0]?.sparkline ?? [0],
       format: "number" as const,
-      trendSuffix: "vs last month",
     },
     {
-      label: "Unique readers",
+      label: "Total readership",
       value: data.totalViews,
       trend: data.kpis[1]?.trend ?? 0,
       spark: data.kpis[1]?.sparkline ?? [0],
       format: "compact" as const,
-      trendSuffix: "this week",
     },
     {
       label: "Newsletter subscribers",
       value: data.kpis[2]?.value ?? 0,
-      absoluteDelta: data.monthlyNewSubscribers,
       spark: data.kpis[2]?.sparkline ?? [0],
       format: "number" as const,
-      trendSuffix: "this month",
+      trendOverride: {
+        text: `+${data.monthlyNewSubscribers} this month`,
+        direction: data.monthlyNewSubscribers > 0 ? ("up" as const) : ("flat" as const),
+      },
     },
     {
       label: "Comments",
       value: data.kpis[3]?.value ?? data.totalComments,
       spark: data.kpis[3]?.sparkline ?? data.timeline.map((t) => t.comments),
       format: "number" as const,
-      moderationCount: data.pendingComments,
+      trendOverride: {
+        text: `${data.pendingComments} to moderate`,
+        direction: data.pendingComments > 0 ? ("down" as const) : ("flat" as const),
+      },
     },
   ];
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      document.querySelectorAll<HTMLElement>(".cms-dashboard .bfill").forEach((el) => {
-        const width = el.style.width;
-        el.style.width = "0";
-        window.requestAnimationFrame(() => {
-          el.style.transition = "width 1s cubic-bezier(.4,0,.2,1)";
-          el.style.width = width;
-        });
-      });
-    }, 120);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   return (
     <div className="view on cms-dashboard">
-      <div className="cms-page-inner">
+      <div className="cms-page-inner dash-root">
         <div className="qarow">
           <Link href="/admin/articles/new" className="qa">
             <div className="qaico qaico--red">
@@ -280,84 +241,83 @@ export function CmsDashboardView({ data }: CmsDashboardViewProps) {
           </button>
         </div>
 
-        <div className="kgrid">
-          {kpiCards.map((kpi, index) => (
-            <div key={kpi.label} className={`kpi ${KPI_TONES[index]}`}>
-              <div className="klbl">{kpi.label}</div>
-              <div className="kval">
-                {kpi.format === "compact"
-                  ? formatCompact(kpi.value)
-                  : kpi.value.toLocaleString("en-US")}
-              </div>
-              <div className="kmeta">
-                {"moderationCount" in kpi && kpi.moderationCount !== undefined ? (
-                  <span className="kdelta dn">
-                    ▼ {kpi.moderationCount} flagged{kpi.moderationCount > 1 ? "" : ""}
-                  </span>
-                ) : "absoluteDelta" in kpi && kpi.absoluteDelta !== undefined ? (
-                  <span className={`kdelta ${kpi.absoluteDelta >= 0 ? "up" : "dn"}`}>
-                    {kpi.absoluteDelta >= 0 ? "▲" : "▼"}{" "}
-                    {kpi.absoluteDelta >= 0 ? "+" : ""}
-                    {kpi.absoluteDelta.toLocaleString("en-US")}
-                  </span>
-                ) : (
-                  <span className={`kdelta ${(kpi.trend ?? 0) >= 0 ? "up" : "dn"}`}>
-                    {(kpi.trend ?? 0) >= 0 ? "▲" : "▼"}{" "}
-                    {(kpi.trend ?? 0) >= 0 ? "+" : ""}
-                    {Math.abs(kpi.trend ?? 0)}%
-                  </span>
-                )}
-                {"moderationCount" in kpi
-                  ? " to moderate"
-                  : "trendSuffix" in kpi
-                    ? ` ${kpi.trendSuffix}`
-                    : null}
-              </div>
-              <div className="kspark">
-                <Sparkline
-                  values={kpi.spark}
-                  color={SPARK_COLORS[index] ?? SPARK_COLORS[0]}
-                  id={`cms-spark-${index}`}
-                />
-              </div>
+        <section className="dash-hero">
+          <div className="dash-hero-mesh" aria-hidden />
+          <div className="dash-hero-inner">
+            <div>
+              <p className="dash-hero-eyebrow">
+                <Sparkles className="w-4 h-4" aria-hidden />
+                Editorial intelligence
+              </p>
+              <h2 className="dash-hero-title">
+                Good day, <em>{userName.split(" ")[0]}</em>
+              </h2>
+              <p className="dash-hero-date">{today}</p>
             </div>
-          ))}
-        </div>
-
-        <div className="g21 ga mb20">
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Traffic by category — last 7 days</span>
-              <button
-                type="button"
-                className="card-act card-act--btn"
-                onClick={() => exportCategoryTrafficCsv(data.categories)}
-                disabled={data.categories.length === 0}
-              >
-                Export CSV ↗
-              </button>
-            </div>
-            <div className="card-body">
-              {data.categories.length === 0 && (
-                <p className="cms-empty">No category data yet.</p>
-              )}
-              {data.categories.map((cat) => (
-                <div key={cat.name} className="brow">
-                  <span className="blbl">{cat.name}</span>
-                  <div className="btrack">
-                    <div
-                      className="bfill"
-                      style={{
-                        width: `${Math.round((cat.views / maxCategoryViews) * 100)}%`,
-                        background: cat.color,
-                      }}
-                    />
-                  </div>
-                  <span className="bnum">{cat.views.toLocaleString("en-US")}</span>
-                </div>
-              ))}
+            <div className="dash-hero-metrics">
+              <div className="dash-hero-metric">
+                <Eye className="w-4 h-4" aria-hidden />
+                <span>{data.totalViews.toLocaleString()}</span>
+                <small>Total views</small>
+              </div>
+              <div className="dash-hero-metric">
+                <Clock className="w-4 h-4" aria-hidden />
+                <span>{data.avgReadingTime} min</span>
+                <small>Avg. read time</small>
+              </div>
+              <div className="dash-hero-metric">
+                <MessageSquare className="w-4 h-4" aria-hidden />
+                <span>{data.pendingReview}</span>
+                <small>In review</small>
+              </div>
             </div>
           </div>
+        </section>
+
+        {(data.pendingReview > 0 || data.pendingComments > 0) && (
+          <div className="dash-alerts">
+            {data.pendingReview > 0 && (
+              <Link href="/admin/review" className="dash-alert dash-alert--gold">
+                <strong>{data.pendingReview}</strong> article(s) awaiting review
+              </Link>
+            )}
+            {data.pendingComments > 0 && (
+              <Link href="/admin/comments" className="dash-alert dash-alert--blue">
+                <strong>{data.pendingComments}</strong> comment(s) to moderate
+              </Link>
+            )}
+          </div>
+        )}
+
+        <section className="dash-kpi-grid">
+          {kpiCards.map((kpi, index) => (
+            <DashboardKpiCard
+              key={kpi.label}
+              label={kpi.label}
+              value={kpi.value}
+              trend={kpi.trend}
+              sparkline={kpi.spark}
+              format={kpi.format}
+              accent={KPI_ACCENTS[index] ?? KPI_ACCENTS[0]}
+              trendOverride={"trendOverride" in kpi ? kpi.trendOverride : undefined}
+            />
+          ))}
+        </section>
+
+        <section className="dash-charts-grid">
+          <PublishingChart timeline={data.timeline} />
+          <PipelineChart pipeline={data.pipeline} />
+          <CategoryTrafficChart
+            categories={data.categories}
+            onExportCsv={() => exportCategoryTrafficCsv(data.categories)}
+          />
+          <CategoryChart categories={data.categories} />
+          <SubscriberChart timeline={data.timeline} />
+          <TopArticlesChart articles={data.topArticles} />
+        </section>
+
+        <div className="g21 ga mb20">
+          <TodayPulseChart timeline={data.timeline} />
 
           <div className="card">
             <div className="card-header">

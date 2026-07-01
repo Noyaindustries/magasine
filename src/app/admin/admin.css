@@ -1174,8 +1174,113 @@
 }
 
 .dash-kpi-spark {
-  height: 48px;
+  height: 52px;
   margin: 0 -8px;
+}
+
+.dash-kpi-card-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 60%
+  );
+  opacity: 0;
+  transform: translateX(-120%);
+  animation: dash-kpi-shine 4s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+
+.dash-kpi-card--animate {
+  animation: dash-chart-rise 0.65s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.dash-kpi-card--animate:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.dash-kpi-card--animate:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.dash-kpi-card--animate:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.dash-kpi-card--animate:nth-child(4) {
+  animation-delay: 0.22s;
+}
+
+.dash-chart-card--animate {
+  animation: dash-chart-rise 0.7s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.dash-chart-card--delay-1 {
+  animation-delay: 0.12s;
+}
+.dash-chart-card--delay-2 {
+  animation-delay: 0.18s;
+}
+.dash-chart-card--delay-3 {
+  animation-delay: 0.24s;
+}
+.dash-chart-card--delay-4 {
+  animation-delay: 0.3s;
+}
+.dash-chart-card--delay-5 {
+  animation-delay: 0.36s;
+}
+
+.dash-chart-card {
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.dash-chart-card:hover {
+  box-shadow: 0 12px 40px rgba(26, 56, 150, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(26, 56, 150, 0.15);
+}
+
+.dash-kpi-card {
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.dash-kpi-card:hover {
+  box-shadow: 0 12px 36px rgba(26, 56, 150, 0.1);
+  transform: translateY(-2px);
+}
+
+.cms-dashboard .dash-root {
+  gap: 20px;
+}
+
+.cms-dashboard .dash-hero {
+  margin-bottom: 4px;
+}
+
+@keyframes dash-chart-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dash-kpi-shine {
+  0%,
+  70% {
+    opacity: 0;
+    transform: translateX(-120%);
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%);
+  }
 }
 
 .dash-charts-grid {

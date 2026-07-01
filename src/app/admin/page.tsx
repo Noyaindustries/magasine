@@ -1,5 +1,6 @@
 import { getAdminDashboardData } from "@/lib/admin-dashboard";
 import { CmsDashboardView } from "@/components/admin/cms/CmsDashboardView";
+import { auth } from "@/lib/auth";
 import type { AdminDashboardData } from "@/lib/admin-dashboard";
 
 const EMPTY_DASHBOARD: AdminDashboardData = {
@@ -37,6 +38,7 @@ const EMPTY_DASHBOARD: AdminDashboardData = {
 };
 
 export default async function AdminDashboard() {
+  const session = await auth();
   let data = EMPTY_DASHBOARD;
 
   try {
@@ -45,5 +47,10 @@ export default async function AdminDashboard() {
     console.error("[admin/dashboard] Failed to load metrics:", error);
   }
 
-  return <CmsDashboardView data={data} />;
+  return (
+    <CmsDashboardView
+      data={data}
+      userName={session?.user?.name ?? "Editor"}
+    />
+  );
 }

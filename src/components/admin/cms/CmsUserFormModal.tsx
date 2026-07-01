@@ -11,13 +11,21 @@ export interface CmsUserFormValues {
   email: string;
   role: UserRole;
   password: string;
+  isPremium: boolean;
+  isBanned: boolean;
 }
 
 interface CmsUserFormModalProps {
   open: boolean;
-  mode: "create" | "edit-role";
+  mode: "create" | "edit";
   actorRole: UserRole;
-  initial?: { name: string; email: string; role: UserRole };
+  initial?: {
+    name: string;
+    email: string;
+    role: UserRole;
+    isPremium: boolean;
+    isBanned: boolean;
+  };
   saving?: boolean;
   onClose: () => void;
   onSubmit: (values: CmsUserFormValues) => void;
@@ -39,6 +47,8 @@ export function CmsUserFormModal({
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<UserRole>(DEFAULT_ROLE);
   const [password, setPassword] = useState("");
+  const [isPremium, setIsPremium] = useState(false);
+  const [isBanned, setIsBanned] = useState(false);
 
   const assignableRoles = getAssignableRoles(actorRole);
 
@@ -48,27 +58,31 @@ export function CmsUserFormModal({
 
   useEffect(() => {
     if (!open) return;
-    if (mode === "edit-role" && initial) {
+    if (mode === "edit" && initial) {
       setName(initial.name);
       setEmail(initial.email);
       setRole(initial.role);
       setPassword("");
+      setIsPremium(initial.isPremium);
+      setIsBanned(initial.isBanned);
       return;
     }
     setName("");
     setEmail("");
     setRole(assignableRoles.includes(DEFAULT_ROLE) ? DEFAULT_ROLE : assignableRoles[0] ?? "reader");
     setPassword("");
+    setIsPremium(false);
+    setIsBanned(false);
   }, [open, mode, initial, assignableRoles]);
 
   if (!open || !mounted) return null;
 
-  const title = mode === "create" ? "Create user" : "Change role";
-  const submitLabel = mode === "create" ? "Create user" : "Save role";
+  const title = mode === "create" ? "Create user" : "Edit user";
+  const submitLabel = mode === "create" ? "Create user" : "Save changes";
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit({ name, email, role, password });
+    onSubmit({ name, email, role, password, isPremium, isBanned });
   };
 
   return createPortal(
@@ -84,59 +98,41 @@ export function CmsUserFormModal({
             <h2 id="cms-user-modal-title">{title}</h2>
           </div>
           <div className="admin-modal-body admin-form-grid">
+            <div className="admin-field">
+              <label htmlFor="user-name">Full name</label>
+              <input
+                id="user-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                minLength={2}
+                autoComplete="name"
+                disabled={saving}
+              />
+            </div>
+
             {mode === "create" ? (
-              <>
-                <div className="admin-field">
-                  <label htmlFor="user-name">Full name</label>
-                  <input
-                    id="user-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    minLength={2}
-                    autoComplete="name"
-                    disabled={saving}
-                  />
-                </div>
-                <div className="admin-field">
-                  <label htmlFor="user-email">Email</label>
-                  <input
-                    id="user-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    disabled={saving}
-                  />
-                </div>
-                <div className="admin-field">
-                  <label htmlFor="user-password">Password (optional)</label>
-                  <input
-                    id="user-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    minLength={8}
-                    autoComplete="new-password"
-                    placeholder="Leave empty to generate one"
-                    disabled={saving}
-                  />
-                  <p className="cms-field-hint">
-                    If empty, a temporary password is generated and shown once after creation.
-                  </p>
-                </div>
-              </>
+              <div className="admin-field">
+                <label htmlFor="user-email">Email</label>
+                <input
+                  id="user-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  disabled={saving}
+                />
+              </div>
             ) : (
               <div className="admin-field">
-                <span className="admin-field-label">User</span>
+                <span className="admin-field-label">Email</span>
                 <p className="cms-field-hint" style={{ margin: 0 }}>
-                  <strong>{initial?.name}</strong>
-                  <br />
                   {initial?.email}
                 </p>
               </div>
             )}
+
             <div className="admin-field">
               <label htmlFor="user-role">Role</label>
               <select
@@ -144,7 +140,7 @@ export function CmsUserFormModal({
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
                 required
-                disabled={saving}
+                disabled={saving || (mode === "edit" && initial?.role === "super_admin" && actorRole !== "super_admin")}
               >
                 {assignableRoles.map((option) => (
                   <option key={option} value={option}>
@@ -152,12 +148,69 @@ export function CmsUserFormModal({
                   </option>
                 ))}
               </select>
-              <p className="cms-field-hint">
-                {role === "reader"
-                  ? "Readers can sign in and access the public reader space."
-                  : "Editorial roles can access the CMS according to their permissions."}
-              </p>
             </div>
+
+            {mode === "create" ? (
+              <div className="admin-field">
+                <label htmlFor="user-password">Password (optional)</label>
+                <input
+                  id="user-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={8}
+                  autoComplete="new-password"
+                  placeholder="Leave empty to generate one"
+                  disabled={saving}
+                />
+                <p className="cms-field-hint">
+                  If empty, a temporary password is generated and shown once after creation.
+                </p>
+              </div>
+            ) : (
+              <div className="admin-field">
+                <label htmlFor="user-password-reset">New password (optional)</label>
+                <input
+                  id="user-password-reset"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={8}
+                  autoComplete="new-password"
+                  placeholder="Leave empty to keep current password"
+                  disabled={saving}
+                />
+              </div>
+            )}
+
+            {mode === "edit" && (
+              <>
+                <div className="admin-field">
+                  <label className="admin-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={isPremium}
+                      onChange={(e) => setIsPremium(e.target.checked)}
+                      disabled={saving}
+                    />
+                    Premium subscriber
+                  </label>
+                  <p className="cms-field-hint">Grants access to premium articles on the public site.</p>
+                </div>
+                <div className="admin-field">
+                  <label className="admin-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={isBanned}
+                      onChange={(e) => setIsBanned(e.target.checked)}
+                      disabled={saving || initial?.role === "super_admin"}
+                    />
+                    Banned
+                  </label>
+                  <p className="cms-field-hint">Banned users cannot sign in.</p>
+                </div>
+              </>
+            )}
           </div>
           <div className="admin-modal-footer">
             <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
