@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   DEFAULT_ADMIN_EMAIL,
-  DEFAULT_ADMIN_PASSWORD,
   ensureDefaultAdmin,
+  getDefaultAdminPassword,
 } from "@/lib/ensure-admin";
 
 /** Dev only — creates or repairs the seed admin account. */
@@ -16,7 +16,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     email: admin.email,
-    password: DEFAULT_ADMIN_PASSWORD,
+    password: getDefaultAdminPassword(),
     created: admin.created,
     repaired: admin.repaired,
     loginUrl: "/login",

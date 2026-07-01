@@ -8,6 +8,7 @@ import { canManageArticles } from "@/lib/permissions";
 import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publish";
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
+import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -124,8 +125,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.subtitle !== undefined) article.subtitle = data.subtitle;
   if (data.excerpt) article.excerpt = data.excerpt;
   if (data.content) {
-    article.content = data.content;
-    article.readingTime = estimateReadingTime(data.content);
+    const sanitized = sanitizeArticleHtml(data.content);
+    article.content = sanitized;
+    article.readingTime = estimateReadingTime(sanitized);
   }
   if (data.featuredImage) article.featuredImage = data.featuredImage;
   if (data.featuredImageCaption !== undefined) {

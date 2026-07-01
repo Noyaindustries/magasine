@@ -183,10 +183,10 @@ export function RegisterPageClient({ googleAuthEnabled = false }: { googleAuthEn
               value={password}
               onChange={setPassword}
               autoComplete="new-password"
-              placeholder="At least 8 characters"
-              minLength={8}
+              placeholder="At least 12 characters"
+              minLength={12}
               showStrength
-              hint="Minimum 8 characters. Mix letters, numbers, and symbols for a stronger password."
+              hint="Minimum 12 characters with uppercase, lowercase, and a number."
             />
 
             <label className="auth-checkbox-field">

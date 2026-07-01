@@ -11,6 +11,8 @@ import {
   ensureDefaultAdmin,
 } from "@/lib/ensure-admin";
 
+const SECURITY_REFRESH_MS = 60_000;
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -62,6 +64,8 @@ declare module "next-auth" {
     id: string;
     role: UserRole;
     isPremium: boolean;
+    lastSecurityCheck?: number;
+    sessionRevoked?: boolean;
   }
 }
 
@@ -179,9 +183,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.isPremium = session.user?.isPremium ?? token.isPremium;
       }
 
+      if (!user && token.id && !token.sessionRevoked) {
+        const lastCheck = (token.lastSecurityCheck as number) ?? 0;
+        if (Date.now() - lastCheck > SECURITY_REFRESH_MS) {
+          try {
+            await connectDB();
+            const dbUser = await User.findById(token.id as string)
+              .select("role isPremium isBanned")
+              .lean();
+            if (!dbUser || dbUser.isBanned) {
+              token.sessionRevoked = true;
+            } else {
+              token.role = dbUser.role;
+              token.isPremium = dbUser.isPremium;
+              token.sessionRevoked = false;
+            }
+            token.lastSecurityCheck = Date.now();
+          } catch (error) {
+            console.error("[auth] jwt security refresh failed:", error);
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      if (token.sessionRevoked) {
+        return { expires: new Date(0).toISOString() };
+      }
+
       if (session.user) {
         session.user.id = (token.id as string) ?? "";
         session.user.role = (token.role as UserRole) ?? "reader";

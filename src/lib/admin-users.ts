@@ -4,6 +4,7 @@ import { Author } from "@/models/Author";
 import { Article } from "@/models/Article";
 import { EDITORIAL_ROLES } from "@/lib/user-roles";
 import { USERS_PAGE_SIZE } from "@/lib/pagination";
+import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import type { UserRole } from "@/types";
 
 export type UserListFilter = "all" | "editorial" | "readers" | "banned" | "premium";
@@ -79,11 +80,10 @@ function buildMongoFilter(query?: string, filter: UserListFilter = "all"): Recor
   const mongoFilter: Record<string, unknown> = {};
 
   if (query?.trim()) {
-    const term = query.trim();
-    mongoFilter.$or = [
-      { name: { $regex: term, $options: "i" } },
-      { email: { $regex: term, $options: "i" } },
-    ];
+    const termRegex = buildCaseInsensitiveRegex(query);
+    if (termRegex) {
+      mongoFilter.$or = [{ name: termRegex }, { email: termRegex }];
+    }
   }
 
   switch (filter) {

@@ -1,6 +1,7 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import type { ArticleListItem } from "@/types";
+import { toSafeVideoEmbedUrl, isSafeVideoFileUrl } from "@/lib/video-url";
 
 export function authorInitials(name: string): string {
   return name
@@ -91,16 +92,11 @@ export function articleBadge(article: ArticleListItem): string {
 }
 
 export function toVideoEmbedUrl(url: string): string | null {
-  if (!url) return null;
-  if (url.includes("/embed/")) return url;
-  const ytWatch = url.match(/[?&]v=([^&]+)/);
-  if (ytWatch) return `https://www.youtube.com/embed/${ytWatch[1]}?autoplay=0&rel=0`;
-  const ytShort = url.match(/youtu\.be\/([^?]+)/);
-  if (ytShort) return `https://www.youtube.com/embed/${ytShort[1]}?autoplay=0&rel=0`;
-  if (url.endsWith(".mp4") || url.endsWith(".webm")) return url;
-  return url;
+  return toSafeVideoEmbedUrl(url);
 }
 
 export function isVideoFile(url: string): boolean {
-  return /\.(mp4|webm|ogg)(\?|$)/i.test(url);
+  return isSafeVideoFileUrl(url);
 }
+
+export { toSafeVideoEmbedUrl, isSafeVideoFileUrl } from "@/lib/video-url";

@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import { securityHeaders } from "@/lib/security-headers";
+
+const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   images: {
@@ -64,6 +67,15 @@ const nextConfig: NextConfig = {
       { source: "/admin/parametres", destination: "/admin/settings", permanent: true },
       { source: "/admin/auteurs", destination: "/admin/authors", permanent: true },
       { source: "/admin/articles/nouveau", destination: "/admin/articles/new", permanent: true },
+    ];
+  },
+  async headers() {
+    if (!isProd) return [];
+    return [
+      {
+        source: "/:path*",
+        headers: [...securityHeaders],
+      },
     ];
   },
 };

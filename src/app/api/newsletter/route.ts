@@ -6,6 +6,7 @@ import { Newsletter } from "@/models/Newsletter";
 import { NEWSLETTER_TOPICS, type NewsletterTopicId } from "@/lib/newsletter-topics";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import { sendWelcomeNewsletterEmail } from "@/lib/newsletter-send";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const topicIds = NEWSLETTER_TOPICS.map((t) => t.id) as NewsletterTopicId[];
 
@@ -52,6 +53,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, { prefix: "newsletter", max: 15, windowMs: 3600_000 });
+  if (limited) return limited;
+
   try {
     const settings = await getPublicSiteSettings();
     if (!settings.newsletterEnabled) {

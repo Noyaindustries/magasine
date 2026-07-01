@@ -7,7 +7,6 @@ export const BRANDING_MIME_TYPES = [
   "image/png",
   "image/jpeg",
   "image/webp",
-  "image/svg+xml",
   "image/x-icon",
   "image/vnd.microsoft.icon",
 ] as const;

@@ -9,6 +9,7 @@ import {
   mediaKindFromMime,
   saveMediaFile,
 } from "@/lib/media-storage";
+import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 
 function toIsoDate(value: unknown): string {
   if (value instanceof Date) return value.toISOString();
@@ -29,7 +30,10 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const filter: Record<string, unknown> = {};
     if (kind && kind !== "all") filter.kind = kind;
-    if (q) filter.title = { $regex: q, $options: "i" };
+    if (q) {
+      const titleRegex = buildCaseInsensitiveRegex(q);
+      if (titleRegex) filter.title = titleRegex;
+    }
 
     const sortSpec: Record<string, 1 | -1> =
       sort === "oldest" ? { createdAt: 1 } : sort === "largest" ? { sizeBytes: -1 } : { createdAt: -1 };

@@ -23,6 +23,8 @@ import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
 import { migrateWorldToFeature } from "@/lib/migrate-world-to-feature";
 import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
 import { resolveCategorySlug } from "@/lib/category-slugs";
+import { recordDailyPageView } from "@/lib/analytics-daily";
+import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
 
 function mapHomeArticles(
@@ -447,6 +449,8 @@ export async function getArticleBySlug(slug: string) {
 
   if (!article) return getMockArticleBySlug(slug);
 
+  void recordDailyPageView().catch(() => undefined);
+
   const related = await Article.find({
     status: "published",
     category: article.category,
@@ -548,7 +552,11 @@ export async function searchArticles(
   const result = articles.map((a) => serializeArticle(a as unknown as Record<string, unknown>));
   if (result.length > 0) return result;
 
-  const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+  const regex = buildCaseInsensitiveRegex(query);
+  if (!regex) {
+    return searchMockArticles(query).slice(0, 20);
+  }
+
   const fallbackFilter: Record<string, unknown> = {
     status: "published",
     $or: [{ title: regex }, { excerpt: regex }, { tags: regex }],
@@ -607,9 +615,12 @@ export async function getSearchSuggestions(query: string) {
 
   await connectDB();
 
+  const titleRegex = buildCaseInsensitiveRegex(query);
+  if (!titleRegex) return getMockSearchSuggestions(query);
+
   const articles = await Article.find({
     status: "published",
-    title: { $regex: query, $options: "i" },
+    title: titleRegex,
   })
     .select("title slug")
     .limit(6)
@@ -714,9 +725,16 @@ export async function getArticlesByTag(tag: string, limit = 36) {
   }
 
   await connectDB();
+  const tagRegex = buildCaseInsensitiveRegex(tag);
+  if (!tagRegex) {
+    return searchMockArticles("")
+      .filter((a) => a.tags?.some((t) => t.toLowerCase().includes(tagLower)))
+      .slice(0, limit);
+  }
+
   const articles = await Article.find({
     status: "published",
-    tags: { $regex: tag, $options: "i" },
+    tags: tagRegex,
   })
     .populate(articlePopulate)
     .sort({ publishedAt: -1 })

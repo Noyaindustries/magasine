@@ -7,7 +7,6 @@ import { Article } from "@/models/Article";
 import { Alert } from "@/models/Alert";
 import { Newsletter } from "@/models/Newsletter";
 import { User } from "@/models/User";
-import bcrypt from "bcryptjs";
 import slugify from "slugify";
 import {
   SEED_ALERTS,
@@ -17,10 +16,12 @@ import {
   SEED_NEWSLETTER,
 } from "@/lib/seed-data";
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
-import { ensureDefaultAdmin, DEFAULT_ADMIN_PASSWORD } from "@/lib/ensure-admin";
+import { ensureDefaultAdmin, DEFAULT_ADMIN_EMAIL } from "@/lib/ensure-admin";
 import { resolveArticleContent } from "@/lib/article-content";
 import { migrateCategorySlugs } from "@/lib/migrate-category-slugs";
-import { isBootstrapAuthorized } from "@/lib/bootstrap-secret";
+import { isBootstrapAuthorized, isProduction } from "@/lib/bootstrap-secret";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 
 function canRepairAdmin(request: NextRequest): boolean {
   if (process.env.NODE_ENV === "development") {
@@ -44,6 +45,13 @@ async function clearDatabase() {
 }
 
 export async function GET(request: NextRequest) {
+  const limited = enforceRateLimit(request, {
+    prefix: "seed",
+    max: 10,
+    windowMs: 3600_000,
+  });
+  if (limited) return limited;
+
   try {
     const force = request.nextUrl.searchParams.get("force") === "true";
 
@@ -62,7 +70,7 @@ export async function GET(request: NextRequest) {
       const admin = repairAdmin
         ? await ensureDefaultAdmin({
             resetPassword:
-              process.env.NODE_ENV === "development" ||
+              process.env.NODE_ENV === "development" &&
               request.nextUrl.searchParams.get("resetPassword") !== "false",
           })
         : null;
@@ -70,18 +78,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         message: repairAdmin
           ? "Admin account verified or repaired."
-          : "Database already initialized. Use ?force=true to reset, or /api/bootstrap/admin?key=… in production.",
+          : "Database already initialized. Use ?force=true as super_admin, or /api/bootstrap/admin with Bearer auth.",
         seeded: false,
         categoriesMigrated,
         admin: admin
           ? {
               email: admin.email,
-              password:
-                admin.repaired || admin.created ? DEFAULT_ADMIN_PASSWORD : undefined,
               ensured: admin.repaired || admin.created,
             }
           : undefined,
       });
+    }
+
+    if (isProduction() && !isBootstrapAuthorized(request) && existing === 0) {
+      return NextResponse.json(
+        {
+          error: "Bootstrap authorization required for initial seed in production.",
+          hint: "Use Authorization: Bearer <BOOTSTRAP_SECRET> (min 32 chars).",
+        },
+        { status: 401 },
+      );
     }
 
     if (existing > 0 && force) {
@@ -94,27 +110,34 @@ export async function GET(request: NextRequest) {
       SEED_AUTHORS.map((a) => ({
         ...a,
         avatar: getAuthorAvatarUrl(a.slug),
-      }))
+      })),
     );
 
     const catMap = Object.fromEntries(
-      (await Category.find().lean()).map((c) => [c.slug, c._id])
+      (await Category.find().lean()).map((c) => [c.slug, c._id]),
     );
 
     const now = new Date();
     const articles = SEED_ARTICLES.map((article, i) => {
-      const words = article.content.replace(/<[^>]*>/g, "").split(/\s+/).length;
+      const rawContent = resolveArticleContent(
+        article.title,
+        article.excerpt,
+        article.content,
+        article.slug ?? slugify(article.title, { lower: true, strict: true }),
+      );
+      const words = rawContent.replace(/<[^>]*>/g, "").split(/\s+/).length;
       const publishedAt = new Date(now.getTime() - i * 3600000 * 4);
       const authorIndex = article.authorIndex ?? i % createdAuthors.length;
 
-      const slug = article.slug ?? slugify(article.title, { lower: true, strict: true });
+      const slug =
+        article.slug ?? slugify(article.title, { lower: true, strict: true });
 
       return {
         title: article.title,
         subtitle: article.subtitle,
         slug,
         excerpt: article.excerpt,
-        content: resolveArticleContent(article.title, article.excerpt, article.content, slug),
+        content: sanitizeArticleHtml(rawContent),
         featuredImage: resolveFeaturedImage(article.image),
         featuredImageAlt: article.title,
         category: catMap[article.category],
@@ -142,13 +165,7 @@ export async function GET(request: NextRequest) {
     await Alert.insertMany(SEED_ALERTS);
     await Newsletter.insertMany(SEED_NEWSLETTER);
 
-    const adminPassword = await bcrypt.hash("Admin123!", 12);
-    await User.create({
-      name: "Administrator",
-      email: "admin@globalsouthwatch.com".toLowerCase(),
-      password: adminPassword,
-      role: "super_admin",
-    });
+    await ensureDefaultAdmin({ resetPassword: true });
 
     return NextResponse.json({
       message: "Database initialized successfully",
@@ -159,7 +176,7 @@ export async function GET(request: NextRequest) {
         articles: articles.length,
         alerts: SEED_ALERTS.length,
         newsletter: SEED_NEWSLETTER.length,
-        admin: "admin@globalsouthwatch.com / Admin123!",
+        admin: DEFAULT_ADMIN_EMAIL,
       },
     });
   } catch (error) {
@@ -169,11 +186,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         error: atlasLimit
-          ? "Atlas limit reached (500 collections). Delete unused databases (e.g. « magazine » with a space) in MongoDB Atlas, or use a local database."
+          ? "Atlas limit reached (500 collections). Delete unused databases in MongoDB Atlas, or use a local database."
           : "Initialization error",
-        details: message,
+        details: process.env.NODE_ENV === "development" ? message : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

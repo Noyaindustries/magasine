@@ -1,3 +1,5 @@
+import { toSafeVideoEmbedUrl } from "@/lib/video-url";
+
 export const ARTICLE_CONTENT_TYPES = [
   { id: "article", label: "Article" },
   { id: "video", label: "Video" },
@@ -11,8 +13,7 @@ export function isArticleContentType(value: string): value is ArticleContentType
   return ARTICLE_CONTENT_TYPES.some((item) => item.id === value);
 }
 
+/** Autorise uniquement YouTube, Vimeo, fichiers vidéo locaux ou uploads internes. */
 export function isValidVideoSourceUrl(url: string): boolean {
-  const trimmed = url.trim();
-  if (!trimmed) return false;
-  return trimmed.startsWith("/") || /^https?:\/\//i.test(trimmed);
+  return toSafeVideoEmbedUrl(url.trim()) !== null;
 }

@@ -3,14 +3,24 @@ import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
+  name: z.string().min(2).max(100),
+  email: z.string().email().max(254),
+  password: z
+    .string()
+    .min(12)
+    .max(128)
+    .regex(/[A-Z]/, "Password must include an uppercase letter")
+    .regex(/[a-z]/, "Password must include a lowercase letter")
+    .regex(/[0-9]/, "Password must include a number"),
 });
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, { prefix: "register", max: 10, windowMs: 3600_000 });
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

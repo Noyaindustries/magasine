@@ -3,6 +3,7 @@ import { Play, Mic } from "lucide-react";
 import type { ArticleDetail } from "@/types";
 import { toVideoEmbedUrl, isVideoFile } from "@/lib/format-article";
 import { resolveFeaturedImage } from "@/lib/images";
+import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 
 interface ArticleBodyProps {
   article: ArticleDetail;
@@ -88,7 +89,11 @@ export function ArticleBody({ article, truncated = false }: ArticleBodyProps) {
 
       <div
         className="article-content"
-        dangerouslySetInnerHTML={{ __html: article.content }}
+        dangerouslySetInnerHTML={{
+          __html: sanitizeArticleHtml(
+            truncated ? `${article.content.slice(0, 800)}…` : article.content,
+          ),
+        }}
       />
 
       {!isGalleryType && galleryBlock}

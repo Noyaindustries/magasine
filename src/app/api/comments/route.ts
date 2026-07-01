@@ -5,6 +5,7 @@ import { Article } from "@/models/Article";
 import { auth } from "@/lib/auth";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 const createSchema = z.object({
   articleId: z.string(),
@@ -52,6 +53,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, { prefix: "comments", max: 30, windowMs: 3600_000 });
+  if (limited) return limited;
+
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
@@ -78,7 +82,7 @@ export async function POST(request: NextRequest) {
     const comment = await Comment.create({
       article: parsed.data.articleId,
       user: session.user.id,
-      content: parsed.data.content,
+      content: parsed.data.content.replace(/<[^>]*>/g, "").trim(),
       parent: parsed.data.parentId,
       isApproved: false,
       isRejected: false,

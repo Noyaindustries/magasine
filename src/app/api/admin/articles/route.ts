@@ -6,6 +6,7 @@ import { Article } from "@/models/Article";
 import { estimateReadingTime } from "@/lib/utils";
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
+import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       subtitle: parsed.data.subtitle,
       slug,
       excerpt: parsed.data.excerpt,
-      content: parsed.data.content,
+      content: sanitizeArticleHtml(parsed.data.content),
       featuredImage: parsed.data.featuredImage,
       featuredImageCaption: parsed.data.featuredImageCaption,
       category: parsed.data.categoryId,

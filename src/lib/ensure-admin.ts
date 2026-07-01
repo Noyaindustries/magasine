@@ -3,19 +3,38 @@ import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
 
 export const DEFAULT_ADMIN_EMAIL = "admin@globalsouthwatch.com";
-export const DEFAULT_ADMIN_PASSWORD = "Admin123!";
+
+/** Mot de passe dev uniquement — jamais utilisé en production. */
+const DEV_FALLBACK_PASSWORD = "Admin123!";
 
 interface EnsureAdminOptions {
-  /** Resets the seed admin password (dev / recovery only). */
+  /** Réinitialise le mot de passe admin (dev / recovery bootstrap uniquement). */
   resetPassword?: boolean;
 }
 
-/** Ensures a super_admin account exists (creates if missing, optionally repairs password). */
+/**
+ * Retourne le mot de passe bootstrap admin.
+ * En production, DEFAULT_ADMIN_PASSWORD (≥12 caractères) est obligatoire.
+ */
+export function getDefaultAdminPassword(): string {
+  const fromEnv = process.env.DEFAULT_ADMIN_PASSWORD?.trim();
+  if (fromEnv && fromEnv.length >= 12) return fromEnv;
+  if (process.env.NODE_ENV === "development") return DEV_FALLBACK_PASSWORD;
+  throw new Error(
+    "DEFAULT_ADMIN_PASSWORD must be set in production (minimum 12 characters).",
+  );
+}
+
+/** @deprecated Utiliser getDefaultAdminPassword() — conservé pour compatibilité dev. */
+export const DEFAULT_ADMIN_PASSWORD =
+  process.env.NODE_ENV === "development" ? DEV_FALLBACK_PASSWORD : "";
+
+/** Garantit qu'un compte super_admin existe (création ou réparation optionnelle). */
 export async function ensureDefaultAdmin(options: EnsureAdminOptions = {}) {
   await connectDB();
 
   const email = DEFAULT_ADMIN_EMAIL.toLowerCase();
-  const passwordHash = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, 12);
+  const passwordHash = await bcrypt.hash(getDefaultAdminPassword(), 12);
 
   let user = await User.findOne({ email });
   if (!user) {

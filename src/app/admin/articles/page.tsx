@@ -9,6 +9,7 @@ import {
 } from "@/components/admin/cms/CmsArticlesView";
 import type { ArticleStatus } from "@/types";
 import { ARTICLES_PAGE_SIZE } from "@/lib/pagination";
+import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 
 interface PageProps {
   searchParams: Promise<{
@@ -43,10 +44,10 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
   const filter: Record<string, unknown> = {};
   if (status) filter.status = status;
   if (q?.trim()) {
-    filter.$or = [
-      { title: { $regex: q.trim(), $options: "i" } },
-      { excerpt: { $regex: q.trim(), $options: "i" } },
-    ];
+    const termRegex = buildCaseInsensitiveRegex(q);
+    if (termRegex) {
+      filter.$or = [{ title: termRegex }, { excerpt: termRegex }];
+    }
   }
 
   if (category?.trim()) {
