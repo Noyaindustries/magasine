@@ -41,7 +41,10 @@ export default async function ArticlePage({ params }: Props) {
   const [data, session] = await Promise.all([getArticleBySlug(slug), auth()]);
   if (!data) notFound();
 
-  const siteUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    process.env.NEXTAUTH_URL ??
+    "http://localhost:3000";
 
   return (
     <>

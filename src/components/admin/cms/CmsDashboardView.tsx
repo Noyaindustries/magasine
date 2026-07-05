@@ -25,6 +25,7 @@ import { toast } from "@/lib/toast";
 interface CmsDashboardViewProps {
   data: AdminDashboardData;
   userName: string;
+  todayLabel: string;
 }
 
 const KPI_ACCENTS = ["#1a3896", "#22C55E", "#C9A227", "#9B2226"];
@@ -104,7 +105,7 @@ function ActivityRow({ item }: { item: DashboardActivityItem }) {
             </>
           )}
         </div>
-        <div className="atime">{formatRelative(item.at)}</div>
+        <div className="atime" suppressHydrationWarning>{formatRelative(item.at)}</div>
       </div>
     </>
   );
@@ -156,13 +157,7 @@ function PublishButton({ articleId }: { articleId: string }) {
   );
 }
 
-export function CmsDashboardView({ data, userName }: CmsDashboardViewProps) {
-  const today = new Date().toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+export function CmsDashboardView({ data, userName, todayLabel }: CmsDashboardViewProps) {
 
   const kpiCards = [
     {
@@ -252,7 +247,7 @@ export function CmsDashboardView({ data, userName }: CmsDashboardViewProps) {
               <h2 className="dash-hero-title">
                 Good day, <em>{userName.split(" ")[0]}</em>
               </h2>
-              <p className="dash-hero-date">{today}</p>
+              <p className="dash-hero-date">{todayLabel}</p>
             </div>
             <div className="dash-hero-metrics">
               <div className="dash-hero-metric">
@@ -383,7 +378,7 @@ export function CmsDashboardView({ data, userName }: CmsDashboardViewProps) {
                     <td>
                       <StatusBadge status={article.status} scheduledAt={article.scheduledAt} />
                     </td>
-                    <td className="tc-muted">{formatRelative(article.updatedAt)}</td>
+                    <td className="tc-muted" suppressHydrationWarning>{formatRelative(article.updatedAt)}</td>
                     <td>
                       <div className="cms-row-actions">
                         {article.status === "review" && (

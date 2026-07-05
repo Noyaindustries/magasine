@@ -209,7 +209,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (token.sessionRevoked) {
-        return { expires: new Date(0).toISOString() };
+        return { ...session, user: undefined, expires: new Date(0).toISOString() };
       }
 
       if (session.user) {

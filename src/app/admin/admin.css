@@ -1359,6 +1359,12 @@
 .dash-chart-body {
   flex: 1;
   min-height: 220px;
+  min-width: 0;
+}
+
+.dash-chart-measured {
+  width: 100%;
+  min-width: 0;
 }
 
 .dash-chart-body--tall {

@@ -90,9 +90,14 @@ export function ArticleBody({ article, truncated = false }: ArticleBodyProps) {
       <div
         className="article-content"
         dangerouslySetInnerHTML={{
-          __html: sanitizeArticleHtml(
-            truncated ? `${article.content.slice(0, 800)}…` : article.content,
-          ),
+          __html: (() => {
+            const raw = truncated ? `${article.content.slice(0, 800)}…` : article.content;
+            try {
+              return sanitizeArticleHtml(raw);
+            } catch {
+              return "";
+            }
+          })(),
         }}
       />
 

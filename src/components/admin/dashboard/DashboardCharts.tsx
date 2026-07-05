@@ -12,14 +12,12 @@ import {
   Line,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import type { AdminDashboardData, CategoryStat, PipelineSlice, TimelinePoint } from "@/lib/admin-dashboard";
-import { ClientOnly } from "@/components/admin/dashboard/ClientOnly";
-import { ChartSkeleton } from "@/components/admin/dashboard/ChartSkeleton";
+import { MeasuredChart } from "@/components/admin/dashboard/MeasuredChart";
 import {
   CHART_ANIMATION,
   CHART_COLORS,
@@ -29,16 +27,6 @@ import {
 
 function ChartEmpty({ message }: { message: string }) {
   return <p className="dash-chart-empty">{message}</p>;
-}
-
-function ChartFrame({
-  children,
-  tall = false,
-}: {
-  children: ReactNode;
-  tall?: boolean;
-}) {
-  return <ClientOnly fallback={<ChartSkeleton tall={tall} />}>{children}</ClientOnly>;
 }
 
 function CategoryTooltip({
@@ -83,8 +71,7 @@ export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
         {timeline.length === 0 ? (
           <ChartEmpty message="No publishing activity in the last 14 days." />
         ) : (
-          <ChartFrame tall>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart tall>
               <ComposedChart data={timeline} margin={{ top: 12, right: 12, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradArticles" x1="0" y1="0" x2="0" y2="1">
@@ -141,8 +128,7 @@ export function PublishingChart({ timeline }: { timeline: TimelinePoint[] }) {
                   animationEasing={CHART_ANIMATION.easing}
                 />
               </ComposedChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>
@@ -180,8 +166,7 @@ export function CategoryTrafficChart({
         {data.length === 0 ? (
           <ChartEmpty message="No category traffic data yet." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} strokeDasharray="4 6" />
                 <XAxis type="number" hide />
@@ -206,8 +191,7 @@ export function CategoryTrafficChart({
                   ))}
                 </Bar>
               </BarChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>
@@ -227,8 +211,7 @@ export function CategoryChart({ categories }: { categories: CategoryStat[] }) {
         {categories.length === 0 ? (
           <ChartEmpty message="No published articles by category yet." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <BarChart data={categories} layout="vertical" margin={{ top: 0, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} strokeDasharray="4 6" />
                 <XAxis type="number" hide />
@@ -253,8 +236,7 @@ export function CategoryChart({ categories }: { categories: CategoryStat[] }) {
                   ))}
                 </Bar>
               </BarChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>
@@ -276,8 +258,7 @@ export function PipelineChart({ pipeline }: { pipeline: PipelineSlice[] }) {
         {pipeline.length === 0 ? (
           <ChartEmpty message="No articles in the editorial pipeline." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <PieChart>
                 <defs>
                   {PIPELINE_COLORS.map((color, i) => (
@@ -313,8 +294,7 @@ export function PipelineChart({ pipeline }: { pipeline: PipelineSlice[] }) {
                   }}
                 />
               </PieChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
         {total > 0 && (
           <div className="dash-donut-center">
@@ -349,8 +329,7 @@ export function SubscriberChart({ timeline }: { timeline: TimelinePoint[] }) {
         {timeline.length === 0 ? (
           <ChartEmpty message="No newsletter sign-ups in the last 14 days." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <AreaChart data={timeline} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradSubs" x1="0" y1="0" x2="0" y2="1">
@@ -372,8 +351,7 @@ export function SubscriberChart({ timeline }: { timeline: TimelinePoint[] }) {
                   animationEasing={CHART_ANIMATION.easing}
                 />
               </AreaChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>
@@ -402,8 +380,7 @@ export function TopArticlesChart({
         {data.length === 0 ? (
           <ChartEmpty message="No published articles with view data yet." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <BarChart data={data} margin={{ top: 12, right: 12, left: -8, bottom: 52 }}>
                 <defs>
                   <linearGradient id="gradTopViews" x1="0" y1="0" x2="0" y2="1">
@@ -442,8 +419,7 @@ export function TopArticlesChart({
                   animationEasing={CHART_ANIMATION.easing}
                 />
               </BarChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>
@@ -471,8 +447,7 @@ export function TodayPulseChart({ timeline }: { timeline: TimelinePoint[] }) {
         {data.length === 0 ? (
           <ChartEmpty message="No reader activity data yet." />
         ) : (
-          <ChartFrame>
-            <ResponsiveContainer width="100%" height="100%">
+          <MeasuredChart>
               <ComposedChart data={data} margin={{ top: 12, right: 8, left: -16, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradPulse" x1="0" y1="0" x2="0" y2="1">
@@ -501,8 +476,7 @@ export function TodayPulseChart({ timeline }: { timeline: TimelinePoint[] }) {
                   animationDuration={CHART_ANIMATION.barDuration}
                 />
               </ComposedChart>
-            </ResponsiveContainer>
-          </ChartFrame>
+          </MeasuredChart>
         )}
       </div>
     </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Link from "next/link";
 import {
   Area,
@@ -13,20 +12,17 @@ import {
   Line,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import type {
-  AdminAnalyticsData,
   AnalyticsCategoryRow,
   AnalyticsContentTypeRow,
   AnalyticsTimelinePoint,
   AnalyticsTopArticle,
 } from "@/lib/admin-analytics";
-import { ClientOnly } from "@/components/admin/dashboard/ClientOnly";
-import { ChartSkeleton } from "@/components/admin/dashboard/ChartSkeleton";
+import { MeasuredChart } from "@/components/admin/dashboard/MeasuredChart";
 import {
   CHART_ANIMATION,
   CHART_COLORS,
@@ -35,16 +31,6 @@ import {
 
 function ChartEmpty({ message }: { message: string }) {
   return <p className="dash-chart-empty">{message}</p>;
-}
-
-function ChartFrame({
-  children,
-  tall = false,
-}: {
-  children: ReactNode;
-  tall?: boolean;
-}) {
-  return <ClientOnly fallback={<ChartSkeleton tall={tall} />}>{children}</ClientOnly>;
 }
 
 const axisTick = { fontSize: 11, fill: CHART_COLORS.muted };
@@ -72,41 +58,39 @@ export function AnalyticsTrafficChart({
         </div>
       </div>
       <div className="dash-chart-body dash-chart-body--tall">
-        <ChartFrame tall>
-          {!hasData ? (
-            <ChartEmpty message="Page view tracking starts from the first article read after this update." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="analyticsViewsGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.35} />
-                    <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-                <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
-                <YAxis tick={axisTick} tickLine={false} axisLine={false} width={36} />
-                <Tooltip
-                  contentStyle={CHART_TOOLTIP_STYLE}
-                  formatter={(value) => [
-                    Number(value ?? 0).toLocaleString("en-US"),
-                    "Views",
-                  ]}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="pageViews"
-                  stroke={CHART_COLORS.primary}
-                  strokeWidth={2.5}
-                  fill="url(#analyticsViewsGrad)"
-                  animationDuration={CHART_ANIMATION.duration}
-                  animationEasing={CHART_ANIMATION.easing}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          )}
-        </ChartFrame>
+        {!hasData ? (
+          <ChartEmpty message="Page view tracking starts from the first article read after this update." />
+        ) : (
+          <MeasuredChart tall>
+            <AreaChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="analyticsViewsGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={CHART_COLORS.primary} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={CHART_COLORS.primary} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
+              <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
+              <YAxis tick={axisTick} tickLine={false} axisLine={false} width={36} />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP_STYLE}
+                formatter={(value) => [
+                  Number(value ?? 0).toLocaleString("en-US"),
+                  "Views",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="pageViews"
+                stroke={CHART_COLORS.primary}
+                strokeWidth={2.5}
+                fill="url(#analyticsViewsGrad)"
+                animationDuration={CHART_ANIMATION.duration}
+                animationEasing={CHART_ANIMATION.easing}
+              />
+            </AreaChart>
+          </MeasuredChart>
+        )}
       </div>
     </div>
   );
@@ -137,39 +121,37 @@ export function AnalyticsEngagementChart({
         </div>
       </div>
       <div className="dash-chart-body dash-chart-body--tall">
-        <ChartFrame tall>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-              <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
-              <YAxis tick={axisTick} tickLine={false} axisLine={false} width={32} />
-              <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-              <Bar
-                dataKey="comments"
-                fill={CHART_COLORS.gold}
-                radius={[4, 4, 0, 0]}
-                animationDuration={CHART_ANIMATION.barDuration}
-              />
-              <Line
-                type="monotone"
-                dataKey="subscribers"
-                stroke={CHART_COLORS.green}
-                strokeWidth={2}
-                dot={false}
-                animationDuration={CHART_ANIMATION.duration}
-              />
-              <Line
-                type="monotone"
-                dataKey="registrations"
-                stroke={CHART_COLORS.blue}
-                strokeWidth={2}
-                dot={false}
-                strokeDasharray="4 4"
-                animationDuration={CHART_ANIMATION.duration}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </ChartFrame>
+        <MeasuredChart tall>
+          <ComposedChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
+            <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
+            <YAxis tick={axisTick} tickLine={false} axisLine={false} width={32} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Bar
+              dataKey="comments"
+              fill={CHART_COLORS.gold}
+              radius={[4, 4, 0, 0]}
+              animationDuration={CHART_ANIMATION.barDuration}
+            />
+            <Line
+              type="monotone"
+              dataKey="subscribers"
+              stroke={CHART_COLORS.green}
+              strokeWidth={2}
+              dot={false}
+              animationDuration={CHART_ANIMATION.duration}
+            />
+            <Line
+              type="monotone"
+              dataKey="registrations"
+              stroke={CHART_COLORS.blue}
+              strokeWidth={2}
+              dot={false}
+              strokeDasharray="4 4"
+              animationDuration={CHART_ANIMATION.duration}
+            />
+          </ComposedChart>
+        </MeasuredChart>
       </div>
     </div>
   );
@@ -189,22 +171,20 @@ export function AnalyticsPublishingChart({
         </div>
       </div>
       <div className="dash-chart-body">
-        <ChartFrame>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-              <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
-              <YAxis tick={axisTick} tickLine={false} axisLine={false} width={28} allowDecimals={false} />
-              <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-              <Bar
-                dataKey="publications"
-                fill={CHART_COLORS.primary}
-                radius={[4, 4, 0, 0]}
-                animationDuration={CHART_ANIMATION.barDuration}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartFrame>
+        <MeasuredChart>
+          <BarChart data={timeline} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
+            <XAxis dataKey="label" tick={axisTick} tickLine={false} axisLine={false} />
+            <YAxis tick={axisTick} tickLine={false} axisLine={false} width={28} allowDecimals={false} />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            <Bar
+              dataKey="publications"
+              fill={CHART_COLORS.primary}
+              radius={[4, 4, 0, 0]}
+              animationDuration={CHART_ANIMATION.barDuration}
+            />
+          </BarChart>
+        </MeasuredChart>
       </div>
     </div>
   );
@@ -245,40 +225,38 @@ export function AnalyticsCategoryChart({
         </div>
       </div>
       <div className="dash-chart-body dash-chart-body--tall">
-        <ChartFrame tall>
-          {data.length === 0 ? (
-            <ChartEmpty message="No published articles yet." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={data}
-                layout="vertical"
-                margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
+        {data.length === 0 ? (
+          <ChartEmpty message="No published articles yet." />
+        ) : (
+          <MeasuredChart tall>
+            <BarChart
+              data={data}
+              layout="vertical"
+              margin={{ top: 4, right: 16, left: 4, bottom: 4 }}
+            >
+              <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} />
+              <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                tick={axisTick}
+                tickLine={false}
+                axisLine={false}
+                width={88}
+              />
+              <Tooltip content={<CategoryTooltip />} />
+              <Bar
+                dataKey="views"
+                radius={[0, 4, 4, 0]}
+                animationDuration={CHART_ANIMATION.barDuration}
               >
-                <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} />
-                <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={axisTick}
-                  tickLine={false}
-                  axisLine={false}
-                  width={88}
-                />
-                <Tooltip content={<CategoryTooltip />} />
-                <Bar
-                  dataKey="views"
-                  radius={[0, 4, 4, 0]}
-                  animationDuration={CHART_ANIMATION.barDuration}
-                >
-                  {data.map((entry) => (
-                    <Cell key={entry.slug} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </ChartFrame>
+                {data.map((entry) => (
+                  <Cell key={entry.slug} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </MeasuredChart>
+        )}
       </div>
     </div>
   );
@@ -300,35 +278,33 @@ export function AnalyticsContentTypeChart({
         </div>
       </div>
       <div className="dash-chart-body dash-chart-body--donut">
-        <ChartFrame>
-          {data.length === 0 ? (
-            <ChartEmpty message="No view data by format yet." />
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  dataKey="views"
-                  nameKey="label"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius="52%"
-                  outerRadius="78%"
-                  paddingAngle={2}
-                  animationDuration={CHART_ANIMATION.pieDuration}
-                >
-                  {data.map((entry, index) => (
-                    <Cell
-                      key={entry.type}
-                      fill={CONTENT_COLORS[index % CONTENT_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </ChartFrame>
+        {data.length === 0 ? (
+          <ChartEmpty message="No view data by format yet." />
+        ) : (
+          <MeasuredChart height={200}>
+            <PieChart>
+              <Pie
+                data={data}
+                dataKey="views"
+                nameKey="label"
+                cx="50%"
+                cy="50%"
+                innerRadius="52%"
+                outerRadius="78%"
+                paddingAngle={2}
+                animationDuration={CHART_ANIMATION.pieDuration}
+              >
+                {data.map((entry, index) => (
+                  <Cell
+                    key={entry.type}
+                    fill={CONTENT_COLORS[index % CONTENT_COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+            </PieChart>
+          </MeasuredChart>
+        )}
       </div>
     </div>
   );

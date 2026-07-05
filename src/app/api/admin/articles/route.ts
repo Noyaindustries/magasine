@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ _id: String(article._id), slug: article.slug }, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("[admin/articles POST]", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

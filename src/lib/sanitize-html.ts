@@ -1,99 +1,76 @@
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
-const ALLOWED_TAGS = [
-  "p",
-  "br",
-  "strong",
-  "em",
-  "u",
-  "s",
-  "h1",
-  "h2",
-  "h3",
-  "h4",
-  "h5",
-  "h6",
-  "ul",
-  "ol",
-  "li",
-  "blockquote",
-  "pre",
-  "code",
-  "a",
+const ALLOWED_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   "img",
   "figure",
   "figcaption",
-  "table",
-  "thead",
-  "tbody",
-  "tr",
-  "th",
-  "td",
-  "hr",
-  "span",
-  "div",
+  "h1",
+  "h2",
   "iframe",
-] as const;
+]);
 
-const ALLOWED_ATTR = [
-  "href",
-  "title",
-  "target",
-  "rel",
-  "src",
-  "alt",
-  "width",
-  "height",
-  "class",
-  "colspan",
-  "rowspan",
-  "allow",
-  "allowfullscreen",
-  "frameborder",
-  "referrerpolicy",
-] as const;
+const ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions["allowedAttributes"] = {
+  ...sanitizeHtml.defaults.allowedAttributes,
+  a: ["href", "title", "target", "rel"],
+  img: ["src", "alt", "width", "height"],
+  iframe: [
+    "src",
+    "width",
+    "height",
+    "allow",
+    "allowfullscreen",
+    "frameborder",
+    "referrerpolicy",
+    "title",
+  ],
+  td: ["colspan", "rowspan"],
+  th: ["colspan", "rowspan"],
+};
 
 const SAFE_URL_PATTERN =
   /^(?:(?:https?|mailto|tel):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i;
 
-DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
-  if (data.attrName === "href" || data.attrName === "src") {
-    const value = data.attrValue?.trim() ?? "";
-    if (/^\s*javascript:/i.test(value) || /^\s*data:/i.test(value)) {
-      data.keepAttr = false;
-    }
-  }
-
-  if (node.tagName === "IFRAME" && data.attrName === "src") {
-    const src = data.attrValue?.trim() ?? "";
-    const allowed =
-      /^https:\/\/(www\.)?youtube\.com\/embed\/[\w-]+/i.test(src) ||
-      /^https:\/\/player\.vimeo\.com\/video\/\d+/i.test(src);
-    if (!allowed) {
-      data.keepAttr = false;
-    }
-  }
-});
+function isAllowedIframeSrc(src: string): boolean {
+  const trimmed = src.trim();
+  return (
+    /^https:\/\/(www\.)?youtube\.com\/embed\/[\w-]+/i.test(trimmed) ||
+    /^https:\/\/player\.vimeo\.com\/video\/\d+/i.test(trimmed)
+  );
+}
 
 /**
  * Sanitise le HTML riche des articles (contenu CMS / TipTap).
- * Bloque scripts, handlers inline et iframes non whitelistées.
+ * Utilise sanitize-html (compatible serverless, sans jsdom).
  */
 export function sanitizeArticleHtml(html: string): string {
   if (!html?.trim()) return "";
 
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [...ALLOWED_TAGS],
-    ALLOWED_ATTR: [...ALLOWED_ATTR],
-    ALLOW_DATA_ATTR: false,
-    ALLOW_UNKNOWN_PROTOCOLS: false,
-    SAFE_FOR_TEMPLATES: true,
-    ADD_ATTR: ["target", "rel"],
-    FORBID_TAGS: ["script", "style", "object", "embed", "form", "input", "base"],
-    FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover", "style"],
-  })
-    .replace(/<a\s/gi, '<a rel="noopener noreferrer" ')
-    .trim();
+  try {
+    return sanitizeHtml(html, {
+      allowedTags: ALLOWED_TAGS,
+      allowedAttributes: ALLOWED_ATTRIBUTES,
+      allowedSchemes: ["http", "https", "mailto", "tel"],
+      allowedSchemesByTag: {
+        img: ["http", "https"],
+      },
+      allowProtocolRelative: false,
+      transformTags: {
+        a: sanitizeHtml.simpleTransform("a", {
+          rel: "noopener noreferrer",
+        }),
+      },
+      exclusiveFilter(frame) {
+        if (frame.tag === "iframe") {
+          const src = frame.attribs.src?.trim() ?? "";
+          return !isAllowedIframeSrc(src);
+        }
+        return false;
+      },
+    }).trim();
+  } catch (error) {
+    console.error("[sanitize-html] failed:", error);
+    return sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} }).trim();
+  }
 }
 
 /**

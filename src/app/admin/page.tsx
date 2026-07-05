@@ -47,10 +47,19 @@ export default async function AdminDashboard() {
     console.error("[admin/dashboard] Failed to load metrics:", error);
   }
 
+  const todayLabel = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
   return (
     <CmsDashboardView
       data={data}
       userName={session?.user?.name ?? "Editor"}
+      todayLabel={todayLabel}
     />
   );
 }
