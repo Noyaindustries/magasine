@@ -1,5 +1,6 @@
 export const ARTICLES_PAGE_SIZE = 20;
 export const USERS_PAGE_SIZE = 25;
+export const NEWSLETTER_PAGE_SIZE = 25;
 
 export type PaginationItem = number | "ellipsis";
 
