@@ -65,6 +65,7 @@ export interface ISiteSettings {
   brevoConnected: boolean;
   typographyPreset: string;
   adZones: AdZoneDoc[];
+  aboutPage?: unknown;
   updatedAt: Date;
 }
 
@@ -131,6 +132,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     mailchimpConnected: { type: Boolean, default: false },
     brevoConnected: { type: Boolean, default: false },
     typographyPreset: { type: String, default: "canela-editorial" },
+    aboutPage: { type: Schema.Types.Mixed, default: null },
     adZones: {
       type: [
         {

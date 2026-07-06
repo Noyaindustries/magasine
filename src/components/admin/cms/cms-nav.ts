@@ -43,6 +43,12 @@ export const CMS_NAV_GROUPS: CmsNavGroup[] = [
         href: "/admin/categories",
         roles: ["super_admin", "admin", "editor"],
       },
+      {
+        id: "about",
+        label: "About page",
+        href: "/admin/about",
+        roles: ["super_admin", "admin", "editor"],
+      },
     ],
   },
   {
@@ -97,6 +103,7 @@ export const CMS_PAGE_META: { match: (path: string) => boolean; title: string; b
   { match: (p) => p.startsWith("/admin/articles"), title: "Articles", breadcrumb: "Articles" },
   { match: (p) => p.startsWith("/admin/review"), title: "Review queue", breadcrumb: "Review" },
   { match: (p) => p.startsWith("/admin/homepage"), title: "Homepage", breadcrumb: "Homepage layout" },
+  { match: (p) => p.startsWith("/admin/about"), title: "About page", breadcrumb: "About page" },
   { match: (p) => p.startsWith("/admin/categories"), title: "Categories", breadcrumb: "Categories" },
   { match: (p) => p.startsWith("/admin/authors"), title: "Authors", breadcrumb: "Authors" },
   { match: (p) => p.startsWith("/admin/medias"), title: "Media library", breadcrumb: "Media" },

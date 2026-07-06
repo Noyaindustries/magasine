@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  BookOpen,
   Clock,
   Eye,
   FileText,
@@ -214,6 +215,12 @@ export function AdminDashboardView({
             {canEditHome && (
               <Link href="/admin/homepage" className="dash-quick-action">
                 Homepage editor
+              </Link>
+            )}
+            {canEditHome && (
+              <Link href="/admin/about" className="dash-quick-action">
+                <BookOpen className="w-5 h-5" />
+                About page
               </Link>
             )}
             <Link href="/admin/newsletter" className="dash-quick-action">
