@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Clock, Eye, MessageSquare, Sparkles } from "lucide-react";
+import { Clock, Eye, Home, MessageSquare, Sparkles } from "lucide-react";
 import type { AdminDashboardData, DashboardActivityItem } from "@/lib/admin-dashboard";
 import {
   downloadWeeklyReport,
@@ -207,6 +207,12 @@ export function CmsDashboardView({ data, userName, todayLabel }: CmsDashboardVie
               <CmsDashboardIcons.comments size={14} aria-hidden />
             </div>
             {data.pendingComments} comment{data.pendingComments > 1 ? "s" : ""} to moderate
+          </Link>
+          <Link href="/" className="qa">
+            <div className="qaico qaico--blue">
+              <Home size={14} aria-hidden />
+            </div>
+            View homepage
           </Link>
           <button
             type="button"

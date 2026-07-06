@@ -505,6 +505,24 @@ body:has(.cms-shell) {
   color: var(--t1);
 }
 
+.cms-shell .tb-btn--site {
+  width: auto;
+  padding: 0 12px;
+  gap: 6px;
+}
+
+.cms-shell .tb-btn-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 900px) {
+  .cms-shell .tb-btn--site .tb-btn-label {
+    display: none;
+  }
+}
+
 .cms-shell .tb-ndot {
   position: absolute;
   top: -3px;

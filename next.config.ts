@@ -4,6 +4,7 @@ import { securityHeaders } from "@/lib/security-headers";
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["mongoose", "mongodb", "bcryptjs"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },

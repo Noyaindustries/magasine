@@ -4,7 +4,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
-import { Bell, HelpCircle, Plus } from "lucide-react";
+import { Bell, HelpCircle, Home, Plus } from "lucide-react";
 import { getCmsPageMeta } from "@/components/admin/cms/cms-nav";
 import type { AdminNavStats } from "@/lib/admin-nav";
 import { useSiteBranding } from "@/components/SiteBranding";
@@ -56,6 +56,10 @@ export function CmsTopBar({ stats, onOpenMenu }: CmsTopBarProps) {
       </form>
       <div className="tb-sep" />
       <div className="tb-actions">
+        <Link href="/" className="tb-btn tb-btn--site" title="View homepage">
+          <Home className="w-3.5 h-3.5" />
+          <span className="tb-btn-label">Homepage</span>
+        </Link>
         <Link href="/admin/review" className="tb-btn" title="Notifications">
           <Bell className="w-3.5 h-3.5" />
           {notifications > 0 && (

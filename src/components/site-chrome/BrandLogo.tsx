@@ -38,7 +38,7 @@ export function BrandLogo({
         height={height}
         priority={variant === "header"}
         unoptimized
-        style={{ height, width: "auto", maxWidth: width }}
+        style={{ width: "auto", height: "auto", maxHeight: height, maxWidth: width }}
       />
       {displayTagline && (
         <div className="logo-tagline">Decolonizing media</div>

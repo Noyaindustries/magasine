@@ -1,5 +1,6 @@
 import { TICKER_ITEMS } from "@/data/site-home";
 import { getEditorialDateString } from "@/lib/editorial-date";
+import { SITE_SOCIAL_NETWORKS } from "@/lib/social";
 import { SocialLinks } from "@/components/ui/SocialIcons";
 
 interface TopBarProps {
@@ -34,7 +35,7 @@ export function TopBar({ alerts, formattedDate }: TopBarProps) {
         </div>
         <SocialLinks
           variant="topbar"
-          networks={["facebook", "twitter", "instagram", "youtube"]}
+          networks={[...SITE_SOCIAL_NETWORKS]}
           iconClassName="w-3.5 h-3.5"
         />
         <div className="top-bar-date" suppressHydrationWarning>

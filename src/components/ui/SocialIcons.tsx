@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { SOCIAL_LINKS, type SocialNetwork } from "@/lib/social";
+import { SITE_SOCIAL_NETWORKS, SOCIAL_LINKS, type SocialNetwork } from "@/lib/social";
 
 type IconProps = { className?: string };
 
@@ -11,6 +11,7 @@ export function FacebookIcon({ className }: IconProps) {
   );
 }
 
+/** Used by article share buttons (X / Twitter intent), not site profile links */
 export function TwitterIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -19,10 +20,10 @@ export function TwitterIcon({ className }: IconProps) {
   );
 }
 
-export function InstagramIcon({ className }: IconProps) {
+export function BlueskyIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+      <path d="M12 10.8c-1.087-2.114-4.046-6.053-6.798-7.995C2.566.944 1.561 1.266.902 1.565.139 1.908 0 3.08 0 3.768c0 .69.378 5.65.624 6.479.815 2.736 3.713 3.66 6.383 3.364.136-.02.275-.039.415-.056-.138.022-.276.04-.415.056-3.912.58-7.387 2.876-2.834 9.77 6.075 8.457 8.652-1.812 9.206-4.358.503 2.546 3.08 12.815 9.206 4.358 4.553-6.894 1.078-9.19-2.834-9.77 1.342-.198 3.014-.886 3.76-2.209.346-.598.558-1.372.558-2.209 0-.688-.139-1.86-.902-2.203-.659-.299-1.664-.621-4.3 1.24C16.046 4.747 13.087 8.686 12 10.8z" />
     </svg>
   );
 }
@@ -53,18 +54,16 @@ export function WhatsappIcon({ className }: IconProps) {
 
 const ICONS: Record<SocialNetwork, ComponentType<IconProps>> = {
   facebook: FacebookIcon,
-  twitter: TwitterIcon,
-  instagram: InstagramIcon,
   youtube: YoutubeIcon,
+  bluesky: BlueskyIcon,
   linkedin: LinkedinIcon,
   whatsapp: WhatsappIcon,
 };
 
 const LABELS: Record<SocialNetwork, string> = {
   facebook: "Facebook",
-  twitter: "X (Twitter)",
-  instagram: "Instagram",
   youtube: "YouTube",
+  bluesky: "Bluesky",
   linkedin: "LinkedIn",
   whatsapp: "WhatsApp",
 };
@@ -77,7 +76,7 @@ interface SocialLinksProps {
 }
 
 export function SocialLinks({
-  networks = ["facebook", "twitter", "instagram", "youtube", "linkedin"],
+  networks = [...SITE_SOCIAL_NETWORKS, "linkedin"],
   className,
   iconClassName = "w-4 h-4",
   variant = "footer",

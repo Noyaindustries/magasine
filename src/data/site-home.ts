@@ -87,13 +87,7 @@ export const HEADER_TOP_ACTIONS = [
   { label: "Support our work", href: "/donate" },
 ] as const;
 
-export const HEADER_SOCIAL_NETWORKS = [
-  "facebook",
-  "twitter",
-  "instagram",
-  "youtube",
-  "linkedin",
-] as const;
+export { HEADER_SOCIAL_NETWORKS } from "@/lib/social";
 
 export const NAV_SUBSCRIBE_LINK = { label: "Subscribe", href: "/newsletter" } as const;
 
