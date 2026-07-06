@@ -39,6 +39,7 @@ const NAV_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   comments: MessageSquare,
   categories: Tags,
   newsletter: Mail,
+  "newsletter-subscribers": Users,
   donations: HeartHandshake,
   users: Users,
   ads: Megaphone,
@@ -85,6 +86,9 @@ function isNavActive(pathname: string, item: CmsNavItem) {
   if (href === "/admin/settings") {
     if (item.id === "seo") return pathname.startsWith("/admin/settings");
     return false;
+  }
+  if (href === "/admin/newsletter") {
+    return pathname === "/admin/newsletter";
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

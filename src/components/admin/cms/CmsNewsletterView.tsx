@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
-import { CmsNewsletterSubscribers } from "@/components/admin/cms/CmsNewsletterSubscribers";
 import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { readApiError, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
@@ -50,7 +50,6 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
   );
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [subscriberRefreshKey, setSubscriberRefreshKey] = useState(0);
 
   const load = useCallback(() => {
     Promise.all([
@@ -189,7 +188,6 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           `Import complete: ${data.added ?? 0} added, ${data.updated ?? 0} updated.`
       );
       load();
-      setSubscriberRefreshKey((k) => k + 1);
     } catch {
       toast.dismiss(toastId);
       toastNetworkError();
@@ -233,6 +231,9 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           </div>
         </div>
         <div className="vacts">
+          <Link href="/admin/newsletter/subscribers" className="btn btn-out">
+            View subscribers
+          </Link>
           <label className="btn btn-out" style={{ cursor: importing ? "wait" : "pointer" }}>
             {importing ? "Importing…" : "Import Mailchimp CSV"}
             <input
@@ -302,8 +303,6 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           <div className="kval">{stats.unsubscribes}</div>
         </div>
       </div>
-
-      <CmsNewsletterSubscribers refreshKey={subscriberRefreshKey} />
 
       <div className="g21 ga">
         <div className="cms-newsletter-main">

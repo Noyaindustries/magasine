@@ -65,6 +65,12 @@ export const CMS_NAV_GROUPS: CmsNavGroup[] = [
         roles: ["super_admin", "admin", "editor"],
       },
       {
+        id: "newsletter-subscribers",
+        label: "Subscribers",
+        href: "/admin/newsletter/subscribers",
+        roles: ["super_admin", "admin", "editor"],
+      },
+      {
         id: "donations",
         label: "Donations",
         href: "/admin/donations",
@@ -98,6 +104,11 @@ export const CMS_PAGE_META: { match: (path: string) => boolean; title: string; b
   { match: (p) => p.startsWith("/admin/analytics"), title: "Analytics", breadcrumb: "Performance" },
   { match: (p) => p.startsWith("/admin/seo"), title: "SEO settings", breadcrumb: "SEO" },
   { match: (p) => p.startsWith("/admin/comments"), title: "Comments", breadcrumb: "Comments" },
+  {
+    match: (p) => p.startsWith("/admin/newsletter/subscribers"),
+    title: "Subscribers",
+    breadcrumb: "Newsletter / Subscribers",
+  },
   { match: (p) => p.startsWith("/admin/newsletter"), title: "Newsletter", breadcrumb: "Newsletter" },
   { match: (p) => p.startsWith("/admin/donations"), title: "Donations", breadcrumb: "Donations" },
   { match: (p) => p.startsWith("/admin/users"), title: "Users", breadcrumb: "Editorial team" },
