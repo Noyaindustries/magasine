@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
 import { authorInitials } from "@/lib/format-article";
 import { toast } from "@/lib/toast";
@@ -35,6 +35,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
   const [editing, setEditing] = useState<AuthorRow | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const reload = useCallback(() => {
     fetch("/api/admin/authors")
@@ -45,6 +46,28 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
   useEffect(() => {
     if (initial.length === 0) reload();
   }, [initial.length, reload]);
+
+  const syncAccounts = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/authors/backfill", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Sync failed");
+        return;
+      }
+      const created = data.created ?? 0;
+      const linked = data.linked ?? 0;
+      toast.success(
+        created || linked
+          ? `${created} profil(s) créé(s), ${linked} lien(s) ajouté(s)`
+          : "Tous les comptes éditoriaux ont déjà un profil auteur"
+      );
+      reload();
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -118,10 +141,22 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
         },
       ]}
       actions={
-        <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
-          <Plus className="w-4 h-4" aria-hidden />
-          Add author
-        </button>
+        <>
+          <button
+            type="button"
+            className="adm-btn adm-btn--ghost"
+            onClick={syncAccounts}
+            disabled={syncing}
+            title="Générer les profils auteur manquants pour les comptes éditoriaux"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden />
+            {syncing ? "Synchronisation…" : "Synchroniser les comptes"}
+          </button>
+          <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
+            <Plus className="w-4 h-4" aria-hidden />
+            Add author
+          </button>
+        </>
       }
     >
       {authors.length === 0 ? (
