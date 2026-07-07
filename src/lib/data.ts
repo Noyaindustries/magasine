@@ -463,35 +463,41 @@ export async function getArticleBySlug(slug: string) {
 
   // `category` est peuplé (objet) : on doit filtrer sur son _id, sinon Mongoose
   // tente de caster l'objet entier en ObjectId → CastError → 500.
-  const categoryDoc = article.category as unknown as {
-    _id: mongoose.Types.ObjectId;
-    name: string;
-    slug: string;
-  };
+  // La catégorie peut être absente (article sans catégorie ou catégorie
+  // supprimée) : dans ce cas on ne filtre pas dessus pour éviter un crash.
+  const categoryDoc = article.category as unknown as
+    | { _id: mongoose.Types.ObjectId; name: string; slug: string }
+    | null
+    | undefined;
+  const categoryId = categoryDoc?._id;
 
-  const related = await findArticleList(
-    {
-      status: "published",
-      category: categoryDoc._id,
-      _id: { $ne: article._id },
-    },
-    4
-  );
+  const relatedFilter: Record<string, unknown> = {
+    status: "published",
+    _id: { $ne: article._id },
+  };
+  if (categoryId) relatedFilter.category = categoryId;
+
+  const related = await findArticleList(relatedFilter, 4);
+
+  const prevFilter: Record<string, unknown> = {
+    status: "published",
+    publishedAt: { $lt: article.publishedAt },
+  };
+  const nextFilter: Record<string, unknown> = {
+    status: "published",
+    publishedAt: { $gt: article.publishedAt },
+  };
+  if (categoryId) {
+    prevFilter.category = categoryId;
+    nextFilter.category = categoryId;
+  }
 
   const [prevArticle, nextArticle] = await Promise.all([
-    Article.findOne({
-      status: "published",
-      category: categoryDoc._id,
-      publishedAt: { $lt: article.publishedAt },
-    })
+    Article.findOne(prevFilter)
       .sort({ publishedAt: -1 })
       .select("title slug")
       .lean(),
-    Article.findOne({
-      status: "published",
-      category: categoryDoc._id,
-      publishedAt: { $gt: article.publishedAt },
-    })
+    Article.findOne(nextFilter)
       .sort({ publishedAt: 1 })
       .select("title slug")
       .lean(),
