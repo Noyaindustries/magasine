@@ -7,6 +7,7 @@ export interface IAuthor {
   bio?: string;
   avatar?: string;
   email?: string;
+  user?: mongoose.Types.ObjectId;
   social?: {
     twitter?: string;
     linkedin?: string;
@@ -20,6 +21,8 @@ const AuthorSchema = new Schema<IAuthor>(
     bio: { type: String },
     avatar: { type: String },
     email: { type: String },
+    // Lien optionnel vers le compte utilisateur (auto-provisionné pour les rôles éditoriaux).
+    user: { type: Schema.Types.ObjectId, ref: "User", index: true },
     social: {
       twitter: String,
       linkedin: String,

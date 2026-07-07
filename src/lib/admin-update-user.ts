@@ -3,6 +3,7 @@ import { User } from "@/models/User";
 import type { UserRole } from "@/types";
 import { assertCanAssignRole } from "@/lib/user-roles";
 import { countUserArticlesByEmail } from "@/lib/admin-users";
+import { ensureAuthorForUser } from "@/lib/author-provision";
 
 export interface UpdateUserInput {
   userId: string;
@@ -71,6 +72,14 @@ export async function updateUserAsAdmin(
   }
 
   await user.save();
+
+  // Si le compte est (devenu) un rôle éditorial, garantit une signature auteur.
+  await ensureAuthorForUser({
+    userId: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  });
 
   return {
     user: {

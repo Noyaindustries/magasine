@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/User";
+import { ensureAuthorForUser } from "@/lib/author-provision";
 
 export const DEFAULT_ADMIN_EMAIL = "admin@globalsouthwatch.com";
 
@@ -44,11 +45,17 @@ export async function ensureDefaultAdmin(options: EnsureAdminOptions = {}) {
   }
 
   if (!user) {
-    await User.create({
+    const created = await User.create({
       name: "Administrator",
       email,
       password: passwordHash,
       role: "super_admin",
+    });
+    await ensureAuthorForUser({
+      userId: created._id,
+      name: created.name,
+      email: created.email,
+      role: created.role,
     });
     return { created: true, email, repaired: true };
   }
@@ -73,6 +80,13 @@ export async function ensureDefaultAdmin(options: EnsureAdminOptions = {}) {
   if (repaired) {
     await user.save();
   }
+
+  await ensureAuthorForUser({
+    userId: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  });
 
   return { created: false, email, repaired };
 }

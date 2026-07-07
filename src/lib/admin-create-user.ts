@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import { User } from "@/models/User";
 import type { UserRole } from "@/types";
 import { assertCanAssignRole } from "@/lib/user-roles";
+import { ensureAuthorForUser } from "@/lib/author-provision";
 
 export interface CreateUserInput {
   name: string;
@@ -59,6 +60,14 @@ export async function createUserAsAdmin(
     email,
     password: hashed,
     role: input.role,
+  });
+
+  // Auto-provisionne une signature éditoriale pour les rôles qui peuvent publier.
+  await ensureAuthorForUser({
+    userId: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
   });
 
   return {
