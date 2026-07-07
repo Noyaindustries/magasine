@@ -31,6 +31,9 @@ const STATUSES: ArticleStatus[] = [
 
 const PAGE_SIZE = ARTICLES_PAGE_SIZE;
 
+// Toujours lire l'état réel de la base (jamais de version pré-rendue en cache).
+export const dynamic = "force-dynamic";
+
 export default async function AdminArticlesPage({ searchParams }: PageProps) {
   const { status: statusParam, q, category, author, page: pageParam } = await searchParams;
   const status =

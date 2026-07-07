@@ -194,6 +194,62 @@ export function CmsArticleEditor({
       });
   }, []);
 
+  const handleQuickCreateCategory = useCallback(async () => {
+    const name = window.prompt("Nom de la nouvelle catégorie ?")?.trim();
+    if (!name) return;
+    const toastId = toast.loading("Création de la catégorie…");
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      toast.dismiss(toastId);
+      if (!res.ok) {
+        toast.error((data as { error?: string }).error ?? "Échec de la création");
+        return;
+      }
+      const created: Category = { _id: String(data._id), name, slug: String(data.slug ?? "") };
+      setCategories((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name))
+      );
+      patchForm({ categoryId: created._id });
+      toast.success("Catégorie créée");
+    } catch {
+      toast.dismiss(toastId);
+      toast.error("Échec de la création");
+    }
+  }, [patchForm]);
+
+  const handleQuickCreateAuthor = useCallback(async () => {
+    const name = window.prompt("Nom du nouvel auteur ?")?.trim();
+    if (!name) return;
+    const toastId = toast.loading("Création de l'auteur…");
+    try {
+      const res = await fetch("/api/admin/authors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      toast.dismiss(toastId);
+      if (!res.ok) {
+        toast.error((data as { error?: string }).error ?? "Échec de la création");
+        return;
+      }
+      const created: Author = { _id: String(data._id), name };
+      setAuthors((prev) =>
+        [...prev, created].sort((a, b) => a.name.localeCompare(b.name))
+      );
+      patchForm({ authorId: created._id });
+      toast.success("Auteur créé");
+    } catch {
+      toast.dismiss(toastId);
+      toast.error("Échec de la création");
+    }
+  }, [patchForm]);
+
   useEffect(() => {
     if (mode !== "edit" || !articleId) return;
     fetch(`/api/admin/articles/${articleId}`)
@@ -360,6 +416,9 @@ export function CmsArticleEditor({
         }
         setLastSavedAt(Date.now());
         dirtyRef.current = false;
+        // Invalide le cache routeur client de Next pour que la liste /admin/articles
+        // affiche immédiatement l'article créé/modifié (sinon version en cache = périmée).
+        if (!options?.silent) router.refresh();
         if (toastId) toast.dismiss(toastId);
         if (!options?.silent) {
           if (options?.publishMode === "publish") {
@@ -455,6 +514,7 @@ export function CmsArticleEditor({
       if (res.ok) {
         toast.success("Article deleted");
         router.push("/admin/articles");
+        router.refresh();
       } else {
         toast.error("Delete failed");
       }
@@ -710,6 +770,7 @@ export function CmsArticleEditor({
                 </label>
                 <select
                   className="input sel"
+                  aria-label="Category"
                   value={form.categoryId}
                   onChange={(e) => patchForm({ categoryId: e.target.value })}
                   required
@@ -721,6 +782,13 @@ export function CmsArticleEditor({
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  className="cms-quick-add"
+                  onClick={handleQuickCreateCategory}
+                >
+                  + Nouvelle catégorie
+                </button>
               </div>
               <div className="field">
                 <label className="lbl">Tags</label>
@@ -756,6 +824,7 @@ export function CmsArticleEditor({
                 <label className="lbl">Author(s)</label>
                 <select
                   className="input sel"
+                  aria-label="Author"
                   value={form.authorId}
                   onChange={(e) => patchForm({ authorId: e.target.value })}
                   required
@@ -767,6 +836,13 @@ export function CmsArticleEditor({
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  className="cms-quick-add"
+                  onClick={handleQuickCreateAuthor}
+                >
+                  + Nouvel auteur
+                </button>
               </div>
             </div>
           </div>
