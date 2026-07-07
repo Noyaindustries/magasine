@@ -44,6 +44,12 @@ export const CMS_NAV_GROUPS: CmsNavGroup[] = [
         roles: ["super_admin", "admin", "editor"],
       },
       {
+        id: "authors",
+        label: "Authors",
+        href: "/admin/authors",
+        roles: ["super_admin", "admin", "editor"],
+      },
+      {
         id: "about",
         label: "About page",
         href: "/admin/about",
