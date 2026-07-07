@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, CheckCircle2, XCircle } from "lucide-react";
 import {
   DONATION_FAQ,
   DONATION_TIERS,
@@ -11,7 +11,12 @@ import {
 } from "@/lib/donation";
 import { DonateForm } from "@/components/donation/DonateForm";
 
-export function DonateExperience() {
+interface DonateExperienceProps {
+  liveMode?: boolean;
+  checkoutStatus?: "success" | "cancelled" | null;
+}
+
+export function DonateExperience({ liveMode = false, checkoutStatus = null }: DonateExperienceProps) {
   const [amount, setAmount] = useState(35);
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
@@ -24,6 +29,29 @@ export function DonateExperience() {
 
   return (
     <>
+      {checkoutStatus === "success" && (
+        <div className="container" role="status">
+          <div className="donate-banner donate-banner--success">
+            <CheckCircle2 size={20} aria-hidden />
+            <div>
+              <strong>Thank you — your payment was successful.</strong>
+              <p>A confirmation and receipt in USD have been sent to your email.</p>
+            </div>
+          </div>
+        </div>
+      )}
+      {checkoutStatus === "cancelled" && (
+        <div className="container" role="status">
+          <div className="donate-banner donate-banner--cancelled">
+            <XCircle size={20} aria-hidden />
+            <div>
+              <strong>Checkout cancelled.</strong>
+              <p>No payment was taken. You can try again whenever you are ready.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="donate-tiers" aria-labelledby="donate-tiers-heading">
         <div className="container">
           <div className="donate-section-head">
@@ -95,6 +123,7 @@ export function DonateExperience() {
           <DonateForm
             amount={amount}
             frequency={frequency}
+            liveMode={liveMode}
             onAmountChange={setAmount}
             onFrequencyChange={setFrequency}
             onTierClear={() => setSelectedTier(null)}

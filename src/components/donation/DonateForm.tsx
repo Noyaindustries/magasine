@@ -13,6 +13,7 @@ import { toast } from "@/lib/toast";
 interface DonateFormProps {
   amount?: number;
   frequency?: "one-time" | "monthly";
+  liveMode?: boolean;
   onAmountChange?: (amount: number) => void;
   onFrequencyChange?: (frequency: "one-time" | "monthly") => void;
   onTierClear?: () => void;
@@ -21,6 +22,7 @@ interface DonateFormProps {
 export function DonateForm({
   amount: controlledAmount,
   frequency: controlledFrequency,
+  liveMode = false,
   onAmountChange,
   onFrequencyChange,
   onTierClear,
@@ -86,12 +88,23 @@ export function DonateForm({
           anonymous,
         }),
       });
-      const data = (await res.json()) as { error?: string; message?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        url?: string;
+      };
       if (!res.ok) {
         toast.error(data.error ?? "Something went wrong.");
         setStatus("error");
         return;
       }
+      // Live mode: redirect to Stripe's secure checkout.
+      if (data.url) {
+        toast.success("Redirecting to secure checkout…");
+        window.location.assign(data.url);
+        return;
+      }
+      // Demo mode: no payment processor configured.
       setStatus("success");
       toast.success("Thank you for your generosity!");
     } catch {
@@ -240,8 +253,9 @@ export function DonateForm({
       </button>
 
       <p className="donate-disclaimer">
-        Demo mode: no real payment is processed yet. Pledges are stored securely in USD for demonstration
-        purposes. Card, Apple Pay, and Google Pay will be enabled with Stripe.
+        {liveMode
+          ? "Secure checkout powered by Stripe. You will be redirected to complete your payment in USD. Card, Apple Pay, and Google Pay are supported."
+          : "Demo mode: no real payment is processed yet. Pledges are stored securely in USD for demonstration purposes. Card, Apple Pay, and Google Pay will be enabled with Stripe."}
       </p>
     </form>
   );

@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   if (!isAllowedMime(file.type)) {
     return NextResponse.json(
-      { error: "Unsupported format. Use PNG, JPG, WebP, SVG, or ICO." },
+      { error: "Unsupported format. Use PNG, JPG, WebP, or ICO." },
       { status: 400 }
     );
   }

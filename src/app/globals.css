@@ -1220,6 +1220,38 @@ img { display: block; max-width: 100%; }
   text-align: center;
   margin: 0;
 }
+.donate-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+.donate-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.donate-banner strong {
+  display: block;
+  font-size: 0.95rem;
+}
+.donate-banner p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.donate-banner--success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+.donate-banner--cancelled {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
 .donate-success {
   text-align: center;
   padding: 24px 8px;

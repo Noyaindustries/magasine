@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DonateExperience } from "@/components/donation/DonateExperience";
 import { DONATION_STATS } from "@/lib/donation";
+import { isStripeConfigured } from "@/lib/stripe";
 
 export const metadata: Metadata = {
   title: "Donate",
@@ -8,7 +9,16 @@ export const metadata: Metadata = {
     "Support independent journalism from Africa and the Global South. Give in U.S. dollars to fund investigations, correspondents, and public-interest reporting.",
 };
 
-export default function DonatePage() {
+type DonatePageProps = {
+  searchParams: Promise<{ donation?: string }>;
+};
+
+export default async function DonatePage({ searchParams }: DonatePageProps) {
+  const { donation } = await searchParams;
+  const checkoutStatus =
+    donation === "success" ? "success" : donation === "cancelled" ? "cancelled" : null;
+  const liveMode = isStripeConfigured();
+
   return (
     <div className="donate-page">
       <div className="container donate-hero">
@@ -31,7 +41,7 @@ export default function DonatePage() {
         </div>
       </div>
 
-      <DonateExperience />
+      <DonateExperience liveMode={liveMode} checkoutStatus={checkoutStatus} />
     </div>
   );
 }

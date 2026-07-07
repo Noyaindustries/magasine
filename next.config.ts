@@ -6,6 +6,10 @@ const isProd = process.env.NODE_ENV === "production";
 const nextConfig: NextConfig = {
   serverExternalPackages: ["mongoose", "mongodb", "bcryptjs"],
   images: {
+    // AVIF puis WebP : meilleure compression que JPEG/PNG, fallback automatique.
+    formats: ["image/avif", "image/webp"],
+    // Cache des images optimisées 24 h côté CDN/navigateur.
+    minimumCacheTTL: 86400,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "api.dicebear.com" },

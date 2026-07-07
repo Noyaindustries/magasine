@@ -11,6 +11,10 @@ export interface IDonation {
   coverFees?: boolean;
   anonymous?: boolean;
   status: "pledged" | "completed" | "failed";
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
+  stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
   createdAt: Date;
 }
 
@@ -25,6 +29,10 @@ const DonationSchema = new Schema<IDonation>(
     coverFees: { type: Boolean, default: false },
     anonymous: { type: Boolean, default: false },
     status: { type: String, enum: ["pledged", "completed", "failed"], default: "pledged" },
+    stripeSessionId: { type: String, index: true },
+    stripePaymentIntentId: { type: String },
+    stripeSubscriptionId: { type: String },
+    stripeCustomerId: { type: String },
   },
   { timestamps: true }
 );

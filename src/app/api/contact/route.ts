@@ -22,8 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
-    // En production : envoi email via SendGrid/Resend
-    console.info("[contact]", parsed.data);
+    // En production : envoi email via SendGrid/Resend.
+    // Ne pas journaliser les PII (nom/email/message) en clair.
+    console.info("[contact] message received", { subject: parsed.data.subject });
 
     return NextResponse.json({
       success: true,

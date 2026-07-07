@@ -169,6 +169,9 @@ Create a `.env.local` file at the project root (see `.env.example`):
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret |
 | `NEXT_PUBLIC_ADOBE_FONTS_KIT_ID` | No | Adobe Fonts kit ID for Canela (alternative to self-hosted files) |
+| `STRIPE_SECRET_KEY` | No | Stripe secret/restricted key (`rk_`/`sk_`). Without it, donations run in demo mode |
+| `STRIPE_WEBHOOK_SECRET` | No | Stripe webhook signing secret (`whsec_`) for `/api/stripe/webhook` |
+| `NEXT_PUBLIC_SITE_URL` | No | Public app URL used for Stripe redirect URLs (falls back to `NEXTAUTH_URL`) |
 
 > **Security:** never commit `.env.local`. Use strong, unique secrets in production.
 
