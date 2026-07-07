@@ -17,6 +17,7 @@ interface AuthorRow {
   avatar: string;
   twitter: string;
   linkedin: string;
+  articleCount: number;
 }
 
 const emptyForm = {
@@ -109,7 +110,13 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
       }
       description="Manage contributor profiles, bios, and public author pages linked from every article."
       pulse="blue"
-      stats={[{ value: authors.length, label: "Profiles" }]}
+      stats={[
+        { value: authors.length, label: "Profiles" },
+        {
+          value: authors.reduce((sum, a) => sum + (a.articleCount ?? 0), 0),
+          label: "Articles",
+        },
+      ]}
       actions={
         <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
           <Plus className="w-4 h-4" aria-hidden />
@@ -141,6 +148,9 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   <h3 className="adm-entity-title">{author.name}</h3>
                   <p className="adm-entity-meta">/{author.slug}</p>
                   {author.email && <p className="adm-entity-meta" style={{ textTransform: "none", letterSpacing: 0 }}>{author.email}</p>}
+                  <p className="adm-entity-meta">
+                    {author.articleCount} {author.articleCount === 1 ? "article" : "articles"}
+                  </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEdit(author)}>

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
+import { getArticleCountsByAuthor } from "@/lib/author-stats";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -19,7 +20,10 @@ export async function GET() {
   if (guard.error) return guard.error;
 
   await connectDB();
-  const authors = await Author.find().sort({ name: 1 }).lean();
+  const [authors, articleCounts] = await Promise.all([
+    Author.find().sort({ name: 1 }).lean(),
+    getArticleCountsByAuthor(),
+  ]);
   return NextResponse.json({
     authors: authors.map((a) => ({
       _id: String(a._id),
@@ -30,6 +34,7 @@ export async function GET() {
       avatar: a.avatar ?? "",
       twitter: a.social?.twitter ?? "",
       linkedin: a.social?.linkedin ?? "",
+      articleCount: articleCounts.get(String(a._id)) ?? 0,
     })),
   });
 }
