@@ -69,6 +69,8 @@ function HorizontalCard({
 export function EditorsChoiceSection({ data }: EditorsChoiceSectionProps) {
   const { featured, rows, side } = data;
 
+  if (!featured.title && rows.length === 0) return null;
+
   return (
     <div className="section section-premium section-editorial">
       <div className="container">

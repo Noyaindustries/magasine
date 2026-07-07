@@ -37,6 +37,25 @@ import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
+/**
+ * Contenu de vitrine statique (@/data/site-home) DÉSACTIVÉ par défaut : sans lui,
+ * les sections sans données réelles restent vides au lieu d'afficher des cartes
+ * factices dont les liens (ex. /static-opinion-0) renvoient des 404.
+ * Réactiver avec ENABLE_DEMO_CONTENT=true.
+ */
+const DEMO_CONTENT_ENABLED = process.env.ENABLE_DEMO_CONTENT === "true";
+
+const EMPTY_EDITORS_CHOICE: HomeEditorsChoice = {
+  featured: { title: "", cat: "", meta: "", image: "", tags: [], excerpt: "" },
+  rows: [],
+  side: { title: "", cat: "", meta: "", image: "", excerpt: "" },
+};
+
+const EMPTY_LATEST: HomeLatest = {
+  featured: { title: "", cat: "", meta: "", image: "", badge: "" },
+  items: [],
+};
+
 const RUBRIQUE_SOURCES: {
   slug: string;
   title: string;
@@ -112,6 +131,7 @@ function buildHeroSlides(source: HomeDataSource): HeroSlide[] {
   }
 
   if (pool.length === 0) {
+    if (!DEMO_CONTENT_ENABLED) return [];
     return [
       {
         slug: HERO_MINI_CARDS[0]?.slug.replace("/article/", "") ?? "",
@@ -139,7 +159,7 @@ function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCar
   const pool = filterArticlesByRetiredCategories(source.latestUpdates).filter(
     (a) => !heroSlugs.has(a.slug)
   );
-  if (pool.length >= 4) {
+  if (pool.length >= 4 || !DEMO_CONTENT_ENABLED) {
     return pool.slice(0, 6).map(toHomeCard);
   }
   return HERO_MINI_CARDS.map((c) => ({
@@ -154,7 +174,7 @@ function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCar
 
 function buildTopStories(source: HomeDataSource): HomeTopStory[] {
   const topStories = filterArticlesByRetiredCategories(source.topStories);
-  if (topStories.length > 0) {
+  if (topStories.length > 0 || !DEMO_CONTENT_ENABLED) {
     return topStories.slice(0, 6).map((a, i) => ({
       num: String(i + 1).padStart(2, "0"),
       slug: articlePath(a.slug),
@@ -190,6 +210,7 @@ function buildEditorsChoice(source: HomeDataSource): HomeEditorsChoice {
       side: { ...toHomeCard(side), excerpt: side.excerpt },
     };
   }
+  if (!DEMO_CONTENT_ENABLED) return EMPTY_EDITORS_CHOICE;
   return {
     featured: {
       slug: EDITORS_CHOICE.featured.slug,
@@ -234,6 +255,7 @@ function buildLatest(source: HomeDataSource): HomeLatest {
       items: items.slice(0, 5).map(toHomeCard),
     };
   }
+  if (!DEMO_CONTENT_ENABLED) return EMPTY_LATEST;
   return {
     featured: {
       slug: LATEST.featured.slug,
@@ -261,7 +283,7 @@ function estimateDuration(minutes: number): string {
 }
 
 function buildVideos(source: HomeDataSource): HomeVideo[] {
-  if (source.featuredVideos.length > 0) {
+  if (source.featuredVideos.length > 0 || !DEMO_CONTENT_ENABLED) {
     return source.featuredVideos.slice(0, 4).map((a) => ({
       slug: articlePath(a.slug),
       cat: a.category.name,
@@ -297,6 +319,7 @@ function buildOpinions(source: HomeDataSource): HomeOpinion[] {
       };
     });
   }
+  if (!DEMO_CONTENT_ENABLED) return [];
   return OPINIONS.map((o, i) => ({
     accent: o.accent,
     text: o.text,
@@ -340,6 +363,10 @@ function buildThematic(source: HomeDataSource & { cultureNews?: ArticleListItem[
 
   if (culture && investigations) return [culture, investigations];
 
+  if (!DEMO_CONTENT_ENABLED) {
+    return [culture, investigations].filter((c): c is HomeThematicCol => c !== null);
+  }
+
   return THEMATIC.map((col) => ({
     title: col.title,
     href: col.href,
@@ -349,7 +376,7 @@ function buildThematic(source: HomeDataSource & { cultureNews?: ArticleListItem[
 }
 
 function buildTags(source: HomeDataSource): string[] {
-  if (source.popularTags.length > 0) {
+  if (source.popularTags.length > 0 || !DEMO_CONTENT_ENABLED) {
     return source.popularTags.slice(0, 9).map((t) => `#${t.name.replace(/^#/, "")}`);
   }
   return POPULAR_TAGS;
@@ -359,11 +386,11 @@ function buildUrgent(source: HomeDataSource): HomeUrgent {
   const alerts =
     source.alerts.length > 0
       ? source.alerts.map((a) => ({ text: a.text, link: a.link }))
-      : source.breakingAlertsEnabled !== false
+      : source.breakingAlertsEnabled !== false && DEMO_CONTENT_ENABLED
         ? TICKER_ITEMS.map((text) => ({ text }))
         : [];
 
-  if (source.urgentArticles.length > 0) {
+  if (source.urgentArticles.length > 0 || !DEMO_CONTENT_ENABLED) {
     return {
       alerts,
       articles: source.urgentArticles.slice(0, 6).map((a, i) => ({

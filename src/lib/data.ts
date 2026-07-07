@@ -461,20 +461,22 @@ export async function getArticleBySlug(slug: string) {
 
   void recordDailyPageView().catch(() => undefined);
 
-  const related = await findArticleList(
-    {
-      status: "published",
-      category: article.category,
-      _id: { $ne: article._id },
-    },
-    4
-  );
-
+  // `category` est peuplé (objet) : on doit filtrer sur son _id, sinon Mongoose
+  // tente de caster l'objet entier en ObjectId → CastError → 500.
   const categoryDoc = article.category as unknown as {
     _id: mongoose.Types.ObjectId;
     name: string;
     slug: string;
   };
+
+  const related = await findArticleList(
+    {
+      status: "published",
+      category: categoryDoc._id,
+      _id: { $ne: article._id },
+    },
+    4
+  );
 
   const [prevArticle, nextArticle] = await Promise.all([
     Article.findOne({

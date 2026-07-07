@@ -10,6 +10,8 @@ interface LatestSectionProps {
 export function LatestSection({ data }: LatestSectionProps) {
   const { featured, items } = data;
 
+  if (!featured.title && items.length === 0) return null;
+
   return (
     <div className="section section-premium section-cream section-live">
       <div className="container">
