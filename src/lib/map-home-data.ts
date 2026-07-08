@@ -38,12 +38,11 @@ import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
 /**
- * Contenu de vitrine statique (@/data/site-home) DÉSACTIVÉ par défaut : sans lui,
- * les sections sans données réelles restent vides au lieu d'afficher des cartes
- * factices dont les liens (ex. /static-opinion-0) renvoient des 404.
- * Réactiver avec ENABLE_DEMO_CONTENT=true.
+ * Contenu de vitrine statique (@/data/site-home) ACTIVÉ par défaut : les sections
+ * sans données réelles affichent des cartes de démonstration. Pour un site vide
+ * (uniquement le contenu réel de la base), définir ENABLE_DEMO_CONTENT=false.
  */
-const DEMO_CONTENT_ENABLED = process.env.ENABLE_DEMO_CONTENT === "true";
+const DEMO_CONTENT_ENABLED = process.env.ENABLE_DEMO_CONTENT !== "false";
 
 const EMPTY_EDITORS_CHOICE: HomeEditorsChoice = {
   featured: { title: "", cat: "", meta: "", image: "", tags: [], excerpt: "" },

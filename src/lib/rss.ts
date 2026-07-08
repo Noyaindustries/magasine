@@ -83,8 +83,8 @@ export async function fetchRssItems(options?: {
     // fall through to mock data (démo uniquement)
   }
 
-  // Contenu de démo désactivé par défaut : flux vide tant qu'aucun article réel.
-  if (process.env.ENABLE_DEMO_CONTENT !== "true") return [];
+  // Contenu de démo activé par défaut ; mettre ENABLE_DEMO_CONTENT=false pour un flux vide.
+  if (process.env.ENABLE_DEMO_CONTENT === "false") return [];
 
   return searchMockArticles("").slice(0, Math.min(limit, 20)).map((article) => ({
     title: article.title,

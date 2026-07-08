@@ -121,11 +121,11 @@ function findArticleList(filter: Record<string, unknown>, limit: number) {
  *    premiers articles publiés.
  */
 /**
- * Contenu de démonstration (mock/seed) DÉSACTIVÉ par défaut : le site affiche
- * uniquement le contenu réel de la base (donc vide tant qu'aucun article n'est publié).
- * Pour réactiver la vitrine de démo, définir ENABLE_DEMO_CONTENT=true.
+ * Contenu de démonstration (mock/seed) ACTIVÉ par défaut : quand la base est vide,
+ * le site affiche des données de test. Pour un site strictement vide (uniquement le
+ * contenu réel de la base), définir ENABLE_DEMO_CONTENT=false.
  */
-const DEMO_CONTENT_ENABLED = process.env.ENABLE_DEMO_CONTENT === "true";
+const DEMO_CONTENT_ENABLED = process.env.ENABLE_DEMO_CONTENT !== "false";
 
 let publishedArticleCountCache: { value: boolean; expiresAt: number } | null = null;
 const HAS_ARTICLES_TTL_MS = 300_000; // 5 min quand des articles existent
