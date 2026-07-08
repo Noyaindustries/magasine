@@ -10,15 +10,26 @@ export function isBlobUrl(url: string): boolean {
   return BLOB_HOST_PATTERN.test(url);
 }
 
+export interface UploadBlobOptions {
+  /** Ajoute un suffixe aléatoire au nom (URL unique = busting du cache CDN/navigateur). */
+  addRandomSuffix?: boolean;
+  /** Durée de cache CDN en secondes (par défaut long ; à réduire pour le branding). */
+  cacheControlMaxAge?: number;
+}
+
 export async function uploadBlobFile(
   pathname: string,
   file: File,
-  contentType: string
+  contentType: string,
+  options: UploadBlobOptions = {}
 ): Promise<string> {
   const result = await put(pathname, file, {
     access: "public",
     contentType,
-    addRandomSuffix: false,
+    addRandomSuffix: options.addRandomSuffix ?? false,
+    ...(options.cacheControlMaxAge !== undefined
+      ? { cacheControlMaxAge: options.cacheControlMaxAge }
+      : {}),
   });
   return result.url;
 }

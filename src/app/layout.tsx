@@ -38,6 +38,14 @@ export async function generateMetadata(): Promise<Metadata> {
     ? settings.canonicalUrl.replace(/\/$/, "")
     : getSiteUrl();
 
+  // Jeton de version basé sur la dernière modification des réglages : quand le favicon
+  // change, l'URL /api/favicon?v=… change aussi, ce qui force le navigateur à recharger
+  // l'icône (sinon il conserve l'ancienne en cache sur une URL identique).
+  const faviconVersion = settings.updatedAt
+    ? new Date(settings.updatedAt).getTime()
+    : "";
+  const faviconHref = faviconVersion ? `/api/favicon?v=${faviconVersion}` : "/api/favicon";
+
   return {
     metadataBase: new URL(`${siteUrl}/`),
     title: {
@@ -54,11 +62,10 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [settings.siteLogo],
     },
     icons: {
-      // URL constante (bakeable sur les pages statiques) mais qui redirige vers le
-      // favicon courant configuré dans l'admin — voir src/app/api/favicon/route.ts.
-      icon: "/api/favicon",
-      shortcut: "/api/favicon",
-      apple: "/api/favicon",
+      // URL versionnée mais servie dynamiquement — voir src/app/api/favicon/route.ts.
+      icon: faviconHref,
+      shortcut: faviconHref,
+      apple: faviconHref,
     },
     other: {
       google: "notranslate",
