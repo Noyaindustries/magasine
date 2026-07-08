@@ -22,6 +22,7 @@ import type { HomepageSectionStatus } from "@/lib/homepage-admin";
 import type { PublicSiteSettings, TrustPartner } from "@/lib/site-settings";
 import type { HomeSectionId } from "@/lib/homepage-sections";
 import { uploadAdminMedia } from "@/lib/admin-upload";
+import { HomepageAdSlots } from "@/components/admin/HomepageAdSlots";
 import { toast } from "@/lib/toast";
 
 interface HomepageManagerProps {
@@ -30,7 +31,7 @@ interface HomepageManagerProps {
   alertCount: number;
 }
 
-type HpgTab = "sections" | "masthead" | "trust" | "closing";
+type HpgTab = "sections" | "ads" | "masthead" | "trust" | "closing";
 
 const SECTION_ICONS: Record<HomeSectionId, ComponentType<{ className?: string }>> = {
   intro: Newspaper,
@@ -47,6 +48,7 @@ const SECTION_ICONS: Record<HomeSectionId, ComponentType<{ className?: string }>
 
 const NAV_ITEMS: { id: HpgTab; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { id: "sections", label: "Layout", icon: LayoutGrid },
+  { id: "ads", label: "Ad images", icon: Megaphone },
   { id: "masthead", label: "Masthead & pulse", icon: Newspaper },
   { id: "trust", label: "Trust strip", icon: Star },
   { id: "closing", label: "Closing band", icon: BarChart3 },
@@ -355,6 +357,9 @@ export function HomepageManager({
               </div>
             </div>
           )}
+
+          {/* —— Ad images —— */}
+          {activeTab === "ads" && <HomepageAdSlots />}
 
           {/* —— Masthead —— */}
           {activeTab === "masthead" && (

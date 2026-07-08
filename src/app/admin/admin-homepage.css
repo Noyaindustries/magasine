@@ -758,3 +758,17 @@
 .hpg-hidden-file {
   display: none;
 }
+
+.hpg-adslot-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.hpg-adslot-size {
+  margin-left: auto;
+}
+
+.hpg-adslot-actions {
+  margin-top: 12px;
+}
