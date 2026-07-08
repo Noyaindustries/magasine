@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getArticleBySlug, getAllArticleSlugs } from "@/lib/data";
+import { getActiveAdBySlot } from "@/lib/ad-public";
 import { auth } from "@/lib/auth";
 import { ReadingProgress } from "@/components/article/ReadingProgress";
 import { TrackReading } from "@/components/article/TrackReading";
@@ -38,7 +39,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const [data, session] = await Promise.all([getArticleBySlug(slug), auth()]);
+  const [data, session, adRight, adBelow] = await Promise.all([
+    getArticleBySlug(slug),
+    auth(),
+    getActiveAdBySlot("article-right"),
+    getActiveAdBySlot("article-below"),
+  ]);
   if (!data) notFound();
 
   const siteUrl =
@@ -56,6 +62,8 @@ export default async function ArticlePage({ params }: Props) {
         navigation={data.navigation}
         session={session}
         siteUrl={siteUrl}
+        adRight={adRight}
+        adBelow={adBelow}
       />
     </>
   );

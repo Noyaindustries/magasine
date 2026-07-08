@@ -1,6 +1,8 @@
 import { getHomePageData } from "@/lib/data";
 import { mapHomePageData } from "@/lib/map-home-data";
 import { getPublicSiteSettings } from "@/lib/site-settings";
+import { getActiveAdBySlot } from "@/lib/ad-public";
+import { AdView } from "@/components/ads/AdView";
 import { HomeBackdrop } from "@/components/site-chrome/HomeBackdrop";
 import { RevolutionShell } from "@/components/site-chrome/RevolutionShell";
 import { HeroHome } from "@/components/site-chrome/HeroHome";
@@ -15,7 +17,12 @@ import { SectionDivider } from "@/components/site-chrome/SectionDivider";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [raw, siteSettings] = await Promise.all([getHomePageData(), getPublicSiteSettings()]);
+  const [raw, siteSettings, homeBelowAd, homeSidebarAd] = await Promise.all([
+    getHomePageData(),
+    getPublicSiteSettings(),
+    getActiveAdBySlot("home-below"),
+    getActiveAdBySlot("home-sidebar"),
+  ]);
   const data = mapHomePageData(raw);
   const sections = siteSettings.homeSections;
 
@@ -37,7 +44,13 @@ export default async function HomePage() {
 
       {sections.megaAd && (
         <section className="home-band home-band--ad">
-          <MegaAd />
+          {homeBelowAd ? (
+            <div className="container">
+              <AdView ad={homeBelowAd} slot="home-below" />
+            </div>
+          ) : (
+            <MegaAd />
+          )}
         </section>
       )}
 
@@ -48,6 +61,14 @@ export default async function HomePage() {
             <EditorsChoiceSection data={data.editorsChoice} />
           </section>
         </>
+      )}
+
+      {homeSidebarAd && (
+        <section className="home-band home-band--ad-rect">
+          <div className="container ad-rect-wrap">
+            <AdView ad={homeSidebarAd} slot="home-sidebar" />
+          </div>
+        </section>
       )}
 
       {sections.rubriques && (

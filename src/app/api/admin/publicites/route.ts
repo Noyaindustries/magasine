@@ -30,6 +30,9 @@ function serializeZones(zones: AdZoneDoc[]) {
     position: z.position,
     size: z.size,
     active: z.active,
+    slot: z.slot ?? "",
+    imageUrl: z.imageUrl ?? "",
+    linkUrl: z.linkUrl ?? "",
     impressions: formatImpressions(z.impressions),
     ctr: formatCtr(z.impressions, z.clicks),
     revenue: formatRevenue(z.revenueFcfa),
@@ -72,18 +75,45 @@ export async function GET() {
   }
 }
 
+const AD_SLOT_VALUES = [
+  "",
+  "home-below",
+  "home-sidebar",
+  "article-right",
+  "article-below",
+] as const;
+
+const optionalUrl = z
+  .string()
+  .trim()
+  .max(2000)
+  .refine(
+    (v) => v === "" || /^https?:\/\//i.test(v) || v.startsWith("/"),
+    "Lien invalide (http(s):// ou chemin interne)"
+  )
+  .optional();
+
 const patchSchema = z.object({
   zoneId: z.string(),
   active: z.boolean().optional(),
   impressions: z.number().optional(),
   clicks: z.number().optional(),
   revenueFcfa: z.number().optional(),
+  name: z.string().min(1).max(120).optional(),
+  position: z.string().max(160).optional(),
+  size: z.string().max(80).optional(),
+  slot: z.enum(AD_SLOT_VALUES).optional(),
+  imageUrl: optionalUrl,
+  linkUrl: optionalUrl,
 });
 
 const createSchema = z.object({
   name: z.string().min(1),
-  position: z.string().min(1),
-  size: z.string().min(1),
+  position: z.string().min(1).optional(),
+  size: z.string().min(1).optional(),
+  slot: z.enum(AD_SLOT_VALUES).optional(),
+  imageUrl: optionalUrl,
+  linkUrl: optionalUrl,
 });
 
 export async function PATCH(request: NextRequest) {
@@ -109,6 +139,12 @@ export async function PATCH(request: NextRequest) {
     if (parsed.data.impressions !== undefined) zone.impressions = parsed.data.impressions;
     if (parsed.data.clicks !== undefined) zone.clicks = parsed.data.clicks;
     if (parsed.data.revenueFcfa !== undefined) zone.revenueFcfa = parsed.data.revenueFcfa;
+    if (parsed.data.name !== undefined) zone.name = parsed.data.name;
+    if (parsed.data.position !== undefined) zone.position = parsed.data.position;
+    if (parsed.data.size !== undefined) zone.size = parsed.data.size;
+    if (parsed.data.slot !== undefined) zone.slot = parsed.data.slot;
+    if (parsed.data.imageUrl !== undefined) zone.imageUrl = parsed.data.imageUrl;
+    if (parsed.data.linkUrl !== undefined) zone.linkUrl = parsed.data.linkUrl;
 
     zones[index] = zone;
     await saveAdZones(zones);
@@ -136,12 +172,15 @@ export async function POST(request: NextRequest) {
     const zone: AdZoneDoc = {
       key,
       name: parsed.data.name,
-      position: parsed.data.position,
-      size: parsed.data.size,
+      position: parsed.data.position ?? "",
+      size: parsed.data.size ?? "",
       active: true,
       impressions: 0,
       clicks: 0,
       revenueFcfa: 0,
+      slot: parsed.data.slot ?? "",
+      imageUrl: parsed.data.imageUrl ?? "",
+      linkUrl: parsed.data.linkUrl ?? "",
     };
 
     zones.push(zone);

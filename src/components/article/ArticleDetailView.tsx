@@ -17,6 +17,8 @@ import { ArticleBody } from "@/components/article/ArticleBody";
 import { PageBackdrop } from "@/components/site-chrome/PageBackdrop";
 import { ArticleCard } from "@/components/article/ArticleCard";
 import { ArticleStickyRail, ArticleMobileToolbar } from "@/components/article/ArticleStickyRail";
+import { AdView } from "@/components/ads/AdView";
+import type { PublicAd } from "@/lib/ad-slots";
 
 interface ArticleDetailViewProps {
   article: ArticleDetail;
@@ -27,6 +29,8 @@ interface ArticleDetailViewProps {
   };
   session: Session | null;
   siteUrl: string;
+  adRight?: PublicAd | null;
+  adBelow?: PublicAd | null;
 }
 
 export function ArticleDetailView({
@@ -35,6 +39,8 @@ export function ArticleDetailView({
   navigation,
   session: _session,
   siteUrl,
+  adRight,
+  adBelow,
 }: ArticleDetailViewProps) {
   const author = article.authors[0];
   const badge = articleBadge(article);
@@ -220,8 +226,18 @@ export function ArticleDetailView({
 
             <CommentsSection articleId={article._id} variant="premium" />
           </div>
+
+          <aside className="art-rail-right" aria-label="Sponsored">
+            {adRight && <AdView ad={adRight} slot="article-right" className="art-rail-right-ad" />}
+          </aside>
         </div>
       </div>
+
+      {adBelow && (
+        <section className="art-ad-below container" aria-label="Sponsored">
+          <AdView ad={adBelow} slot="article-below" />
+        </section>
+      )}
 
       {(navigation.prev || navigation.next) && (
         <nav className="art-article-nav container art-reveal art-reveal--d4" aria-label="Article navigation">

@@ -31,6 +31,12 @@ export interface AdZoneDoc {
   impressions: number;
   clicks: number;
   revenueFcfa: number;
+  /** Emplacement d'affichage public (skyscraper article, bannière home…). */
+  slot?: string;
+  /** Image de la publicité (téléversée via la médiathèque). */
+  imageUrl?: string;
+  /** Lien cliquable (URL externe http/https). */
+  linkUrl?: string;
 }
 
 export interface ISiteSettings {
@@ -144,6 +150,9 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
           impressions: { type: Number, default: 0 },
           clicks: { type: Number, default: 0 },
           revenueFcfa: { type: Number, default: 0 },
+          slot: { type: String, default: "" },
+          imageUrl: { type: String, default: "" },
+          linkUrl: { type: String, default: "" },
         },
       ],
       default: [],

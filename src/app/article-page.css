@@ -522,6 +522,23 @@
   min-width: 0;
 }
 
+/* Colonne publicitaire de droite (skyscraper) */
+.art-rail-right {
+  min-width: 0;
+  align-self: start;
+  position: sticky;
+  top: calc(var(--header-h, 72px) + 24px);
+}
+
+.art-rail-right-ad {
+  max-width: 320px;
+}
+
+.art-rail-right .ad-slot-img {
+  aspect-ratio: 300 / 600;
+  object-fit: cover;
+}
+
 /* Mobile toolbar */
 .art-mobile-toolbar {
   display: none;
@@ -1058,6 +1075,12 @@
     grid-template-columns: minmax(0, 1fr);
     max-width: var(--art-content-width);
     margin: 0 auto;
+  }
+
+  /* Le skyscraper de droite est masqué : la bannière sous l'article prend le
+     relais sur tablette/mobile. */
+  .art-rail-right {
+    display: none;
   }
 
   .art-rail {

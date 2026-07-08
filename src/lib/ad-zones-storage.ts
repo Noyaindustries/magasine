@@ -125,6 +125,28 @@ export async function saveAdZones(zones: AdZoneDoc[]): Promise<void> {
   }
 }
 
+/**
+ * Incrémente une métrique (impressions ou clics) d'une zone donnée.
+ * Silencieux si la zone n'existe pas (tracking best-effort).
+ */
+export async function incrementAdMetric(
+  key: string,
+  field: "impressions" | "clicks"
+): Promise<void> {
+  try {
+    const zones = await loadAdZones();
+    const index = zones.findIndex((z) => z.key === key);
+    if (index < 0) return;
+    zones[index] = {
+      ...zones[index],
+      [field]: (zones[index][field] ?? 0) + 1,
+    };
+    await saveAdZones(zones);
+  } catch (error) {
+    console.warn("incrementAdMetric:", error);
+  }
+}
+
 /** @deprecated Utiliser loadAdZones */
 export async function ensureAdZonesSeeded(): Promise<AdZoneDoc[]> {
   return loadAdZones();
