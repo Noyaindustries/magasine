@@ -16,6 +16,7 @@ export interface AdminUserRow {
   role: UserRole;
   isPremium: boolean;
   isBanned: boolean;
+  image: string;
   articleCount: number;
   createdAt: string;
 }
@@ -114,6 +115,7 @@ function mapUserRow(
     role: UserRole;
     isPremium: boolean;
     isBanned?: boolean;
+    image?: string;
     createdAt: Date;
   },
   articleCountByEmail: Map<string, number>
@@ -125,6 +127,7 @@ function mapUserRow(
     role: user.role,
     isPremium: user.isPremium,
     isBanned: user.isBanned ?? false,
+    image: user.image ?? "",
     articleCount: articleCountByEmail.get(user.email.toLowerCase().trim()) ?? 0,
     createdAt: user.createdAt.toISOString(),
   };
@@ -140,7 +143,7 @@ export async function getAdminUsers(params: AdminUsersQuery = {}): Promise<Admin
     await Promise.all([
       getArticleCountByEmail(),
       User.find(mongoFilter)
-        .select("name email role isPremium isBanned createdAt")
+        .select("name email role isPremium isBanned image createdAt")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(USERS_PAGE_SIZE)
@@ -153,7 +156,7 @@ export async function getAdminUsers(params: AdminUsersQuery = {}): Promise<Admin
       User.countDocuments({ isPremium: true }),
       User.countDocuments({ role: { $in: ["super_admin", "admin"] } }),
       User.find({ role: { $in: EDITORIAL_ROLES } })
-        .select("name email role isPremium isBanned createdAt")
+        .select("name email role isPremium isBanned image createdAt")
         .sort({ createdAt: -1 })
         .limit(8)
         .lean(),

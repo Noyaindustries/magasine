@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ExternalLink, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { AdminSectionShell } from "@/components/admin/AdminSectionShell";
+import { AvatarUploadField } from "@/components/admin/AvatarUploadField";
 import { authorInitials } from "@/lib/format-article";
 import { toast } from "@/lib/toast";
 
@@ -225,10 +226,11 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                 <label>Email</label>
                 <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
-              <div className="admin-field">
-                <label>Avatar URL</label>
-                <input value={form.avatar} onChange={(e) => setForm({ ...form, avatar: e.target.value })} />
-              </div>
+              <AvatarUploadField
+                label="Photo"
+                value={form.avatar}
+                onChange={(url) => setForm({ ...form, avatar: url })}
+              />
               <div className="admin-field">
                 <label>Twitter</label>
                 <input value={form.twitter} onChange={(e) => setForm({ ...form, twitter: e.target.value })} />

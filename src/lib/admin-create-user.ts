@@ -10,6 +10,7 @@ export interface CreateUserInput {
   email: string;
   role: UserRole;
   password?: string;
+  image?: string;
   actorRole: UserRole;
 }
 
@@ -54,12 +55,14 @@ export async function createUserAsAdmin(
   }
 
   const hashed = await bcrypt.hash(plainPassword, 12);
+  const image = input.image?.trim() || undefined;
 
   const user = await User.create({
     name,
     email,
     password: hashed,
     role: input.role,
+    image,
   });
 
   // Auto-provisionne une signature éditoriale pour les rôles qui peuvent publier.
@@ -68,6 +71,7 @@ export async function createUserAsAdmin(
     name: user.name,
     email: user.email,
     role: user.role,
+    avatar: image,
   });
 
   return {

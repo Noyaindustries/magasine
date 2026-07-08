@@ -26,6 +26,8 @@ export interface EnsureAuthorInput {
   name: string;
   email: string;
   role: UserRole;
+  /** Photo optionnelle : synchronise l'avatar de la signature avec le compte. */
+  avatar?: string;
 }
 
 /**
@@ -38,16 +40,21 @@ export async function ensureAuthorForUser(input: EnsureAuthorInput): Promise<voi
 
   const email = input.email.toLowerCase().trim();
   const name = input.name.trim();
+  const avatar = input.avatar?.trim();
 
   const existing = await Author.findOne({
     $or: [{ user: input.userId }, { email }],
   })
-    .select("_id user")
+    .select("_id user avatar")
     .lean();
 
   if (existing) {
-    if (!existing.user) {
-      await Author.updateOne({ _id: existing._id }, { $set: { user: input.userId } });
+    const update: Record<string, unknown> = {};
+    if (!existing.user) update.user = input.userId;
+    // Renseigne l'avatar s'il est fourni et absent, ou mis à jour explicitement.
+    if (avatar) update.avatar = avatar;
+    if (Object.keys(update).length > 0) {
+      await Author.updateOne({ _id: existing._id }, { $set: update });
     }
     return;
   }
@@ -58,6 +65,7 @@ export async function ensureAuthorForUser(input: EnsureAuthorInput): Promise<voi
     slug,
     email,
     user: input.userId,
+    ...(avatar ? { avatar } : {}),
   });
 }
 

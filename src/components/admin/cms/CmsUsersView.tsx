@@ -101,6 +101,9 @@ export function CmsUsersView({
       if (values.password.trim()) {
         payload.password = values.password.trim();
       }
+      if (values.image.trim()) {
+        payload.image = values.image.trim();
+      }
 
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -141,6 +144,7 @@ export function CmsUsersView({
         role: values.role,
         isPremium: values.isPremium,
         isBanned: values.isBanned,
+        image: values.image.trim(),
       };
       if (values.password.trim()) {
         payload.password = values.password.trim();
@@ -378,6 +382,7 @@ export function CmsUsersView({
                 role: editUser.role,
                 isPremium: editUser.isPremium,
                 isBanned: editUser.isBanned,
+                image: editUser.image,
               }
             : undefined
         }

@@ -5,12 +5,13 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
 import { getArticleCountsByAuthor } from "@/lib/author-stats";
+import { imageSrcField } from "@/lib/image-src";
 
 const createSchema = z.object({
   name: z.string().min(1),
   bio: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
-  avatar: z.string().url().optional().or(z.literal("")),
+  avatar: imageSrcField,
   twitter: z.string().optional(),
   linkedin: z.string().optional(),
 });

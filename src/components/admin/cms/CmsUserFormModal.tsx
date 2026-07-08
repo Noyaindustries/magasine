@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { CMS_ROLE_LABELS } from "@/components/admin/cms/cms-nav";
+import { AvatarUploadField } from "@/components/admin/AvatarUploadField";
 import { getAssignableRoles } from "@/lib/user-roles";
 import type { UserRole } from "@/types";
 
@@ -13,6 +14,7 @@ export interface CmsUserFormValues {
   password: string;
   isPremium: boolean;
   isBanned: boolean;
+  image: string;
 }
 
 interface CmsUserFormModalProps {
@@ -25,6 +27,7 @@ interface CmsUserFormModalProps {
     role: UserRole;
     isPremium: boolean;
     isBanned: boolean;
+    image?: string;
   };
   saving?: boolean;
   onClose: () => void;
@@ -49,6 +52,7 @@ export function CmsUserFormModal({
   const [password, setPassword] = useState("");
   const [isPremium, setIsPremium] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
+  const [image, setImage] = useState("");
 
   const assignableRoles = getAssignableRoles(actorRole);
 
@@ -65,6 +69,7 @@ export function CmsUserFormModal({
       setPassword("");
       setIsPremium(initial.isPremium);
       setIsBanned(initial.isBanned);
+      setImage(initial.image ?? "");
       return;
     }
     setName("");
@@ -73,6 +78,7 @@ export function CmsUserFormModal({
     setPassword("");
     setIsPremium(false);
     setIsBanned(false);
+    setImage("");
   }, [open, mode, initial, assignableRoles]);
 
   if (!open || !mounted) return null;
@@ -82,7 +88,7 @@ export function CmsUserFormModal({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit({ name, email, role, password, isPremium, isBanned });
+    onSubmit({ name, email, role, password, isPremium, isBanned, image });
   };
 
   return createPortal(
@@ -110,6 +116,13 @@ export function CmsUserFormModal({
                 disabled={saving}
               />
             </div>
+
+            <AvatarUploadField
+              label="Photo"
+              value={image}
+              onChange={setImage}
+              disabled={saving}
+            />
 
             {mode === "create" ? (
               <div className="admin-field">

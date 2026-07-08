@@ -14,6 +14,7 @@ export interface UpdateUserInput {
   isPremium?: boolean;
   isBanned?: boolean;
   password?: string;
+  image?: string;
 }
 
 export async function updateUserAsAdmin(
@@ -71,6 +72,10 @@ export async function updateUserAsAdmin(
     user.password = await bcrypt.hash(password, 12);
   }
 
+  if (input.image !== undefined) {
+    user.image = input.image.trim() || undefined;
+  }
+
   await user.save();
 
   // Si le compte est (devenu) un rôle éditorial, garantit une signature auteur.
@@ -79,6 +84,7 @@ export async function updateUserAsAdmin(
     name: user.name,
     email: user.email,
     role: user.role,
+    avatar: user.image,
   });
 
   return {

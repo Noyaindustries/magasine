@@ -6,6 +6,7 @@ import { createUserAsAdmin } from "@/lib/admin-create-user";
 import { deleteUserAsAdmin, updateUserAsAdmin } from "@/lib/admin-update-user";
 import { getAdminUsers, type UserListFilter } from "@/lib/admin-users";
 import { USER_ROLES, assertCanAssignRole } from "@/lib/user-roles";
+import { imageSrcField } from "@/lib/image-src";
 import type { UserRole } from "@/types";
 
 const roleEnum = z.enum(USER_ROLES as [UserRole, ...UserRole[]]);
@@ -17,6 +18,7 @@ const createSchema = z.object({
   email: z.string().email(),
   role: roleEnum,
   password: z.string().min(8).optional(),
+  image: imageSrcField,
 });
 
 const patchSchema = z.object({
@@ -26,6 +28,7 @@ const patchSchema = z.object({
   isPremium: z.boolean().optional(),
   isBanned: z.boolean().optional(),
   password: z.string().min(8).optional(),
+  image: imageSrcField,
 });
 
 export async function GET(request: NextRequest) {
@@ -94,6 +97,7 @@ export async function PATCH(request: NextRequest) {
     isPremium: parsed.data.isPremium,
     isBanned: parsed.data.isBanned,
     password: parsed.data.password,
+    image: parsed.data.image,
   });
 
   if (result.error) {
