@@ -54,7 +54,11 @@ export async function generateMetadata(): Promise<Metadata> {
       images: [settings.siteLogo],
     },
     icons: {
-      icon: settings.favicon,
+      // URL constante (bakeable sur les pages statiques) mais qui redirige vers le
+      // favicon courant configuré dans l'admin — voir src/app/api/favicon/route.ts.
+      icon: "/api/favicon",
+      shortcut: "/api/favicon",
+      apple: "/api/favicon",
     },
     other: {
       google: "notranslate",
