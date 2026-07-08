@@ -7,6 +7,8 @@ import { estimateReadingTime } from "@/lib/utils";
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
+import { getVideoThumbnailUrl } from "@/lib/video-url";
+import { IMG } from "@/lib/img";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -19,7 +21,7 @@ const schema = z.object({
   subtitle: z.string().optional(),
   excerpt: z.string().min(1),
   content: z.string().min(1),
-  featuredImage: z.string().url(),
+  featuredImage: z.union([z.string().url(), z.literal("")]).optional(),
   featuredImageCaption: z.string().optional(),
   categoryId: z.string(),
   authorId: z.string(),
@@ -68,13 +70,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "An article with this slug already exists" }, { status: 409 });
     }
 
+    // Couverture facultative : pour une vidéo on tente d'utiliser la miniature YouTube,
+    // sinon on retombe sur une image éditoriale par défaut (le champ est requis en base).
+    let featuredImage = parsed.data.featuredImage?.trim() || "";
+    if (!featuredImage && parsed.data.contentType === "video" && parsed.data.videoUrl) {
+      featuredImage = getVideoThumbnailUrl(parsed.data.videoUrl) ?? "";
+    }
+    if (!featuredImage) {
+      featuredImage = IMG.finance;
+    }
+
     const article = await Article.create({
       title: parsed.data.title,
       subtitle: parsed.data.subtitle,
       slug,
       excerpt: parsed.data.excerpt,
       content: sanitizeArticleHtml(parsed.data.content),
-      featuredImage: parsed.data.featuredImage,
+      featuredImage,
       featuredImageCaption: parsed.data.featuredImageCaption,
       category: parsed.data.categoryId,
       authors: [parsed.data.authorId],

@@ -33,6 +33,7 @@ import {
   type ArticleContentType,
   isValidVideoSourceUrl,
 } from "@/lib/article-content-types";
+import { getVideoThumbnailUrl } from "@/lib/video-url";
 
 interface Category {
   _id: string;
@@ -331,7 +332,11 @@ export function CmsArticleEditor({
         subtitle: form.subtitle.trim(),
         excerpt,
         content: form.content,
-        featuredImage: form.featuredImage.trim(),
+        featuredImage:
+          form.featuredImage.trim() ||
+          (form.contentType === "video"
+            ? getVideoThumbnailUrl(form.videoUrl) ?? ""
+            : ""),
         featuredImageCaption: form.featuredImageCaption.trim() || undefined,
         categoryId: form.categoryId,
         authorId: form.authorId,
@@ -382,12 +387,7 @@ export function CmsArticleEditor({
           }
           return false;
         }
-        if (!form.featuredImage.trim()) {
-          if (!options?.silent) {
-            toast.error("Add a cover image (thumbnail) for this video.");
-          }
-          return false;
-        }
+        // La couverture est facultative : miniature YouTube auto ou image par défaut côté serveur.
       }
 
       setLoading(true);
@@ -943,7 +943,9 @@ export function CmsArticleEditor({
                     <div>{uploadingCover ? "Uploading…" : "Click to upload"}</div>
                     <div className="cms-cover-hint">
                       JPG · PNG · WebP — max 15 MB
-                      {form.contentType === "video" ? " · used as video thumbnail" : ""}
+                      {form.contentType === "video"
+                        ? " · optional (YouTube thumbnail auto-detected)"
+                        : ""}
                     </div>
                   </>
                 )}

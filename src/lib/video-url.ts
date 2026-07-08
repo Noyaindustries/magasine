@@ -40,6 +40,29 @@ export function toSafeVideoEmbedUrl(url: string): string | null {
   return null;
 }
 
+/**
+ * Retourne une miniature d'aperçu pour une URL vidéo YouTube, ou null si non dérivable
+ * (Vimeo nécessite un appel API ; les fichiers MP4/WebM n'ont pas de miniature auto).
+ * Sert de couverture par défaut pour les articles vidéo sans image uploadée.
+ */
+export function getVideoThumbnailUrl(url: string): string | null {
+  const trimmed = url?.trim();
+  if (!trimmed) return null;
+
+  const patterns = [
+    /youtube\.com\/watch\?[^\s]*\bv=([\w-]{11})/i,
+    /youtu\.be\/([\w-]{11})/i,
+    /youtube\.com\/embed\/([\w-]{11})/i,
+  ];
+  for (const re of patterns) {
+    const match = trimmed.match(re);
+    if (match?.[1]) {
+      return `https://i.ytimg.com/vi/${match[1]}/hqdefault.jpg`;
+    }
+  }
+  return null;
+}
+
 export function isSafeVideoFileUrl(url: string): boolean {
   const safe = toSafeVideoEmbedUrl(url);
   if (!safe) return false;

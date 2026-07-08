@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsArticlesTable } from "@/components/admin/cms/CmsArticlesTable";
+import { ImportDemoButton } from "@/components/admin/cms/ImportDemoButton";
 import type { ArticleStatus } from "@/types";
 
 export interface ArticleListRow {
@@ -91,6 +92,7 @@ export function CmsArticlesView({
           </div>
         </div>
         <div className="vacts">
+          {counts.all === 0 && <ImportDemoButton />}
           <Link href="/admin/articles/new?type=video" className="btn btn-out">
             + New video
           </Link>
