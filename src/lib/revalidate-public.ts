@@ -50,11 +50,24 @@ export function revalidateSiteShell() {
 
 export function revalidateArticleContent(
   slug: string,
-  options?: { previousSlug?: string }
+  options?: {
+    previousSlug?: string;
+    categorySlug?: string;
+    previousCategorySlug?: string;
+  }
 ) {
   revalidateArticlePage(slug);
   if (options?.previousSlug && options.previousSlug !== slug) {
     revalidateArticlePage(options.previousSlug);
+  }
+  if (options?.categorySlug) {
+    revalidateCategoryPage(options.categorySlug);
+  }
+  if (
+    options?.previousCategorySlug &&
+    options.previousCategorySlug !== options.categorySlug
+  ) {
+    revalidateCategoryPage(options.previousCategorySlug);
   }
   revalidateContentListings();
   revalidateSiteLayout();

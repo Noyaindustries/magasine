@@ -9,6 +9,7 @@ import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { IMG } from "@/lib/img";
+import { resolveActiveCategory } from "@/lib/article-category";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -62,6 +63,11 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
+    const category = await resolveActiveCategory(parsed.data.categoryId);
+    if (!category) {
+      return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
+    }
+
     const slug = parsed.data.slug
       ? slugify(parsed.data.slug, { lower: true, strict: true })
       : slugify(parsed.data.title, { lower: true, strict: true });
@@ -89,7 +95,7 @@ export async function POST(request: NextRequest) {
       content: sanitizeArticleHtml(parsed.data.content),
       featuredImage,
       featuredImageCaption: parsed.data.featuredImageCaption,
-      category: parsed.data.categoryId,
+      category: category._id,
       authors: [parsed.data.authorId],
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,
@@ -111,7 +117,7 @@ export async function POST(request: NextRequest) {
       videoUrl: parsed.data.videoUrl?.trim() || undefined,
     });
 
-    revalidateArticleContent(article.slug);
+    revalidateArticleContent(article.slug, { categorySlug: category.slug });
     return NextResponse.json({ _id: String(article._id), slug: article.slug }, { status: 201 });
   } catch (error) {
     console.error("[admin/articles POST]", error);

@@ -9,6 +9,7 @@ import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publ
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
+import { getCategorySlug, resolveActiveCategory } from "@/lib/article-category";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -118,6 +119,16 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const data = parsed.data;
   const wasPublished = article.status === "published";
   const previousSlug = article.slug;
+  const previousCategorySlug = await getCategorySlug(article.category);
+
+  if (data.categoryId) {
+    const category = await resolveActiveCategory(data.categoryId);
+    if (!category) {
+      return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
+    }
+    article.category = category._id;
+  }
+
   if (data.title) article.title = data.title;
   if (data.slug) {
     article.slug = slugify(data.slug, { lower: true, strict: true });
@@ -135,7 +146,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.featuredImageCaption !== undefined) {
     article.featuredImageCaption = data.featuredImageCaption;
   }
-  if (data.categoryId) article.category = data.categoryId as never;
   if (data.authorId) article.authors = [data.authorId as never];
   if (data.tags) article.tags = data.tags;
   if (data.seoTitle !== undefined) article.seoTitle = data.seoTitle;
@@ -172,7 +182,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     });
   }
 
-  revalidateArticleContent(article.slug, { previousSlug });
+  revalidateArticleContent(article.slug, {
+    previousSlug,
+    categorySlug: await getCategorySlug(article.category),
+    previousCategorySlug,
+  });
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }
 
@@ -189,6 +203,8 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }
 
-  revalidateArticleContent(result.slug);
+  revalidateArticleContent(result.slug, {
+    categorySlug: await getCategorySlug(result.category),
+  });
   return NextResponse.json({ success: true });
 }
