@@ -5,6 +5,7 @@ import { normalizeCategorySlug } from "@/lib/category-admin";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { Article } from "@/models/Article";
+import { revalidateCategoryContent, revalidateContentListings } from "@/lib/revalidate-public";
 
 const slugSchema = z
   .string()
@@ -60,6 +61,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Category not found" }, { status: 404 });
   }
 
+  const previousSlug = category.slug;
   const data = parsed.data;
   if (data.name) category.name = data.name;
   if (data.slug) {
@@ -79,6 +81,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.isActive !== undefined) category.isActive = data.isActive;
 
   await category.save();
+  revalidateCategoryContent(category.slug, { previousSlug });
   return NextResponse.json({ _id: String(category._id), slug: category.slug });
 }
 
@@ -102,5 +105,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Category not found" }, { status: 404 });
   }
 
+  revalidateCategoryContent(result.slug);
+  revalidateContentListings();
   return NextResponse.json({ success: true });
 }

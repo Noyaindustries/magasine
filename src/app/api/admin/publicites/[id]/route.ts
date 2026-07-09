@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
 import { loadAdZones, saveAdZones } from "@/lib/ad-zones-storage";
+import { revalidateSiteShell } from "@/lib/revalidate-public";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -21,6 +22,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
     zones.splice(index, 1);
     await saveAdZones(zones);
+    revalidateSiteShell();
 
     return NextResponse.json({ success: true });
   } catch (error) {

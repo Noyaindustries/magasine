@@ -4,6 +4,8 @@ import { getAuthorBySlug } from "@/lib/data";
 import { ArticleCard } from "@/components/article/ArticleCard";
 import type { Metadata } from "next";
 
+export const revalidate = 60;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }

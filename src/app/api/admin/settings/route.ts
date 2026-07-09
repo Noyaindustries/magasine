@@ -4,6 +4,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { canManageUsers } from "@/lib/permissions";
 import { getPublicSiteSettings, updateSiteSettings } from "@/lib/site-settings";
 import { isTypographyPresetId } from "@/lib/site-fonts";
+import { revalidateSiteShell } from "@/lib/revalidate-public";
 import type { UserRole } from "@/types";
 
 const homeSectionSchema = z.object({
@@ -119,5 +120,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   const settings = await updateSiteSettings(patch);
+  revalidateSiteShell();
   return NextResponse.json(settings);
 }

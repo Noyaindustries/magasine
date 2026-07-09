@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
 import { getArticleCountsByAuthor } from "@/lib/author-stats";
 import { imageSrcField } from "@/lib/image-src";
+import { revalidateAuthorContent } from "@/lib/revalidate-public";
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  revalidateAuthorContent(author.slug);
   return NextResponse.json(
     { _id: String(author._id), slug: author.slug },
     { status: 201 }

@@ -5,6 +5,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
 import { imageSrcField } from "@/lib/image-src";
+import { revalidateAuthorContent } from "@/lib/revalidate-public";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -36,6 +37,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Author not found" }, { status: 404 });
   }
 
+  const previousSlug = author.slug;
   const data = parsed.data;
   if (data.name) {
     author.name = data.name;
@@ -52,6 +54,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 
   await author.save();
+  revalidateAuthorContent(author.slug, { previousSlug });
   return NextResponse.json({ _id: String(author._id), slug: author.slug });
 }
 
@@ -66,5 +69,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Author not found" }, { status: 404 });
   }
 
+  revalidateAuthorContent(result.slug);
   return NextResponse.json({ success: true });
 }

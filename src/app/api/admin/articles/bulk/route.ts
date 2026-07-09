@@ -4,6 +4,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publish";
+import { revalidateContentListings, revalidateSiteLayout } from "@/lib/revalidate-public";
 
 const schema = z.object({
   action: z.enum(["publish", "archive", "restore", "delete"]),
@@ -25,6 +26,8 @@ export async function POST(request: NextRequest) {
 
   if (action === "delete") {
     await Article.deleteMany({ _id: { $in: articleIds } });
+    revalidateContentListings();
+    revalidateSiteLayout();
     return NextResponse.json({ success: true, count: articleIds.length });
   }
 
@@ -55,5 +58,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  revalidateContentListings();
+  revalidateSiteLayout();
   return NextResponse.json({ success: true, count: result.modifiedCount });
 }

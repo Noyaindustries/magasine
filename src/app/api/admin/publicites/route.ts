@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { loadAdZones, saveAdZones } from "@/lib/ad-zones-storage";
+import { revalidateSiteShell } from "@/lib/revalidate-public";
 import type { AdZoneDoc } from "@/models/SiteSettings";
 
 function formatImpressions(n: number) {
@@ -148,6 +149,7 @@ export async function PATCH(request: NextRequest) {
 
     zones[index] = zone;
     await saveAdZones(zones);
+    revalidateSiteShell();
 
     return NextResponse.json({ success: true, active: zone.active });
   } catch (error) {
@@ -185,6 +187,7 @@ export async function POST(request: NextRequest) {
 
     zones.push(zone);
     await saveAdZones(zones);
+    revalidateSiteShell();
 
     return NextResponse.json({ _id: key, key }, { status: 201 });
   } catch (error) {

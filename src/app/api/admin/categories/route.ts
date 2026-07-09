@@ -4,6 +4,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { categorySlugFromName, normalizeCategorySlug } from "@/lib/category-admin";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
+import { revalidateCategoryContent } from "@/lib/revalidate-public";
 
 const slugSchema = z
   .string()
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
     isActive: parsed.data.isActive ?? true,
   });
 
+  revalidateCategoryContent(category.slug);
   return NextResponse.json(
     { _id: String(category._id), slug: category.slug },
     { status: 201 }

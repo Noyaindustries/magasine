@@ -5,6 +5,8 @@ import { Users } from "lucide-react";
 import { getAllAuthors } from "@/lib/data";
 import { UtilityPageLayout } from "@/components/layout/UtilityPageLayout";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Our team",
   description: "The journalists, correspondents and columnists of Global South Watch.",

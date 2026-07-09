@@ -9,6 +9,7 @@ import {
 import { saveBrandingFile } from "@/lib/branding-storage";
 import { getPublicSiteSettings, updateSiteSettings } from "@/lib/site-settings";
 import { deleteBlobFile, isBlobUrl } from "@/lib/blob-storage";
+import { revalidateSiteShell } from "@/lib/revalidate-public";
 
 const typeSchema = z.enum(["siteLogo", "favicon"]);
 
@@ -56,6 +57,7 @@ export async function POST(request: NextRequest) {
 
     const url = await saveBrandingFile(type, file);
     const settings = await updateSiteSettings({ [type]: url });
+    revalidateSiteShell();
 
     // Nettoyage best-effort de l'ancien fichier blob (nom désormais unique).
     if (previousUrl && previousUrl !== url && isBlobUrl(previousUrl)) {

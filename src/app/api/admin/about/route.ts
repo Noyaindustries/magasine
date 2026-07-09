@@ -6,6 +6,7 @@ import {
   getAboutPageContent,
   updateAboutPageContent,
 } from "@/lib/about-page";
+import { revalidateAboutPage } from "@/lib/revalidate-public";
 
 const pillarSchema = z.object({
   icon: z.enum(ABOUT_PILLAR_ICONS),
@@ -82,5 +83,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   const content = await updateAboutPageContent(parsed.data);
+  revalidateAboutPage();
   return NextResponse.json(content);
 }

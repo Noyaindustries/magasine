@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { getPublicSiteSettings, updateHomepageSettings } from "@/lib/site-settings";
+import { revalidateSiteShell } from "@/lib/revalidate-public";
 
 const homeSectionSchema = z.object({
   intro: z.boolean().optional(),
@@ -62,5 +63,6 @@ export async function PATCH(request: NextRequest) {
   }
 
   const settings = await updateHomepageSettings(parsed.data);
+  revalidateSiteShell();
   return NextResponse.json(settings);
 }

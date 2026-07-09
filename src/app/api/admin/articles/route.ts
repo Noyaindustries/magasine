@@ -9,6 +9,7 @@ import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { IMG } from "@/lib/img";
+import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
       videoUrl: parsed.data.videoUrl?.trim() || undefined,
     });
 
+    revalidateArticleContent(article.slug);
     return NextResponse.json({ _id: String(article._id), slug: article.slug }, { status: 201 });
   } catch (error) {
     console.error("[admin/articles POST]", error);

@@ -9,6 +9,7 @@ import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publ
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
+import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -116,6 +117,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   const data = parsed.data;
   const wasPublished = article.status === "published";
+  const previousSlug = article.slug;
   if (data.title) article.title = data.title;
   if (data.slug) {
     article.slug = slugify(data.slug, { lower: true, strict: true });
@@ -170,6 +172,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     });
   }
 
+  revalidateArticleContent(article.slug, { previousSlug });
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }
 
@@ -186,5 +189,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }
 
+  revalidateArticleContent(result.slug);
   return NextResponse.json({ success: true });
 }

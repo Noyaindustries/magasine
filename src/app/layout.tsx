@@ -32,6 +32,8 @@ const libreBaskerville = Libre_Baskerville({
 
 const adobeFontsKitId = process.env.NEXT_PUBLIC_ADOBE_FONTS_KIT_ID;
 
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getPublicSiteSettings();
   const siteUrl = settings.canonicalUrl?.startsWith("http")
