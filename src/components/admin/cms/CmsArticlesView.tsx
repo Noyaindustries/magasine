@@ -49,6 +49,8 @@ interface CmsArticlesViewProps {
   categories: string[];
   authors: string[];
   demoCount: number;
+  virtualDemoCount: number;
+  seedTotal: number;
   demoOnly?: boolean;
 }
 
@@ -83,6 +85,8 @@ export function CmsArticlesView({
   categories,
   authors,
   demoCount,
+  virtualDemoCount,
+  seedTotal,
   demoOnly,
 }: CmsArticlesViewProps) {
   const activeCount = status ? counts[status] : counts.all;
@@ -98,26 +102,32 @@ export function CmsArticlesView({
             {counts.scheduled} scheduled
           </div>
         </div>
-        <div className="vacts">
-          <DemoContentActions demoCount={demoCount} />
+        <div className="vacts vacts--stacked">
+          <DemoContentActions
+            demoCount={demoCount}
+            virtualDemoCount={virtualDemoCount}
+            seedTotal={seedTotal}
+          />
+          <div className="vacts-row">
           <Link href="/admin/articles/new?type=video" className="btn btn-out">
             + New video
           </Link>
           <Link href="/admin/articles/new" className="btn btn-red">
             + New article
           </Link>
+          </div>
         </div>
       </div>
 
       <div className="tabs">
         {demoOnly ? (
-          <span className="tab on">Demo ({demoCount.toLocaleString("en-US")})</span>
+          <span className="tab on">Tests ({demoCount.toLocaleString("fr-FR")})</span>
         ) : (
           <Link
             href={buildArticlesHref({ status, q: query, category, author, demo: true })}
             className="tab"
           >
-            Demo ({demoCount.toLocaleString("en-US")})
+            Tests ({demoCount.toLocaleString("fr-FR")})
           </Link>
         )}
         {demoOnly && (
@@ -177,6 +187,15 @@ export function CmsArticlesView({
           {totalPages > 1 ? ` · ${totalPages} pages` : ""}
         </div>
       </form>
+
+      {demoOnly && articles.length === 0 && (
+        <p className="demo-content-empty">
+          Aucun article de test en base pour le moment.
+          {virtualDemoCount > 0
+            ? ` Cliquez sur « Charger les articles de test (${virtualDemoCount}) » ci-dessus.`
+            : " Utilisez « Charger les articles de test » ou « Identifier les articles seed »."}
+        </p>
+      )}
 
       <CmsArticlesTable
         articles={articles}

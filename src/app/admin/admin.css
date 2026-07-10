@@ -719,6 +719,56 @@
   font-size: 14px;
 }
 
+.demo-content-actions-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.demo-content-banner {
+  margin-bottom: 0;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.demo-content-banner-text {
+  line-height: 1.5;
+}
+
+.demo-content-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.vacts--stacked {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.vacts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.demo-content-empty {
+  margin: 0 0 20px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  background: rgba(26, 56, 150, 0.06);
+  border: 1px solid rgba(26, 56, 150, 0.15);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted, #5c5a57);
+}
+
 .admin-rich-editor {
   border: 1px solid var(--border, #e5e2dd);
   border-radius: 10px;

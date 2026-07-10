@@ -10,7 +10,7 @@ import {
 import type { ArticleStatus } from "@/types";
 import { ARTICLES_PAGE_SIZE } from "@/lib/pagination";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
-import { getDemoArticleFilter } from "@/lib/demo-articles";
+import { getDemoArticleFilter, getDemoContentStatus } from "@/lib/demo-articles";
 import { tagExistingDemoArticles } from "@/lib/seed-import";
 
 interface PageProps {
@@ -50,30 +50,48 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
   await connectDB();
   await tagExistingDemoArticles();
 
-  const filter: Record<string, unknown> = {};
-  if (demoOnly) Object.assign(filter, getDemoArticleFilter());
-  if (status) filter.status = status;
+  const demoStatus = await getDemoContentStatus();
+
+  const andConditions: Record<string, unknown>[] = [];
+  if (demoOnly) andConditions.push(getDemoArticleFilter());
+  if (status) andConditions.push({ status });
   if (q?.trim()) {
     const termRegex = buildCaseInsensitiveRegex(q);
     if (termRegex) {
-      filter.$or = [{ title: termRegex }, { excerpt: termRegex }];
+      andConditions.push({ $or: [{ title: termRegex }, { excerpt: termRegex }] });
     }
   }
 
+  const filter: Record<string, unknown> =
+    andConditions.length > 1
+      ? { $and: andConditions }
+      : andConditions[0] ?? {};
+
   if (category?.trim()) {
     const cat = await Category.findOne({ name: category.trim() }).select("_id").lean();
-    if (cat) filter.category = cat._id;
+    if (cat) {
+      if (filter.$and) {
+        (filter.$and as Record<string, unknown>[]).push({ category: cat._id });
+      } else {
+        filter.category = cat._id;
+      }
+    }
   }
 
   if (author?.trim()) {
     const authorDoc = await Author.findOne({ name: author.trim() }).select("_id").lean();
-    if (authorDoc) filter.authors = authorDoc._id;
+    if (authorDoc) {
+      if (filter.$and) {
+        (filter.$and as Record<string, unknown>[]).push({ authors: authorDoc._id });
+      } else {
+        filter.authors = authorDoc._id;
+      }
+    }
   }
 
   const skip = (page - 1) * PAGE_SIZE;
 
-  const [articlesRaw, filteredCount, countResults, demoCount, categories, authors] =
-    await Promise.all([
+  const [articlesRaw, filteredCount, countResults, categories, authors] = await Promise.all([
     Article.find(filter)
       .populate("category", "name")
       .populate("authors", "name")
@@ -86,7 +104,6 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       Article.countDocuments(),
       ...STATUSES.map((s) => Article.countDocuments({ status: s })),
     ]),
-    Article.countDocuments(getDemoArticleFilter()),
     Category.find().sort({ name: 1 }).select("name").lean(),
     Author.find().sort({ name: 1 }).select("name").lean(),
   ]);
@@ -138,7 +155,9 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       totalPages={totalPages}
       categories={categories.map((c) => c.name)}
       authors={authors.map((a) => a.name)}
-      demoCount={demoCount}
+      demoCount={demoStatus.inDatabase}
+      virtualDemoCount={demoStatus.virtualOnSite}
+      seedTotal={demoStatus.seedTotal}
       demoOnly={demoOnly}
     />
   );
