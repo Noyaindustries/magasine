@@ -12,6 +12,7 @@ import {
 import { revalidateCategoryPage } from "@/lib/revalidate-public";
 
 let migrationDone = false;
+let africaCleanupDone = false;
 
 async function ensureRegionCategoriesActive(): Promise<number> {
   const result = await Category.updateMany(
@@ -65,11 +66,13 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
     ) {
       const authorId = article.authors?.[0];
       const author = authorId ? await Author.findById(authorId).select("slug").lean() : null;
-      const inferredSlug = inferRegionSlugFromAuthor(author?.slug) ?? "africa";
-      const regionId = inferredSlug ? canonicalBySlug.get(inferredSlug) : undefined;
-      if (regionId && !secondary.some((id) => String(id) === String(regionId))) {
-        secondary.push(regionId);
-        secondaryChanged = true;
+      const inferredSlug = inferRegionSlugFromAuthor(author?.slug);
+      if (inferredSlug) {
+        const regionId = canonicalBySlug.get(inferredSlug);
+        if (regionId && !secondary.some((id) => String(id) === String(regionId))) {
+          secondary.push(regionId);
+          secondaryChanged = true;
+        }
       }
     }
 
@@ -95,6 +98,52 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
       await Article.updateOne({ _id: article._id }, { $set: patch });
       updated += 1;
     }
+  }
+
+  return updated;
+}
+
+/**
+ * Retire Africa des secondaryCategories quand c'était la seule région
+ * sur une rubrique thématique (assignation automatique par migration).
+ */
+export async function removeAutoAssignedAfricaRegions(): Promise<number> {
+  await connectDB();
+  const africaCategory = await Category.findOne({ slug: "africa" }).select("_id").lean();
+  if (!africaCategory) return 0;
+
+  const africaId = africaCategory._id;
+  let updated = 0;
+
+  const articles = await Article.find({ secondaryCategories: africaId })
+    .select("category secondaryCategories")
+    .lean();
+
+  for (const article of articles) {
+    const primary = await Category.findById(article.category).select("slug").lean();
+    if (!primary || isRegionCategorySlug(primary.slug)) {
+      continue;
+    }
+
+    const secondaryIds = article.secondaryCategories ?? [];
+    const secondaryCats = await Category.find({ _id: { $in: secondaryIds } })
+      .select("slug")
+      .lean();
+    const regionSlugs = secondaryCats
+      .map((category) => category.slug)
+      .filter((slug) => isRegionCategorySlug(slug));
+
+    if (regionSlugs.length === 1 && regionSlugs[0] === "africa") {
+      await Article.updateOne(
+        { _id: article._id },
+        { $pull: { secondaryCategories: africaId } }
+      );
+      updated += 1;
+    }
+  }
+
+  if (updated > 0) {
+    revalidateCategoryPage("africa");
   }
 
   return updated;
@@ -146,5 +195,16 @@ export async function migrateArticleRegionLinksOnce(): Promise<void> {
     await migrateArticleRegionLinks();
   } catch {
     migrationDone = false;
+  }
+}
+
+export async function removeAutoAssignedAfricaRegionsOnce(): Promise<void> {
+  if (africaCleanupDone) return;
+  africaCleanupDone = true;
+
+  try {
+    await removeAutoAssignedAfricaRegions();
+  } catch {
+    africaCleanupDone = false;
   }
 }

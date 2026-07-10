@@ -22,7 +22,7 @@ import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
 import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
 import { migrateWorldToFeature } from "@/lib/migrate-world-to-feature";
 import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
-import { migrateArticleRegionLinksOnce } from "@/lib/migrate-article-regions";
+import { migrateArticleRegionLinksOnce, removeAutoAssignedAfricaRegionsOnce } from "@/lib/migrate-article-regions";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 import { recordDailyPageView } from "@/lib/analytics-daily";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
@@ -179,6 +179,7 @@ async function ensureCategoryMigrations(): Promise<void> {
   await migrateWorldToFeature();
   await restoreMultimediaCategory();
   await migrateArticleRegionLinksOnce();
+  await removeAutoAssignedAfricaRegionsOnce();
 }
 
 export const getHomePageData = cache(async function getHomePageData() {
