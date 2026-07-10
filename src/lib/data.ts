@@ -22,10 +22,12 @@ import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
 import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
 import { migrateWorldToFeature } from "@/lib/migrate-world-to-feature";
 import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
+import { migrateArticleRegionLinksOnce } from "@/lib/migrate-article-regions";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 import { recordDailyPageView } from "@/lib/analytics-daily";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
+import { isRegionCategorySlug } from "@/lib/region-categories";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -45,6 +47,15 @@ function filterHomeArticleList(items: ArticleListItem[], limit?: number): Articl
 function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
   const category = doc.category as Record<string, unknown> | null | undefined;
   const authors = (doc.authors as Record<string, unknown>[]) ?? [];
+  const secondaryCategories = (doc.secondaryCategories as Record<string, unknown>[]) ?? [];
+  const regions = secondaryCategories
+    .filter((item) => item?._id && isRegionCategorySlug(item.slug as string))
+    .map((item) => ({
+      _id: String(item._id),
+      name: item.name as string,
+      slug: item.slug as string,
+      color: item.color as string | undefined,
+    }));
 
   return {
     _id: String(doc._id),
@@ -84,6 +95,7 @@ function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
     isUrgent: !!doc.isUrgent,
     views: doc.views != null ? Number(doc.views) : undefined,
     tags: Array.isArray(doc.tags) ? (doc.tags as string[]) : undefined,
+    regions: regions.length > 0 ? regions : undefined,
     contentType: doc.contentType as ArticleListItem["contentType"],
     videoUrl: typeof doc.videoUrl === "string" ? doc.videoUrl : undefined,
   };
@@ -92,6 +104,7 @@ function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
 const articlePopulate = [
   { path: "category", select: "name slug color" },
   { path: "authors", select: "name slug avatar" },
+  { path: "secondaryCategories", select: "name slug color" },
 ];
 
 /**
@@ -164,6 +177,7 @@ async function ensureCategoryMigrations(): Promise<void> {
   await migrateCategorySlugsOnce();
   await migrateWorldToFeature();
   await restoreMultimediaCategory();
+  await migrateArticleRegionLinksOnce();
 }
 
 export const getHomePageData = cache(async function getHomePageData() {
@@ -358,8 +372,13 @@ function sortArticlesByDate(articles: ArticleListItem[]) {
   });
 }
 
+function articleMatchesCategorySlug(article: ArticleListItem, categorySlug: string) {
+  if (article.category.slug === categorySlug) return true;
+  return article.regions?.some((region) => region.slug === categorySlug) ?? false;
+}
+
 function filterArticlesByCategory(articles: ArticleListItem[], categorySlug: string) {
-  return articles.filter((article) => article.category.slug === categorySlug);
+  return articles.filter((article) => articleMatchesCategorySlug(article, categorySlug));
 }
 
 export async function getAllNewsArticles(options?: { categorySlug?: string; limit?: number }) {
@@ -422,7 +441,7 @@ export async function getArticlesByCategorySlug(slug: string, limit = 12) {
   }
 
   await connectDB();
-  const category = await Category.findOne({ slug: resolvedSlug }).lean();
+  const category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
   if (!category) {
     return DEMO_CONTENT_ENABLED
       ? (getMockCategoryBySlug(resolvedSlug)?.articles.slice(0, limit) ?? [])

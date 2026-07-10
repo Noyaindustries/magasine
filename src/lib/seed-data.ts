@@ -44,6 +44,7 @@ export interface SeedArticle {
   slug?: string;
   subtitle?: string;
   category: string;
+  regions?: string[];
   excerpt: string;
   content: string;
   tags: string[];

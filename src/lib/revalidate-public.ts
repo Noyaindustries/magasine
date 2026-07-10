@@ -54,6 +54,8 @@ export function revalidateArticleContent(
     previousSlug?: string;
     categorySlug?: string;
     previousCategorySlug?: string;
+    regionSlugs?: string[];
+    previousRegionSlugs?: string[];
   }
 ) {
   revalidateArticlePage(slug);
@@ -69,6 +71,15 @@ export function revalidateArticleContent(
   ) {
     revalidateCategoryPage(options.previousCategorySlug);
   }
+
+  const regionSlugs = new Set([
+    ...(options?.regionSlugs ?? []),
+    ...(options?.previousRegionSlugs ?? []),
+  ]);
+  for (const regionSlug of regionSlugs) {
+    revalidateCategoryPage(regionSlug);
+  }
+
   revalidateContentListings();
   revalidateSiteLayout();
 }

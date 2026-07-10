@@ -1943,6 +1943,28 @@ body:has(.cms-shell) {
   border-radius: var(--r6);
 }
 
+.cms-shell .cms-region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cms-shell .cms-region-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r6);
+  background: var(--bg0);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cms-shell .cms-region-option input {
+  margin: 0;
+}
+
 .cms-shell .cms-tag {
   background: var(--red-a);
   color: var(--cms-red);

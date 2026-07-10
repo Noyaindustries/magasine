@@ -47,6 +47,7 @@ export interface ArticleListItem {
   isUrgent?: boolean;
   views?: number;
   tags?: string[];
+  regions?: CategoryInfo[];
   contentType?: "article" | "video" | "podcast" | "gallery";
   videoUrl?: string;
 }

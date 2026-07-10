@@ -10,6 +10,29 @@ import { filterRetiredCategories, filterArticlesByRetiredCategories } from "@/li
 import { resolveArticleContent } from "@/lib/article-content";
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveCategorySlug } from "@/lib/category-slugs";
+import { isRegionCategorySlug } from "@/lib/region-categories";
+
+const AUTHOR_DEFAULT_REGION: Record<string, string> = {
+  "lucia-mendoza": "latin-america",
+  "priya-sharma": "south-asia",
+  "omar-al-hassan": "west-asia",
+};
+
+function resolveMockArticleRegions(
+  article: (typeof SEED_ARTICLES)[number],
+  authorSlug: string
+): string[] {
+  if (isRegionCategorySlug(article.category)) return [];
+  if (article.regions?.length) return article.regions;
+  return [AUTHOR_DEFAULT_REGION[authorSlug] ?? "africa"];
+}
+
+function articleMatchesRegion(article: ArticleListItem, regionSlug: string) {
+  return (
+    article.category.slug === regionSlug ||
+    (article.regions?.some((region) => region.slug === regionSlug) ?? false)
+  );
+}
 
 const categories = SEED_CATEGORIES.map((c, i) => ({
   _id: `mock-cat-${i}`,
@@ -37,6 +60,17 @@ const articles: ArticleDetail[] = SEED_ARTICLES.map((article, i) => {
   const words = article.content.replace(/<[^>]*>/g, "").split(/\s+/).length;
   const authorIndex = article.authorIndex ?? i % authors.length;
   const category = catBySlug[article.category];
+  const authorSlug = authors[authorIndex].slug;
+  const regionSlugs = resolveMockArticleRegions(article, authorSlug);
+  const regions = regionSlugs
+    .map((slug) => catBySlug[slug])
+    .filter(Boolean)
+    .map((region) => ({
+      _id: region._id,
+      name: region.name,
+      slug: region.slug,
+      color: region.color,
+    }));
 
   return {
     _id: `mock-article-${i}`,
@@ -72,6 +106,7 @@ const articles: ArticleDetail[] = SEED_ARTICLES.map((article, i) => {
     videoUrl: article.videoUrl,
     views: Math.floor(Math.random() * 8000) + 200,
     tags: article.tags,
+    regions: regions.length > 0 ? regions : undefined,
     shareCount: 0,
   };
 });
@@ -129,7 +164,11 @@ export function getMockCategoryBySlug(slug: string) {
   if (!category) return null;
 
   const categoryArticles = articles
-    .filter((a) => a.category.slug === resolvedSlug)
+    .filter((a) =>
+      isRegionCategorySlug(resolvedSlug)
+        ? articleMatchesRegion(a, resolvedSlug)
+        : a.category.slug === resolvedSlug
+    )
     .sort(
       (a, b) =>
         new Date(b.publishedAt ?? 0).getTime() -
@@ -215,10 +254,10 @@ export function getMockHomePageData() {
     politicsNews: published.filter((a) => a.category.slug === "politics").slice(0, 4),
     cultureNews: published.filter((a) => a.category.slug === "culture").slice(0, 4),
     urgentArticles: published.filter((a) => a.isUrgent || a.isTopStory).slice(0, 8),
-    africaNews: published.filter((a) => a.category.slug === "africa").slice(0, 4),
-    latinAmericaNews: published.filter((a) => a.category.slug === "latin-america").slice(0, 4),
-    southAsiaNews: published.filter((a) => a.category.slug === "south-asia").slice(0, 4),
-    westAsiaNews: published.filter((a) => a.category.slug === "west-asia").slice(0, 4),
+    africaNews: published.filter((a) => articleMatchesRegion(a, "africa")).slice(0, 4),
+    latinAmericaNews: published.filter((a) => articleMatchesRegion(a, "latin-america")).slice(0, 4),
+    southAsiaNews: published.filter((a) => articleMatchesRegion(a, "south-asia")).slice(0, 4),
+    westAsiaNews: published.filter((a) => articleMatchesRegion(a, "west-asia")).slice(0, 4),
   };
 }
 

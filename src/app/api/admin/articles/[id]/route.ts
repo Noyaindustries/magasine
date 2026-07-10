@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import slugify from "slugify";
+import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
+import { Category } from "@/models/Category";
 import { estimateReadingTime } from "@/lib/utils";
 import { canManageArticles } from "@/lib/permissions";
 import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publish";
@@ -10,6 +12,12 @@ import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getCategorySlug, resolveActiveCategory } from "@/lib/article-category";
+import {
+  getAllRegionSlugsForArticle,
+  isRegionCategorySlug,
+  mergeRegionCategoryIdsForArticle,
+  resolveRegionCategories,
+} from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -26,6 +34,7 @@ const updateSchema = z.object({
   featuredImage: z.string().url().optional(),
   featuredImageCaption: z.string().optional(),
   categoryId: z.string().optional(),
+  regionCategoryIds: z.array(z.string()).optional(),
   authorId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]).optional(),
@@ -61,10 +70,18 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
   const { id } = await context.params;
   await connectDB();
-  const article = await Article.findById(id).lean();
+  const article = await Article.findById(id).populate("secondaryCategories", "slug").lean();
   if (!article) {
     return NextResponse.json({ error: "Article not found" }, { status: 404 });
   }
+
+  const secondaryCategories = article.secondaryCategories as unknown as
+    | { _id: mongoose.Types.ObjectId; slug: string }[]
+    | undefined;
+  const regionCategoryIds = await mergeRegionCategoryIdsForArticle(
+    article.category,
+    (secondaryCategories ?? []).map((category) => String(category._id))
+  );
 
   return NextResponse.json({
     _id: String(article._id),
@@ -75,6 +92,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     featuredImage: article.featuredImage,
     featuredImageCaption: article.featuredImageCaption ?? "",
     categoryId: String(article.category),
+    regionCategoryIds,
     authorId: String(article.authors[0]),
     tags: article.tags,
     status: article.status,
@@ -120,11 +138,22 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const wasPublished = article.status === "published";
   const previousSlug = article.slug;
   const previousCategorySlug = await getCategorySlug(article.category);
+  const previousRegionSlugs = await getAllRegionSlugsForArticle({
+    category: article.category,
+    secondaryCategories: article.secondaryCategories,
+  });
+  const previousCategoryDoc = await Category.findById(article.category).select("_id slug").lean();
 
   if (data.categoryId) {
     const category = await resolveActiveCategory(data.categoryId);
     if (!category) {
       return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
+    }
+    if (isRegionCategorySlug(category.slug) && String(article.category) !== String(category._id)) {
+      return NextResponse.json(
+        { error: "Choisissez une rubrique thématique ; les régions se sélectionnent ci-dessous." },
+        { status: 400 }
+      );
     }
     article.category = category._id;
   }
@@ -174,6 +203,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     article.videoUrl = data.videoUrl.trim() || undefined;
   }
 
+  let regionIds =
+    data.regionCategoryIds ??
+    article.secondaryCategories.map((categoryId: mongoose.Types.ObjectId) => String(categoryId));
+  if (
+    previousCategoryDoc &&
+    isRegionCategorySlug(previousCategoryDoc.slug) &&
+    String(article.category) !== String(previousCategoryDoc._id)
+  ) {
+    regionIds = [...new Set([...regionIds, String(previousCategoryDoc._id)])];
+  }
+
+  const mergedRegionIds = await mergeRegionCategoryIdsForArticle(article.category, regionIds);
+  const regionCategories = await resolveRegionCategories(mergedRegionIds);
+  if (regionCategories === null) {
+    return NextResponse.json({ error: "Invalid region selection" }, { status: 400 });
+  }
+  article.secondaryCategories = regionCategories as never;
+
   await article.save();
 
   if (!wasPublished && article.status === "published") {
@@ -186,6 +233,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     previousSlug,
     categorySlug: await getCategorySlug(article.category),
     previousCategorySlug,
+    regionSlugs: await getAllRegionSlugsForArticle({
+      category: article.category,
+      secondaryCategories: article.secondaryCategories,
+    }),
+    previousRegionSlugs,
   });
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }
@@ -205,6 +257,10 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
   revalidateArticleContent(result.slug, {
     categorySlug: await getCategorySlug(result.category),
+    regionSlugs: await getAllRegionSlugsForArticle({
+      category: result.category,
+      secondaryCategories: result.secondaryCategories,
+    }),
   });
   return NextResponse.json({ success: true });
 }

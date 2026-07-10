@@ -10,6 +10,7 @@ import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { IMG } from "@/lib/img";
 import { resolveActiveCategory } from "@/lib/article-category";
+import { isRegionCategorySlug, mergeRegionCategoryIdsForArticle, resolveRegionCategories, getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -26,6 +27,7 @@ const schema = z.object({
   featuredImage: z.union([z.string().url(), z.literal("")]).optional(),
   featuredImageCaption: z.string().optional(),
   categoryId: z.string(),
+  regionCategoryIds: z.array(z.string()).optional().default([]),
   authorId: z.string(),
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]),
@@ -67,6 +69,21 @@ export async function POST(request: NextRequest) {
     if (!category) {
       return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
     }
+    if (isRegionCategorySlug(category.slug)) {
+      return NextResponse.json(
+        { error: "Choisissez une rubrique thématique ; les régions se sélectionnent ci-dessous." },
+        { status: 400 }
+      );
+    }
+
+    const mergedRegionIds = await mergeRegionCategoryIdsForArticle(
+      category._id,
+      parsed.data.regionCategoryIds ?? []
+    );
+    const regionCategories = await resolveRegionCategories(mergedRegionIds);
+    if (regionCategories === null) {
+      return NextResponse.json({ error: "Invalid region selection" }, { status: 400 });
+    }
 
     const slug = parsed.data.slug
       ? slugify(parsed.data.slug, { lower: true, strict: true })
@@ -96,6 +113,7 @@ export async function POST(request: NextRequest) {
       featuredImage,
       featuredImageCaption: parsed.data.featuredImageCaption,
       category: category._id,
+      secondaryCategories: regionCategories,
       authors: [parsed.data.authorId],
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,
@@ -117,7 +135,13 @@ export async function POST(request: NextRequest) {
       videoUrl: parsed.data.videoUrl?.trim() || undefined,
     });
 
-    revalidateArticleContent(article.slug, { categorySlug: category.slug });
+    revalidateArticleContent(article.slug, {
+      categorySlug: category.slug,
+      regionSlugs: await getAllRegionSlugsForArticle({
+        category: article.category,
+        secondaryCategories: article.secondaryCategories,
+      }),
+    });
     return NextResponse.json({ _id: String(article._id), slug: article.slug }, { status: 201 });
   } catch (error) {
     console.error("[admin/articles POST]", error);

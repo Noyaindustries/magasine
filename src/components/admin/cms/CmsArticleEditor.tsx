@@ -34,6 +34,7 @@ import {
   isValidVideoSourceUrl,
 } from "@/lib/article-content-types";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
+import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 
 interface Category {
   _id: string;
@@ -56,6 +57,7 @@ interface ArticleEditorForm {
   featuredImage: string;
   featuredImageCaption: string;
   categoryId: string;
+  regionCategoryIds: string[];
   authorId: string;
   tags: string[];
   publishMode: PublishMode;
@@ -81,6 +83,7 @@ const EMPTY_FORM: ArticleEditorForm = {
   featuredImage: "",
   featuredImageCaption: "",
   categoryId: "",
+  regionCategoryIds: [],
   authorId: "",
   tags: [],
   publishMode: "draft",
@@ -172,6 +175,27 @@ export function CmsArticleEditor({
     dirtyRef.current = true;
     setForm((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  const topicCategories = useMemo(
+    () => categories.filter((category) => !isRegionCategorySlug(category.slug)),
+    [categories]
+  );
+  const regionCategories = useMemo(
+    () => categories.filter((category) => isRegionCategorySlug(category.slug)),
+    [categories]
+  );
+  const selectedCategory = categories.find((category) => category._id === form.categoryId);
+
+  const toggleRegionCategory = useCallback(
+    (categoryId: string) => {
+      patchForm({
+        regionCategoryIds: form.regionCategoryIds.includes(categoryId)
+          ? form.regionCategoryIds.filter((id) => id !== categoryId)
+          : [...form.regionCategoryIds, categoryId],
+      });
+    },
+    [form.regionCategoryIds, patchForm]
+  );
 
   useEffect(() => {
     if (lastSavedAt === null) return;
@@ -266,6 +290,7 @@ export function CmsArticleEditor({
           featuredImage: article.featuredImage ?? "",
           featuredImageCaption: article.featuredImageCaption ?? "",
           categoryId: article.categoryId ?? "",
+          regionCategoryIds: article.regionCategoryIds ?? [],
           authorId: article.authorId ?? "",
           tags: article.tags ?? [],
           publishMode: mapStatusToPublishMode(article.status ?? "draft"),
@@ -339,6 +364,7 @@ export function CmsArticleEditor({
             : ""),
         featuredImageCaption: form.featuredImageCaption.trim() || undefined,
         categoryId: form.categoryId,
+        regionCategoryIds: form.regionCategoryIds,
         authorId: form.authorId,
         tags: form.tags,
         status: publishModeToStatus(publishMode),
@@ -766,17 +792,22 @@ export function CmsArticleEditor({
             <div className="card-body cms-stack">
               <div className="field">
                 <label className="lbl">
-                  Category <span className="req">*</span>
+                  Rubrique <span className="req">*</span>
                 </label>
                 <select
                   className="input sel"
-                  aria-label="Category"
+                  aria-label="Rubrique"
                   value={form.categoryId}
                   onChange={(e) => patchForm({ categoryId: e.target.value })}
                   required
                 >
-                  <option value="">Choose…</option>
-                  {categories.map((c) => (
+                  <option value="">Choisir…</option>
+                  {selectedCategory && isRegionCategorySlug(selectedCategory.slug) && (
+                    <option value={selectedCategory._id}>
+                      {selectedCategory.name} (région — choisir une rubrique)
+                    </option>
+                  )}
+                  {topicCategories.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
                     </option>
@@ -789,6 +820,27 @@ export function CmsArticleEditor({
                 >
                   + Nouvelle catégorie
                 </button>
+              </div>
+              <div className="field">
+                <label className="lbl">Région / pays couverts</label>
+                <p className="cms-field-hint">
+                  L&apos;article apparaîtra aussi sur les pages régionales (Afrique, Amérique latine, etc.).
+                </p>
+                <div className="cms-region-grid">
+                  {regionCategories.map((region) => {
+                    const checked = form.regionCategoryIds.includes(region._id);
+                    return (
+                      <label key={region._id} className="cms-region-option">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleRegionCategory(region._id)}
+                        />
+                        <span>{region.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
               <div className="field">
                 <label className="lbl">Tags</label>

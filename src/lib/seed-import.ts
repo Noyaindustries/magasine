@@ -11,6 +11,22 @@ import {
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveArticleContent } from "@/lib/article-content";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
+import { isRegionCategorySlug } from "@/lib/region-categories";
+
+const AUTHOR_DEFAULT_REGION: Record<string, string> = {
+  "lucia-mendoza": "latin-america",
+  "priya-sharma": "south-asia",
+  "omar-al-hassan": "west-asia",
+};
+
+function resolveSeedArticleRegions(
+  article: (typeof SEED_ARTICLES)[number],
+  authorSlug: string
+): string[] {
+  if (isRegionCategorySlug(article.category)) return [];
+  if (article.regions?.length) return article.regions;
+  return [AUTHOR_DEFAULT_REGION[authorSlug] ?? "africa"];
+}
 
 export interface DemoImportResult {
   categoriesCreated: number;
@@ -75,11 +91,17 @@ export async function importDemoContent(): Promise<DemoImportResult> {
     }
 
     const authorIndex = article.authorIndex ?? i % Math.max(1, authorDocs.length);
-    const authorId = authorDocs[authorIndex]?._id ?? authorDocs[0]?._id;
+    const authorDoc = authorDocs[authorIndex] ?? authorDocs[0];
+    const authorId = authorDoc?._id;
     if (!authorId) {
       articlesSkipped += 1;
       continue;
     }
+
+    const regionSlugs = resolveSeedArticleRegions(article, authorDoc.slug);
+    const secondaryCategories = regionSlugs
+      .map((slug) => catMap[slug])
+      .filter(Boolean);
 
     const rawContent = resolveArticleContent(
       article.title,
@@ -99,6 +121,7 @@ export async function importDemoContent(): Promise<DemoImportResult> {
       featuredImage: resolveFeaturedImage(article.image),
       featuredImageAlt: article.title,
       category: categoryId,
+      secondaryCategories,
       authors: [authorId],
       tags: article.tags,
       status: "published" as const,
