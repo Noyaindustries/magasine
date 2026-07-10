@@ -71,6 +71,7 @@ const RUBRIQUE_KEY_BY_SLUG: Partial<Record<string, keyof HomeDataSource>> = {
   "special-reports": "specialReports",
   health: "healthNews",
   local: "localNews",
+  opinion: "opinion",
 };
 
 const DEFAULT_RUBRIQUE_TITLES: Record<string, string> = {
@@ -88,6 +89,7 @@ const DEFAULT_RUBRIQUE_TITLES: Record<string, string> = {
   "special-reports": "Special Reports",
   health: "Health",
   local: "Local",
+  opinion: "Opinion",
 };
 
 function articlePath(slug: string): string {
@@ -443,12 +445,13 @@ function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
   const slugs = buildHomeRubriqueSlugs(navCategories);
 
   return slugs.flatMap((slug) => {
-    const key = RUBRIQUE_KEY_BY_SLUG[slug];
-    if (!key) return [];
+    const dynamicItems = source.rubriqueArticlesBySlug?.[slug];
+    const legacyKey = RUBRIQUE_KEY_BY_SLUG[slug];
+    const legacyItems = legacyKey
+      ? (source[legacyKey] as ArticleListItem[] | undefined)
+      : undefined;
 
-    const items = filterArticlesByRetiredCategories(
-      (source[key] as ArticleListItem[] | undefined) ?? []
-    );
+    const items = filterArticlesByRetiredCategories(dynamicItems ?? legacyItems ?? []);
     if (!items.length) return [];
 
     const fallbackTitle = DEFAULT_RUBRIQUE_TITLES[slug] ?? slug;

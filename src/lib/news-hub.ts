@@ -1,6 +1,7 @@
 import { NEWS_MENU_NAV } from "@/data/site-home";
 import type { PublicNewsMenuItem } from "@/lib/public-nav";
 import type { ArticleListItem } from "@/types";
+import { articleMatchesCategorySlug } from "@/lib/article-category-match";
 
 export const NEWS_HUB_CATEGORY_SLUGS = new Set([
   "news",
@@ -37,7 +38,7 @@ export function countArticlesForNewsMenuItem(
   if (href === "/urgent") return urgentCount;
   const slug = newsMenuCategorySlug(href);
   if (!slug) return 0;
-  return articles.filter((a) => a.category.slug === slug).length;
+  return articles.filter((a) => articleMatchesCategorySlug(a, slug)).length;
 }
 
 export function buildNewsHubSectionCounts(

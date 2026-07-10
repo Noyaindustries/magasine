@@ -51,6 +51,7 @@ export const HOME_RUBRIQUE_SLUG_ORDER = [
   "special-reports",
   "health",
   "local",
+  "opinion",
 ] as const;
 
 function categoryHref(slug: string): string {

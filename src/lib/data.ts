@@ -37,6 +37,12 @@ import { buildNewsHubSectionCounts } from "@/lib/news-hub";
 import { buildSiteNav } from "@/lib/public-nav";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 import { findPublishedArticlesForCategorySlug } from "@/lib/find-category-articles";
+import {
+  articleMatchesCategorySlug,
+  filterArticlesByCategorySlug,
+  mongoCategoryMatchFilter,
+} from "@/lib/article-category-match";
+import { buildHomeRubriqueSlugs } from "@/lib/public-nav";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -326,6 +332,16 @@ export const getHomePageData = cache(async function getHomePageData() {
     latinAmericaNews: filterHomeArticleList(latinAmericaNews, 4),
     southAsiaNews: filterHomeArticleList(southAsiaNews, 4),
     westAsiaNews: filterHomeArticleList(westAsiaNews, 4),
+    rubriqueArticlesBySlug: await buildRubriqueArticlesBySlug(
+      filterRetiredCategories(
+        categories.map((c) => ({
+          _id: String(c._id),
+          name: c.name,
+          slug: c.slug,
+          color: c.color,
+        }))
+      )
+    ),
   };
 });
 
@@ -391,13 +407,17 @@ function sortArticlesByDate(articles: ArticleListItem[]) {
   });
 }
 
-function articleMatchesCategorySlug(article: ArticleListItem, categorySlug: string) {
-  if (article.category.slug === categorySlug) return true;
-  return article.regions?.some((region) => region.slug === categorySlug) ?? false;
-}
-
-function filterArticlesByCategory(articles: ArticleListItem[], categorySlug: string) {
-  return articles.filter((article) => articleMatchesCategorySlug(article, categorySlug));
+async function buildRubriqueArticlesBySlug(
+  categories: { name: string; slug: string }[]
+): Promise<Record<string, ArticleListItem[]>> {
+  const slugs = buildHomeRubriqueSlugs(categories);
+  const entries = await Promise.all(
+    slugs.map(async (slug) => {
+      const articles = await getArticlesByCategorySlug(slug, 4);
+      return [slug, filterHomeArticleList(articles, 4)] as const;
+    })
+  );
+  return Object.fromEntries(entries);
 }
 
 export async function getAllNewsArticles(options?: { categorySlug?: string; limit?: number }) {
@@ -409,7 +429,7 @@ export async function getAllNewsArticles(options?: { categorySlug?: string; limi
   if (!(await hasDbArticles())) {
     const { getMockArticles } = await import("@/lib/mock-data");
     let list = sortArticlesByDate(getMockArticles());
-    if (resolvedSlug) list = filterArticlesByCategory(list, resolvedSlug);
+    if (resolvedSlug) list = filterArticlesByCategorySlug(list, resolvedSlug);
     return list.slice(0, limit);
   }
 
@@ -419,7 +439,7 @@ export async function getAllNewsArticles(options?: { categorySlug?: string; limi
   if (resolvedSlug) {
     const category = await Category.findOne({ slug: resolvedSlug }).lean();
     if (category) {
-      filter.$or = [{ category: category._id }, { secondaryCategories: category._id }];
+      Object.assign(filter, mongoCategoryMatchFilter(category._id));
     }
   }
 
@@ -430,7 +450,7 @@ export async function getAllNewsArticles(options?: { categorySlug?: string; limi
 
   const { getMockArticles } = await import("@/lib/mock-data");
   let list = sortArticlesByDate(getMockArticles());
-  if (resolvedSlug) list = filterArticlesByCategory(list, resolvedSlug);
+  if (resolvedSlug) list = filterArticlesByCategorySlug(list, resolvedSlug);
   return list.slice(0, limit);
 }
 
@@ -570,7 +590,7 @@ export async function searchArticles(
     if (!DEMO_CONTENT_ENABLED) return [];
     let results = searchMockArticles(query);
     if (filters?.category) {
-      results = results.filter((a) => a.category.slug === filters.category);
+      results = filterArticlesByCategorySlug(results, filters.category);
     }
     if (filters?.contentType) {
       results = results.filter((a) => a.contentType === filters.contentType);
@@ -580,18 +600,24 @@ export async function searchArticles(
 
   await connectDB();
 
-  const filter: Record<string, unknown> = {
+  const baseMatch: Record<string, unknown> = {
     status: "published",
     $text: { $search: query },
   };
 
-  if (filters?.category) {
-    const cat = await Category.findOne({ slug: filters.category });
-    if (cat) filter.category = cat._id;
+  if (filters?.contentType) {
+    baseMatch.contentType = filters.contentType;
   }
 
-  if (filters?.contentType) {
-    filter.contentType = filters.contentType;
+  let filter: Record<string, unknown> = baseMatch;
+
+  if (filters?.category) {
+    const cat = await Category.findOne({ slug: filters.category });
+    if (cat) {
+      filter = {
+        $and: [baseMatch, mongoCategoryMatchFilter(cat._id)],
+      };
+    }
   }
 
   const articles = await Article.find(filter, {
@@ -634,7 +660,9 @@ export async function searchArticles(
   };
   if (filters?.category) {
     const cat = await Category.findOne({ slug: filters.category });
-    if (cat) fallbackFilter.category = cat._id;
+    if (cat) {
+      Object.assign(fallbackFilter, mongoCategoryMatchFilter(cat._id));
+    }
   }
   if (filters?.contentType) fallbackFilter.contentType = filters.contentType;
 

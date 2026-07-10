@@ -11,6 +11,8 @@ import { resolveArticleContent } from "@/lib/article-content";
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import { filterArticlesByCategorySlug } from "@/lib/article-category-match";
+import { buildHomeRubriqueSlugs } from "@/lib/public-nav";
 
 const AUTHOR_DEFAULT_REGION: Record<string, string> = {
   "lucia-mendoza": "latin-america",
@@ -260,6 +262,21 @@ export function getMockHomePageData() {
     latinAmericaNews: published.filter((a) => articleMatchesRegion(a, "latin-america")).slice(0, 4),
     southAsiaNews: published.filter((a) => articleMatchesRegion(a, "south-asia")).slice(0, 4),
     westAsiaNews: published.filter((a) => articleMatchesRegion(a, "west-asia")).slice(0, 4),
+    rubriqueArticlesBySlug: Object.fromEntries(
+      buildHomeRubriqueSlugs(
+        filterRetiredCategories(
+          categories.map((c) => ({
+            _id: c._id,
+            name: c.name,
+            slug: c.slug,
+            color: c.color,
+          }))
+        )
+      ).map((slug) => [
+        slug,
+        filterArticlesByCategorySlug(published, slug).slice(0, 4),
+      ])
+    ),
   };
 }
 
