@@ -24,6 +24,7 @@ import { migrateWorldToFeature } from "@/lib/migrate-world-to-feature";
 import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
 import {
   ensureRegionCategoriesExist,
+  ensureTopicCategoriesExist,
   migrateArticleRegionLinksOnce,
   removeAutoAssignedAfricaRegionsOnce,
   repairAuthorRegionLinksOnce,
@@ -34,6 +35,7 @@ import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 import { findPublishedArticlesForCategorySlug } from "@/lib/find-category-articles";
+import { buildSiteNav } from "@/lib/public-nav";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -183,6 +185,7 @@ async function ensureCategoryMigrations(): Promise<void> {
   await migrateCategorySlugsOnce();
   await migrateWorldToFeature();
   await restoreMultimediaCategory();
+  await ensureTopicCategoriesExist();
   await ensureRegionCategoriesExist();
   await migrateArticleRegionLinksOnce();
   await removeAutoAssignedAfricaRegionsOnce();
@@ -839,10 +842,19 @@ export async function getAllAuthors() {
   }));
 }
 
+function mapNavCategories(
+  categories: { name: string; slug: string }[]
+): { name: string; slug: string }[] {
+  return filterRetiredCategories(categories);
+}
+
 export const getLayoutNavData = cache(async function getLayoutNavData() {
   try {
     const siteSettings = await getPublicSiteSettings();
     await connectDB();
+    await ensureTopicCategoriesExist();
+    await ensureRegionCategoriesExist();
+
     const [categories, alerts, articleCount] = await Promise.all([
       Category.find({ isActive: true }).sort({ order: 1 }).lean(),
       siteSettings.breakingAlertEnabled
@@ -854,8 +866,10 @@ export const getLayoutNavData = cache(async function getLayoutNavData() {
     // En mode démo, on montre des catégories fictives quand la base est vide.
     // Sinon on utilise les vraies catégories de la base (menu réel, même sans article).
     if (articleCount === 0 && DEMO_CONTENT_ENABLED) {
+      const navCategories = mapNavCategories(mockCategories);
       return {
-        categories: filterRetiredCategories(mockCategories),
+        categories: navCategories,
+        siteNav: buildSiteNav(navCategories),
         alerts: siteSettings.breakingAlertEnabled
           ? mockAlerts.map((a) => ({ text: a.text, link: a.link }))
           : [],
@@ -863,17 +877,24 @@ export const getLayoutNavData = cache(async function getLayoutNavData() {
       };
     }
 
+    const navCategories = mapNavCategories(
+      categories.map((c) => ({ name: c.name, slug: c.slug }))
+    );
+
     return {
-      categories: filterRetiredCategories(
-        categories.map((c) => ({ name: c.name, slug: c.slug }))
-      ),
+      categories: navCategories,
+      siteNav: buildSiteNav(navCategories),
       alerts: alerts.map((a) => ({ text: a.text, link: a.link })),
       siteSettings,
     };
   } catch {
     const siteSettings = await getPublicSiteSettings();
+    const navCategories = DEMO_CONTENT_ENABLED
+      ? mapNavCategories(mockCategories)
+      : [];
     return {
-      categories: DEMO_CONTENT_ENABLED ? filterRetiredCategories(mockCategories) : [],
+      categories: navCategories,
+      siteNav: buildSiteNav(navCategories),
       alerts:
         DEMO_CONTENT_ENABLED && siteSettings.breakingAlertEnabled
           ? mockAlerts.map((a) => ({ text: a.text, link: a.link }))

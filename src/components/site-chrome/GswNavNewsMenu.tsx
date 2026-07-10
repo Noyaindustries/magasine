@@ -2,11 +2,15 @@
 
 import { useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { NEWS_MENU_NAV } from "@/data/site-home";
 import { isNewsMenuItemActive } from "@/lib/news-hub";
 import { GswNavMegaMenu } from "@/components/site-chrome/GswNavMegaMenu";
+import type { PublicNewsMenuItem } from "@/lib/public-nav";
 
-export function GswNavNewsMenu() {
+interface GswNavNewsMenuProps {
+  items: PublicNewsMenuItem[];
+}
+
+export function GswNavNewsMenu({ items }: GswNavNewsMenuProps) {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get("category");
 
@@ -20,7 +24,7 @@ export function GswNavNewsMenu() {
       label="News"
       panelKicker="Reporting"
       panelTitle="News & coverage"
-      items={NEWS_MENU_NAV}
+      items={items}
       align="start"
       isItemActive={isItemActive}
     />

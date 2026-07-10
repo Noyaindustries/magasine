@@ -16,6 +16,55 @@ let migrationDone = false;
 let africaCleanupDone = false;
 let authorRegionRepairDone = false;
 
+async function upsertSeedCategory(definition: (typeof SEED_CATEGORIES)[number]): Promise<boolean> {
+  const existing = await Category.findOne({ slug: definition.slug });
+  if (!existing) {
+    await Category.create({ ...definition, isActive: true });
+    return true;
+  }
+
+  let changed = false;
+  if (!existing.isActive) {
+    existing.isActive = true;
+    changed = true;
+  }
+  if (!existing.name) {
+    existing.name = definition.name;
+    changed = true;
+  }
+  if (!existing.color) {
+    existing.color = definition.color;
+    changed = true;
+  }
+  if (!existing.description) {
+    existing.description = definition.description;
+    changed = true;
+  }
+  if (existing.order == null) {
+    existing.order = definition.order;
+    changed = true;
+  }
+  if (changed) {
+    await existing.save();
+    return true;
+  }
+
+  return false;
+}
+
+/** Crée ou réactive les rubriques thématiques (News, Politique, etc.) si elles manquent. */
+export async function ensureTopicCategoriesExist(): Promise<number> {
+  await connectDB();
+  let updated = 0;
+
+  for (const definition of SEED_CATEGORIES) {
+    if (isRegionCategorySlug(definition.slug)) continue;
+    if (await upsertSeedCategory(definition)) updated += 1;
+  }
+
+  return updated;
+}
+
 /** Crée ou réactive les 4 catégories région si elles manquent en base. */
 export async function ensureRegionCategoriesExist(): Promise<number> {
   await connectDB();
@@ -23,39 +72,7 @@ export async function ensureRegionCategoriesExist(): Promise<number> {
 
   for (const definition of SEED_CATEGORIES) {
     if (!isRegionCategorySlug(definition.slug)) continue;
-
-    const existing = await Category.findOne({ slug: definition.slug });
-    if (!existing) {
-      await Category.create({ ...definition, isActive: true });
-      updated += 1;
-      continue;
-    }
-
-    let changed = false;
-    if (!existing.isActive) {
-      existing.isActive = true;
-      changed = true;
-    }
-    if (!existing.name) {
-      existing.name = definition.name;
-      changed = true;
-    }
-    if (!existing.color) {
-      existing.color = definition.color;
-      changed = true;
-    }
-    if (!existing.description) {
-      existing.description = definition.description;
-      changed = true;
-    }
-    if (existing.order == null) {
-      existing.order = definition.order;
-      changed = true;
-    }
-    if (changed) {
-      await existing.save();
-      updated += 1;
-    }
+    if (await upsertSeedCategory(definition)) updated += 1;
   }
 
   return updated;
@@ -204,6 +221,7 @@ export async function migrateArticleRegionLinks(): Promise<number> {
   await connectDB();
   let updated = 0;
 
+  updated += await ensureTopicCategoriesExist();
   updated += await ensureRegionCategoriesExist();
   updated += await ensureRegionCategoriesActive();
 

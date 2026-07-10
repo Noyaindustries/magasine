@@ -90,7 +90,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { categories, siteSettings } = await getLayoutData();
+  const { siteNav, siteSettings } = await getLayoutData();
   const typography = getTypographyPreset(siteSettings.typographyPreset);
   const typographyVars = getTypographyCssVariables(typography);
 
@@ -123,7 +123,7 @@ export default async function RootLayout({
             maintenanceMode={siteSettings.maintenanceMode}
             siteName={siteSettings.siteName}
           >
-            <SiteChrome categories={categories}>
+            <SiteChrome siteNav={siteNav}>
               {children}
             </SiteChrome>
           </MaintenanceGate>

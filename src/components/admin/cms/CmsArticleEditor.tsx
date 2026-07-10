@@ -176,10 +176,18 @@ export function CmsArticleEditor({
     setForm((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  const topicCategories = useMemo(
-    () => categories.filter((category) => !isRegionCategorySlug(category.slug)),
-    [categories]
-  );
+  const topicOptions = useMemo(() => {
+    const topics = categories.filter((category) => !isRegionCategorySlug(category.slug));
+    const selected = categories.find((category) => category._id === form.categoryId);
+    if (
+      selected &&
+      !isRegionCategorySlug(selected.slug) &&
+      !topics.some((category) => category._id === selected._id)
+    ) {
+      return [...topics, selected].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return topics;
+  }, [categories, form.categoryId]);
   const regionCategories = useMemo(
     () => categories.filter((category) => isRegionCategorySlug(category.slug)),
     [categories]
@@ -211,13 +219,38 @@ export function CmsArticleEditor({
   }, [lastSavedAt]);
 
   useEffect(() => {
+    let cancelled = false;
+
     fetch("/api/admin/meta")
-      .then((r) => r.json())
-      .then((data) => {
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(
+            (data as { error?: string }).error ?? "Impossible de charger les catégories"
+          );
+        }
+        if (cancelled) return;
         setCategories(data.categories ?? []);
         setAuthors(data.authors ?? []);
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          toast.error(error instanceof Error ? error.message : "Erreur réseau");
+        }
       });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    if (mode !== "create" || form.categoryId || categories.length === 0) return;
+    const firstTopic = categories.find((category) => !isRegionCategorySlug(category.slug));
+    if (firstTopic) {
+      patchForm({ categoryId: firstTopic._id });
+    }
+  }, [mode, form.categoryId, categories, patchForm]);
 
   const handleQuickCreateCategory = useCallback(async () => {
     const name = window.prompt("Nom de la nouvelle catégorie ?")?.trim();
@@ -818,12 +851,18 @@ export function CmsArticleEditor({
                       {selectedCategory.name} (région — choisir une rubrique)
                     </option>
                   )}
-                  {topicCategories.map((c) => (
+                  {topicOptions.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
                     </option>
                   ))}
                 </select>
+                {topicOptions.length === 0 && (
+                  <p className="cms-field-hint" style={{ color: "var(--cms-red)" }}>
+                    Aucune rubrique disponible. Utilisez « + Nouvelle catégorie » ou vérifiez
+                    l&apos;admin Catégories.
+                  </p>
+                )}
                 <button
                   type="button"
                   className="cms-quick-add"

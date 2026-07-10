@@ -7,16 +7,18 @@ import { HomeQuickNav } from "@/components/site-chrome/HomeQuickNav";
 import { SiteFooter } from "@/components/site-chrome/SiteFooter";
 import { ProgressBar } from "@/components/site-chrome/ProgressBar";
 import { ScrollReveal } from "@/components/site-chrome/ScrollReveal";
+import type { SiteNav } from "@/lib/public-nav";
+
 interface SiteChromeProps {
   children: ReactNode;
-  categories: { name: string; slug: string }[];
+  siteNav: SiteNav;
 }
 
 function isAdminRoute(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
-export function SiteChrome({ children, categories }: SiteChromeProps) {
+export function SiteChrome({ children, siteNav }: SiteChromeProps) {
   const pathname = usePathname();
   const admin = isAdminRoute(pathname);
 
@@ -29,7 +31,7 @@ export function SiteChrome({ children, categories }: SiteChromeProps) {
       <ProgressBar />
       <div className="site-header-stack">
         <SiteHeader />
-        <HomeQuickNav />
+        <HomeQuickNav siteNav={siteNav} />
       </div>
       <main>{children}</main>
       <SiteFooter />

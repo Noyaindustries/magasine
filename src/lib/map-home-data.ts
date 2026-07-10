@@ -34,6 +34,7 @@ import {
   splitHeroTitle,
 } from "@/lib/format-article";
 import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
+import { resolveRubriqueTitle } from "@/lib/public-nav";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
@@ -417,6 +418,11 @@ function buildUrgent(source: HomeDataSource): HomeUrgent {
 }
 
 function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
+  const navCategories = source.categories.map((category) => ({
+    name: category.name,
+    slug: category.slug,
+  }));
+
   return RUBRIQUE_SOURCES.flatMap(({ slug, title, key }) => {
     const items = filterArticlesByRetiredCategories(
       (source[key] as ArticleListItem[] | undefined) ?? []
@@ -426,7 +432,7 @@ function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
     return [
       {
         slug,
-        title,
+        title: resolveRubriqueTitle(slug, title, navCategories),
         href: `/category/${slug}`,
         articles: items.slice(0, 4).map(toHomeCard),
       },

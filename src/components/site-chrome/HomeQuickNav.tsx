@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import {
-  PRIMARY_NAV,
-  REGION_NAV,
-} from "@/data/site-home";
 import { GswNavNewsMenu } from "@/components/site-chrome/GswNavNewsMenu";
 import { GswNavSearchLink } from "@/components/site-chrome/GswNavSearchLink";
 import { GswNavSubscribeLink } from "@/components/site-chrome/GswNavSubscribeLink";
+import type { SiteNav } from "@/lib/public-nav";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -42,7 +39,13 @@ function NavLink({
   );
 }
 
-export function HomeQuickNav() {
+interface HomeQuickNavProps {
+  siteNav: SiteNav;
+}
+
+export function HomeQuickNav({ siteNav }: HomeQuickNavProps) {
+  const { primary, regions, newsMenu } = siteNav;
+
   return (
     <div className="gsw-site-nav" translate="no">
       <nav className="gsw-nav" aria-label="Main navigation">
@@ -50,16 +53,18 @@ export function HomeQuickNav() {
           <div className="gsw-nav-track">
             <div className="gsw-nav-track-group">
               <Suspense fallback={<span className="gsw-nav-link">News</span>}>
-                <GswNavNewsMenu />
+                <GswNavNewsMenu items={newsMenu} />
               </Suspense>
-              {PRIMARY_NAV.filter((item) => item.label !== "News").map((item) => (
-                <NavLink key={item.href} href={item.href} label={item.label} />
-              ))}
+              {primary
+                .filter((item) => item.label.toLowerCase() !== "news")
+                .map((item) => (
+                  <NavLink key={item.href} href={item.href} label={item.label} />
+                ))}
               <NavLink href="/about" label="About" />
             </div>
             <div className="gsw-nav-track-group gsw-nav-track-group--regions">
               <span className="gsw-nav-divider" aria-hidden />
-              {REGION_NAV.map((region) => (
+              {regions.map((region) => (
                 <NavLink
                   key={region.href}
                   href={region.href}

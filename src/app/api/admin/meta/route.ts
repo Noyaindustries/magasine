@@ -4,6 +4,10 @@ import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { Author } from "@/models/Author";
 import { filterRetiredCategories } from "@/lib/retired-categories";
+import {
+  ensureRegionCategoriesExist,
+  ensureTopicCategoriesExist,
+} from "@/lib/migrate-article-regions";
 
 export async function GET() {
   const session = await auth();
@@ -12,9 +16,12 @@ export async function GET() {
   }
 
   await connectDB();
+  await ensureTopicCategoriesExist();
+  await ensureRegionCategoriesExist();
+
   const [categories, authors] = await Promise.all([
     Category.find({ isActive: true }).sort({ order: 1 }).lean(),
-    Author.find().lean(),
+    Author.find().sort({ name: 1 }).lean(),
   ]);
 
   return NextResponse.json({
