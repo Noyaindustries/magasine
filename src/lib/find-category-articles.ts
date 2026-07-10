@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
+import { Author } from "@/models/Author";
 import { Category } from "@/models/Category";
+import { authorSlugsForRegionSlug } from "@/lib/article-region-inference";
+import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import { REGION_SLUGS } from "@/lib/sections";
 
 type ArticleListQuery = (
   filter: Record<string, unknown>,
@@ -18,10 +22,45 @@ function sortByPublishedAtDesc(
   });
 }
 
+function toObjectIdSet(ids: Iterable<string>): mongoose.Types.ObjectId[] {
+  return [...ids]
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+}
+
+async function findArticlesByRegionalAuthors(
+  resolvedSlug: string,
+  limit: number,
+  excludeIds: Set<string>,
+  findArticleList: ArticleListQuery
+): Promise<Record<string, unknown>[]> {
+  if (!isRegionCategorySlug(resolvedSlug) || limit <= 0) return [];
+
+  const authorSlugs = authorSlugsForRegionSlug(resolvedSlug);
+  if (authorSlugs.length === 0) return [];
+
+  const authorIds = await Author.distinct("_id", { slug: { $in: authorSlugs } });
+  if (authorIds.length === 0) return [];
+
+  const allRegionIds = await Category.distinct("_id", { slug: { $in: [...REGION_SLUGS] } });
+  const excludeObjectIds = toObjectIdSet(excludeIds);
+
+  return findArticleList(
+    {
+      status: "published",
+      authors: { $in: authorIds },
+      ...(allRegionIds.length > 0 ? { category: { $nin: allRegionIds } } : {}),
+      ...(excludeObjectIds.length > 0 ? { _id: { $nin: excludeObjectIds } } : {}),
+    },
+    limit
+  );
+}
+
 /**
  * Liste les articles publiés d'une rubrique par slug.
  * 1) filtre par ObjectId (rapide)
  * 2) repli par jointure sur le slug des catégories (références obsolètes)
+ * 3) repli par correspondant régional (auteur → région)
  */
 export async function findPublishedArticlesForCategorySlug(
   resolvedSlug: string,
@@ -44,11 +83,13 @@ export async function findPublishedArticlesForCategorySlug(
     limit
   );
 
-  if (byId.length >= limit) {
-    return sortByPublishedAtDesc(byId).slice(0, limit);
+  let results = sortByPublishedAtDesc(byId);
+  const foundIds = new Set(results.map((article) => String(article._id)));
+
+  if (results.length >= limit) {
+    return results.slice(0, limit);
   }
 
-  const foundIds = new Set(byId.map((article) => String(article._id)));
   const slugMatchIds = await Article.aggregate<{ _id: mongoose.Types.ObjectId }>([
     { $match: { status: "published" } },
     {
@@ -83,16 +124,29 @@ export async function findPublishedArticlesForCategorySlug(
   const missingIds = slugMatchIds
     .map((row) => row._id)
     .filter((id) => !foundIds.has(String(id)))
-    .slice(0, Math.max(0, limit - byId.length));
+    .slice(0, Math.max(0, limit - results.length));
 
-  if (missingIds.length === 0) {
-    return sortByPublishedAtDesc(byId).slice(0, limit);
+  if (missingIds.length > 0) {
+    const extras = (await findArticleList(
+      { _id: { $in: missingIds }, status: "published" },
+      limit
+    )) as Record<string, unknown>[];
+
+    for (const article of extras) {
+      foundIds.add(String(article._id));
+    }
+    results = sortByPublishedAtDesc([...results, ...extras]);
   }
 
-  const extras = (await findArticleList({ _id: { $in: missingIds }, status: "published" }, limit)) as Record<
-    string,
-    unknown
-  >[];
+  if (results.length < limit) {
+    const byAuthor = await findArticlesByRegionalAuthors(
+      resolvedSlug,
+      limit - results.length,
+      foundIds,
+      findArticleList
+    );
+    results = sortByPublishedAtDesc([...results, ...byAuthor]);
+  }
 
-  return sortByPublishedAtDesc([...byId, ...extras]).slice(0, limit);
+  return results.slice(0, limit);
 }

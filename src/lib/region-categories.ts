@@ -15,22 +15,31 @@ export async function resolveRegionCategories(regionCategoryIds: string[]) {
   if (invalidId) return null;
 
   await connectDB();
-  const categories = await Category.find({
-    _id: { $in: uniqueIds },
-    isActive: true,
-  })
-    .select("_id slug")
+  const categories = await Category.find({ _id: { $in: uniqueIds } })
+    .select("_id slug isActive")
     .lean();
 
   if (categories.length !== uniqueIds.length) return null;
 
-  const hasNonRegion = categories.some((category) => !isRegionCategorySlug(category.slug));
+  for (const category of categories) {
+    if (!category.isActive && isRegionCategorySlug(category.slug)) {
+      await Category.updateOne({ _id: category._id }, { $set: { isActive: true } });
+    }
+  }
+
+  const activeCategories = categories.filter(
+    (category) => category.isActive || isRegionCategorySlug(category.slug)
+  );
+
+  if (activeCategories.length !== uniqueIds.length) return null;
+
+  const hasNonRegion = activeCategories.some((category) => !isRegionCategorySlug(category.slug));
   if (hasNonRegion) return null;
 
-  const retired = categories.some((category) => isRetiredCategorySlug(category.slug));
+  const retired = activeCategories.some((category) => isRetiredCategorySlug(category.slug));
   if (retired) return null;
 
-  return categories.map((category) => category._id);
+  return activeCategories.map((category) => category._id);
 }
 
 /** Inclut la région principale (ancien modèle) dans les catégories secondaires. */

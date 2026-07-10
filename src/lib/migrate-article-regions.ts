@@ -9,10 +9,57 @@ import {
   articleHasRegionAssignment,
   inferRegionSlugFromAuthor,
 } from "@/lib/article-region-inference";
+import { SEED_CATEGORIES } from "@/lib/seed-data";
 import { revalidateCategoryPage } from "@/lib/revalidate-public";
 
 let migrationDone = false;
 let africaCleanupDone = false;
+let authorRegionRepairDone = false;
+
+/** Crée ou réactive les 4 catégories région si elles manquent en base. */
+export async function ensureRegionCategoriesExist(): Promise<number> {
+  await connectDB();
+  let updated = 0;
+
+  for (const definition of SEED_CATEGORIES) {
+    if (!isRegionCategorySlug(definition.slug)) continue;
+
+    const existing = await Category.findOne({ slug: definition.slug });
+    if (!existing) {
+      await Category.create({ ...definition, isActive: true });
+      updated += 1;
+      continue;
+    }
+
+    let changed = false;
+    if (!existing.isActive) {
+      existing.isActive = true;
+      changed = true;
+    }
+    if (!existing.name) {
+      existing.name = definition.name;
+      changed = true;
+    }
+    if (!existing.color) {
+      existing.color = definition.color;
+      changed = true;
+    }
+    if (!existing.description) {
+      existing.description = definition.description;
+      changed = true;
+    }
+    if (existing.order == null) {
+      existing.order = definition.order;
+      changed = true;
+    }
+    if (changed) {
+      await existing.save();
+      updated += 1;
+    }
+  }
+
+  return updated;
+}
 
 async function ensureRegionCategoriesActive(): Promise<number> {
   const result = await Category.updateMany(
@@ -157,6 +204,7 @@ export async function migrateArticleRegionLinks(): Promise<number> {
   await connectDB();
   let updated = 0;
 
+  updated += await ensureRegionCategoriesExist();
   updated += await ensureRegionCategoriesActive();
 
   const regionCategories = await Category.find({
@@ -206,5 +254,23 @@ export async function removeAutoAssignedAfricaRegionsOnce(): Promise<void> {
     await removeAutoAssignedAfricaRegions();
   } catch {
     africaCleanupDone = false;
+  }
+}
+
+/** Ré-attribue les régions aux correspondants régionaux (sans défaut Africa). */
+export async function repairAuthorRegionLinksOnce(): Promise<void> {
+  if (authorRegionRepairDone) return;
+  authorRegionRepairDone = true;
+
+  try {
+    await ensureRegionCategoriesExist();
+    const updated = await repairPublishedArticleCategoryReferences();
+    if (updated > 0) {
+      for (const slug of REGION_SLUGS) {
+        revalidateCategoryPage(slug);
+      }
+    }
+  } catch {
+    authorRegionRepairDone = false;
   }
 }

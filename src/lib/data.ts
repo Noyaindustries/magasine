@@ -22,7 +22,12 @@ import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
 import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
 import { migrateWorldToFeature } from "@/lib/migrate-world-to-feature";
 import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
-import { migrateArticleRegionLinksOnce, removeAutoAssignedAfricaRegionsOnce } from "@/lib/migrate-article-regions";
+import {
+  ensureRegionCategoriesExist,
+  migrateArticleRegionLinksOnce,
+  removeAutoAssignedAfricaRegionsOnce,
+  repairAuthorRegionLinksOnce,
+} from "@/lib/migrate-article-regions";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 import { recordDailyPageView } from "@/lib/analytics-daily";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
@@ -178,8 +183,10 @@ async function ensureCategoryMigrations(): Promise<void> {
   await migrateCategorySlugsOnce();
   await migrateWorldToFeature();
   await restoreMultimediaCategory();
+  await ensureRegionCategoriesExist();
   await migrateArticleRegionLinksOnce();
   await removeAutoAssignedAfricaRegionsOnce();
+  await repairAuthorRegionLinksOnce();
 }
 
 export const getHomePageData = cache(async function getHomePageData() {
@@ -637,8 +644,10 @@ export async function getCategoryBySlug(slug: string) {
   await connectDB();
   await ensureCategoryMigrations();
 
+  await ensureRegionCategoriesExist();
+
   let category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
-  if (!category && isRegionCategorySlug(resolvedSlug)) {
+  if (!category) {
     const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
     if (inactive) {
       await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });

@@ -15,6 +15,12 @@ export function inferRegionSlugFromAuthor(authorSlug: string | undefined | null)
   return AUTHOR_DEFAULT_REGION[authorSlug] ?? null;
 }
 
+export function authorSlugsForRegionSlug(regionSlug: string): string[] {
+  return Object.entries(AUTHOR_DEFAULT_REGION)
+    .filter(([, slug]) => slug === regionSlug)
+    .map(([authorSlug]) => authorSlug);
+}
+
 export async function inferRegionCategoryIdFromAuthorId(
   authorId: string | undefined | null
 ): Promise<string | null> {
