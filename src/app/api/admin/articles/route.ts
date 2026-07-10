@@ -10,7 +10,7 @@ import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { IMG } from "@/lib/img";
 import { resolveActiveCategory } from "@/lib/article-category";
-import { isRegionCategorySlug, mergeRegionCategoryIdsForArticle, resolveRegionCategories, getAllRegionSlugsForArticle } from "@/lib/region-categories";
+import { isRegionCategorySlug, mergeRegionCategoryIdsForArticleWithInference, resolveRegionCategories, getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -76,9 +76,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const mergedRegionIds = await mergeRegionCategoryIdsForArticle(
+    const mergedRegionIds = await mergeRegionCategoryIdsForArticleWithInference(
       category._id,
-      parsed.data.regionCategoryIds ?? []
+      parsed.data.regionCategoryIds ?? [],
+      parsed.data.authorId
     );
     const regionCategories = await resolveRegionCategories(mergedRegionIds);
     if (regionCategories === null) {

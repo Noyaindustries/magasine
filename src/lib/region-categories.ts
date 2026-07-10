@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { isRetiredCategorySlug } from "@/lib/retired-categories";
+import { inferRegionCategoryIdFromAuthorId } from "@/lib/article-region-inference";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 
 export { isRegionCategorySlug } from "@/lib/region-category-slugs";
@@ -48,6 +49,27 @@ export async function mergeRegionCategoryIdsForArticle(
   }
 
   return [...merged];
+}
+
+/** Fusionne les régions choisies ; si aucune, infère depuis l'auteur (correspondants régionaux). */
+export async function mergeRegionCategoryIdsForArticleWithInference(
+  primaryCategoryId: string | mongoose.Types.ObjectId | undefined | null,
+  regionCategoryIds: string[],
+  authorId: string | undefined | null
+): Promise<string[]> {
+  const merged = await mergeRegionCategoryIdsForArticle(primaryCategoryId, regionCategoryIds);
+  if (merged.length > 0) return merged;
+
+  if (primaryCategoryId && mongoose.Types.ObjectId.isValid(String(primaryCategoryId))) {
+    await connectDB();
+    const primary = await Category.findById(primaryCategoryId).select("slug").lean();
+    if (primary && isRegionCategorySlug(primary.slug)) {
+      return merged;
+    }
+  }
+
+  const inferred = await inferRegionCategoryIdFromAuthorId(authorId);
+  return inferred ? [inferred] : merged;
 }
 
 export async function getRegionSlugsForArticle(

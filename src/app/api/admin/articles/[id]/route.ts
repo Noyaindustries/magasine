@@ -16,6 +16,7 @@ import {
   getAllRegionSlugsForArticle,
   isRegionCategorySlug,
   mergeRegionCategoryIdsForArticle,
+  mergeRegionCategoryIdsForArticleWithInference,
   resolveRegionCategories,
 } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
@@ -214,7 +215,11 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     regionIds = [...new Set([...regionIds, String(previousCategoryDoc._id)])];
   }
 
-  const mergedRegionIds = await mergeRegionCategoryIdsForArticle(article.category, regionIds);
+  const mergedRegionIds = await mergeRegionCategoryIdsForArticleWithInference(
+    article.category,
+    regionIds,
+    data.authorId ?? (article.authors[0] ? String(article.authors[0]) : undefined)
+  );
   const regionCategories = await resolveRegionCategories(mergedRegionIds);
   if (regionCategories === null) {
     return NextResponse.json({ error: "Invalid region selection" }, { status: 400 });

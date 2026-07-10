@@ -30,7 +30,7 @@ export async function findPublishedArticlesForCategorySlug(
 ): Promise<Record<string, unknown>[]> {
   await connectDB();
 
-  const categoryIds = await Category.distinct("_id", { slug: resolvedSlug, isActive: true });
+  const categoryIds = await Category.distinct("_id", { slug: resolvedSlug });
   if (categoryIds.length === 0) return [];
 
   const byId = await findArticleList(

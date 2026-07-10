@@ -444,11 +444,6 @@ export async function getArticlesByCategorySlug(slug: string, limit = 12) {
   await connectDB();
   await ensureCategoryMigrations();
 
-  const category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
-  if (!category) {
-    return [];
-  }
-
   const articles = await findPublishedArticlesForCategorySlug(resolvedSlug, limit, async (filter, articleLimit) => {
     const docs = await findArticleList(filter, articleLimit);
     return docs as unknown as Record<string, unknown>[];
@@ -640,8 +635,16 @@ export async function getCategoryBySlug(slug: string) {
 
   await connectDB();
   await ensureCategoryMigrations();
-  const category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
-  if (!category) return DEMO_CONTENT_ENABLED ? getMockCategoryBySlug(resolvedSlug) : null;
+
+  let category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
+  if (!category && isRegionCategorySlug(resolvedSlug)) {
+    const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
+    if (inactive) {
+      await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });
+      category = { ...inactive, isActive: true };
+    }
+  }
+  if (!category) return null;
 
   const articles = await getArticlesByCategorySlug(resolvedSlug, 36);
 

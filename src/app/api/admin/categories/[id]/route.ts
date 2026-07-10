@@ -35,7 +35,10 @@ function preprocessUpdateBody(raw: unknown) {
 async function ensureUniqueSlug(slug: string, excludeId: string) {
   const existing = await Category.findOne({ slug, _id: { $ne: excludeId } });
   if (existing) {
-    return NextResponse.json({ error: "Category slug already exists" }, { status: 409 });
+    return NextResponse.json(
+      { error: `Le slug « ${slug} » est déjà utilisé par la catégorie « ${existing.name} ».` },
+      { status: 409 }
+    );
   }
   return null;
 }
@@ -92,10 +95,14 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
   await connectDB();
 
-  const inUse = await Article.countDocuments({ category: id });
+  const inUse = await Article.countDocuments({
+    $or: [{ category: id }, { secondaryCategories: id }],
+  });
   if (inUse > 0) {
     return NextResponse.json(
-      { error: `Category is used by ${inUse} article(s)` },
+      {
+        error: `Cette catégorie est utilisée par ${inUse} article(s). Désactivez-la plutôt que de la supprimer.`,
+      },
       { status: 409 }
     );
   }

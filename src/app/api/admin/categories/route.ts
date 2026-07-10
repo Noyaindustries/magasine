@@ -70,7 +70,17 @@ export async function POST(request: NextRequest) {
   }
   const existing = await Category.findOne({ slug });
   if (existing) {
-    return NextResponse.json({ error: "Category slug already exists" }, { status: 409 });
+    if (existing.name.trim().toLowerCase() === parsed.data.name.trim().toLowerCase()) {
+      return NextResponse.json({
+        _id: String(existing._id),
+        slug: existing.slug,
+        reused: true,
+      });
+    }
+    return NextResponse.json(
+      { error: `Le slug « ${slug} » est déjà utilisé par la catégorie « ${existing.name} ».` },
+      { status: 409 }
+    );
   }
 
   const category = await Category.create({

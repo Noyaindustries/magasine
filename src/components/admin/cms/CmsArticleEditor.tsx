@@ -235,12 +235,23 @@ export function CmsArticleEditor({
         toast.error((data as { error?: string }).error ?? "Échec de la création");
         return;
       }
-      const created: Category = { _id: String(data._id), name, slug: String(data.slug ?? "") };
-      setCategories((prev) =>
-        [...prev, created].sort((a, b) => a.name.localeCompare(b.name))
-      );
+      const created: Category = {
+        _id: String(data._id),
+        name,
+        slug: String(data.slug ?? ""),
+      };
+      setCategories((prev) => {
+        if (prev.some((category) => category._id === created._id)) {
+          return prev;
+        }
+        return [...prev, created].sort((a, b) => a.name.localeCompare(b.name));
+      });
       patchForm({ categoryId: created._id });
-      toast.success("Catégorie créée");
+      toast.success(
+        (data as { reused?: boolean }).reused
+          ? "Catégorie existante sélectionnée"
+          : "Catégorie créée"
+      );
     } catch {
       toast.dismiss(toastId);
       toast.error("Échec de la création");

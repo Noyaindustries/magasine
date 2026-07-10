@@ -1,12 +1,25 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
+import { Author } from "@/models/Author";
 import { Category } from "@/models/Category";
 import { REGION_SLUGS } from "@/lib/sections";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import {
+  articleHasRegionAssignment,
+  inferRegionSlugFromAuthor,
+} from "@/lib/article-region-inference";
 import { revalidateCategoryPage } from "@/lib/revalidate-public";
 
 let migrationDone = false;
+
+async function ensureRegionCategoriesActive(): Promise<number> {
+  const result = await Category.updateMany(
+    { slug: { $in: [...REGION_SLUGS] } },
+    { $set: { isActive: true } }
+  );
+  return result.modifiedCount;
+}
 
 /**
  * Répare les références de catégorie (inactive / obsolète) et synchronise les régions.
@@ -19,7 +32,7 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
   const canonicalBySlug = new Map(activeCategories.map((category) => [category.slug, category._id]));
 
   const articles = await Article.find({ status: "published" })
-    .select("category secondaryCategories")
+    .select("category secondaryCategories authors")
     .lean();
 
   for (const article of articles) {
@@ -37,7 +50,29 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
     const secondary = [...(article.secondaryCategories ?? [])];
     let secondaryChanged = false;
 
-    const effectivePrimary = primary ?? (patch.category ? await Category.findById(patch.category).lean() : null);
+    const effectivePrimary =
+      primary ?? (patch.category ? await Category.findById(patch.category).lean() : null);
+
+    const secondarySlugs = (
+      await Category.find({ _id: { $in: secondary } })
+        .select("slug")
+        .lean()
+    ).map((category) => category.slug);
+
+    if (
+      effectivePrimary &&
+      !articleHasRegionAssignment(effectivePrimary.slug, secondarySlugs)
+    ) {
+      const authorId = article.authors?.[0];
+      const author = authorId ? await Author.findById(authorId).select("slug").lean() : null;
+      const inferredSlug = inferRegionSlugFromAuthor(author?.slug) ?? "africa";
+      const regionId = inferredSlug ? canonicalBySlug.get(inferredSlug) : undefined;
+      if (regionId && !secondary.some((id) => String(id) === String(regionId))) {
+        secondary.push(regionId);
+        secondaryChanged = true;
+      }
+    }
+
     if (effectivePrimary && isRegionCategorySlug(effectivePrimary.slug)) {
       const regionId = canonicalBySlug.get(effectivePrimary.slug);
       if (regionId && !secondary.some((id) => String(id) === String(regionId))) {
@@ -47,7 +82,10 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
     }
 
     if (patch.category) {
-      await Article.updateOne({ _id: article._id }, { $set: { ...patch, ...(secondaryChanged ? { secondaryCategories: secondary } : {}) } });
+      await Article.updateOne(
+        { _id: article._id },
+        { $set: { ...patch, ...(secondaryChanged ? { secondaryCategories: secondary } : {}) } }
+      );
       updated += 1;
       continue;
     }
@@ -69,6 +107,8 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
 export async function migrateArticleRegionLinks(): Promise<number> {
   await connectDB();
   let updated = 0;
+
+  updated += await ensureRegionCategoriesActive();
 
   const regionCategories = await Category.find({
     slug: { $in: [...REGION_SLUGS] },
