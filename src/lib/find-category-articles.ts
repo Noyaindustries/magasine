@@ -6,6 +6,8 @@ import { Category } from "@/models/Category";
 import { authorSlugsForRegionSlug } from "@/lib/article-region-inference";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 import { REGION_SLUGS } from "@/lib/sections";
+import { findCategoryIdsForCanonicalSlug } from "@/lib/category-resolve";
+import { getCategorySlugAliases, resolveCategorySlug } from "@/lib/category-slugs";
 
 type ArticleListQuery = (
   filter: Record<string, unknown>,
@@ -69,7 +71,9 @@ export async function findPublishedArticlesForCategorySlug(
 ): Promise<Record<string, unknown>[]> {
   await connectDB();
 
-  const categoryIds = await Category.distinct("_id", { slug: resolvedSlug });
+  const canonicalSlug = resolveCategorySlug(resolvedSlug);
+  const slugAliases = getCategorySlugAliases(canonicalSlug);
+  const categoryIds = await findCategoryIdsForCanonicalSlug(canonicalSlug);
   if (categoryIds.length === 0) return [];
 
   const byId = await findArticleList(
@@ -111,8 +115,8 @@ export async function findPublishedArticlesForCategorySlug(
     {
       $match: {
         $or: [
-          { "primaryCat.slug": resolvedSlug },
-          { "secondaryCats.slug": resolvedSlug },
+          { "primaryCat.slug": { $in: slugAliases } },
+          { "secondaryCats.slug": { $in: slugAliases } },
         ],
       },
     },
@@ -140,7 +144,7 @@ export async function findPublishedArticlesForCategorySlug(
 
   if (results.length < limit) {
     const byAuthor = await findArticlesByRegionalAuthors(
-      resolvedSlug,
+      canonicalSlug,
       limit - results.length,
       foundIds,
       findArticleList

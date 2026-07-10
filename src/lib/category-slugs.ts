@@ -34,3 +34,12 @@ export const LEGACY_CATEGORY_SLUG_MAP: Record<string, string> = {
 export function resolveCategorySlug(slug: string): string {
   return LEGACY_CATEGORY_SLUG_MAP[slug] ?? slug;
 }
+
+/** Tous les slugs DB possibles pour une rubrique canonique (ex. special-reports + reportages-speciaux). */
+export function getCategorySlugAliases(canonicalSlug: string): string[] {
+  const canonical = resolveCategorySlug(canonicalSlug);
+  const legacyAliases = Object.entries(LEGACY_CATEGORY_SLUG_MAP)
+    .filter(([, target]) => target === canonical)
+    .map(([legacy]) => legacy);
+  return [...new Set([canonical, ...legacyAliases])];
+}

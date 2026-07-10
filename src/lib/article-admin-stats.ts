@@ -180,7 +180,6 @@ export async function getArticleAdminStats(): Promise<ArticleAdminStats> {
         },
       },
       { $sort: { total: -1 } },
-      { $limit: 12 },
     ]),
     Article.countDocuments({ ...publishedFilter, isFeatured: true }),
     Article.countDocuments({ ...publishedFilter, isTopStory: true }),

@@ -899,6 +899,26 @@
   text-decoration: underline;
 }
 
+.articles-stats-row--warning {
+  background: rgba(201, 162, 39, 0.1);
+}
+
+.articles-stats-row--partial {
+  background: rgba(26, 56, 150, 0.04);
+}
+
+.articles-stats-row-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a6f14;
+}
+
+.articles-stats-row--partial .articles-stats-row-hint {
+  color: var(--muted, #6b6b6b);
+}
+
 @media (max-width: 960px) {
   .articles-stats-panels {
     grid-template-columns: 1fr;

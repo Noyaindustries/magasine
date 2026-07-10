@@ -43,6 +43,10 @@ import {
   mongoCategoryMatchFilter,
 } from "@/lib/article-category-match";
 import { buildHomeRubriqueSlugs } from "@/lib/public-nav";
+import {
+  findCategoryIdsForCanonicalSlug,
+  findPreferredCategoryForCanonicalSlug,
+} from "@/lib/category-resolve";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -443,9 +447,12 @@ export async function getAllNewsArticles(options?: { categorySlug?: string; limi
 
   const filter: Record<string, unknown> = { status: "published" };
   if (resolvedSlug) {
-    const category = await Category.findOne({ slug: resolvedSlug }).lean();
-    if (category) {
-      Object.assign(filter, mongoCategoryMatchFilter(category._id));
+    const categoryIds = await findCategoryIdsForCanonicalSlug(resolvedSlug);
+    if (categoryIds.length > 0) {
+      filter.$or = [
+        { category: { $in: categoryIds } },
+        { secondaryCategories: { $in: categoryIds } },
+      ];
     }
   }
 
@@ -693,26 +700,17 @@ export async function getCategoryBySlug(slug: string) {
   await connectDB();
   await ensureCategoryMigrations();
 
-  let category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
-  if (!category) {
-    const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
-    if (inactive) {
-      await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });
-      category = { ...inactive, isActive: true };
-    }
-  }
+  let category = await findPreferredCategoryForCanonicalSlug(resolvedSlug);
   if (!category) {
     await ensureCategoryExistsBySlug(resolvedSlug);
-    category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
-    if (!category) {
-      const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
-      if (inactive) {
-        await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });
-        category = { ...inactive, isActive: true };
-      }
-    }
+    category = await findPreferredCategoryForCanonicalSlug(resolvedSlug);
   }
   if (!category) return null;
+
+  if (!category.isActive) {
+    await Category.updateOne({ _id: category._id }, { $set: { isActive: true } });
+    category = { ...category, isActive: true };
+  }
 
   const articles = await getArticlesByCategorySlug(resolvedSlug, 36);
 

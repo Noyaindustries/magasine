@@ -151,18 +151,41 @@ export function CmsArticlesStats({ stats }: CmsArticlesStatsProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {byCategory.map((row) => (
-                    <tr key={row.slug}>
+                  {byCategory.map((row) => {
+                    const unpublished = row.total > 0 && row.published === 0;
+                    const partial = row.published > 0 && row.published < row.total;
+                    return (
+                    <tr
+                      key={row.slug}
+                      className={
+                        unpublished
+                          ? "articles-stats-row--warning"
+                          : partial
+                            ? "articles-stats-row--partial"
+                            : undefined
+                      }
+                    >
                       <td>
                         <Link href={`/admin/articles?category=${encodeURIComponent(row.name)}`}>
                           {row.name}
                         </Link>
+                        {unpublished && (
+                          <span className="articles-stats-row-hint">
+                            Aucun publié — invisible sur le site
+                          </span>
+                        )}
+                        {partial && (
+                          <span className="articles-stats-row-hint">
+                            {row.total - row.published} non publié(s)
+                          </span>
+                        )}
                       </td>
                       <td>{formatNumber(row.total)}</td>
                       <td>{formatNumber(row.published)}</td>
                       <td>{formatNumber(row.views)}</td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
