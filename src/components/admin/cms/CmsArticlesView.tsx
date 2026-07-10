@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsArticlesTable } from "@/components/admin/cms/CmsArticlesTable";
+import { CmsArticlesStats } from "@/components/admin/cms/CmsArticlesStats";
 import { DemoContentActions } from "@/components/admin/cms/DemoContentActions";
+import type { ArticleAdminStats } from "@/lib/article-admin-stats";
 import type { ArticleStatus } from "@/types";
 
 export interface ArticleListRow {
@@ -52,6 +54,7 @@ interface CmsArticlesViewProps {
   virtualDemoCount: number;
   seedTotal: number;
   demoOnly?: boolean;
+  stats: ArticleAdminStats;
 }
 
 function buildArticlesHref(params: {
@@ -88,6 +91,7 @@ export function CmsArticlesView({
   virtualDemoCount,
   seedTotal,
   demoOnly,
+  stats,
 }: CmsArticlesViewProps) {
   const activeCount = status ? counts[status] : counts.all;
   const paginationBase = buildArticlesHref({ status, q: query, category, author, demo: demoOnly });
@@ -98,8 +102,9 @@ export function CmsArticlesView({
         <div>
           <div className="vh1">Articles</div>
           <div className="vh2">
-            {counts.all.toLocaleString("en-US")} articles · {counts.review} pending ·{" "}
-            {counts.scheduled} scheduled
+            {stats.overview.total.toLocaleString("fr-FR")} en base ·{" "}
+            {stats.overview.publishedReal.toLocaleString("fr-FR")} publiés (vos articles) ·{" "}
+            {stats.byStatus.review} en relecture
           </div>
         </div>
         <div className="vacts vacts--stacked">
@@ -118,6 +123,8 @@ export function CmsArticlesView({
           </div>
         </div>
       </div>
+
+      <CmsArticlesStats stats={stats} />
 
       <div className="tabs">
         {demoOnly ? (

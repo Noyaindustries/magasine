@@ -10,7 +10,8 @@ import {
 import type { ArticleStatus } from "@/types";
 import { ARTICLES_PAGE_SIZE } from "@/lib/pagination";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
-import { getDemoArticleFilter, getDemoContentStatus } from "@/lib/demo-articles";
+import { getDemoArticleFilter } from "@/lib/demo-articles";
+import { getArticleAdminStats } from "@/lib/article-admin-stats";
 import { tagExistingDemoArticles } from "@/lib/seed-import";
 
 interface PageProps {
@@ -49,8 +50,6 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
 
   await connectDB();
   await tagExistingDemoArticles();
-
-  const demoStatus = await getDemoContentStatus();
 
   const andConditions: Record<string, unknown>[] = [];
   if (demoOnly) andConditions.push(getDemoArticleFilter());
@@ -91,7 +90,7 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
 
   const skip = (page - 1) * PAGE_SIZE;
 
-  const [articlesRaw, filteredCount, countResults, categories, authors] = await Promise.all([
+  const [articlesRaw, filteredCount, countResults, categories, authors, stats] = await Promise.all([
     Article.find(filter)
       .populate("category", "name")
       .populate("authors", "name")
@@ -106,6 +105,7 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
     ]),
     Category.find().sort({ name: 1 }).select("name").lean(),
     Author.find().sort({ name: 1 }).select("name").lean(),
+    getArticleAdminStats(),
   ]);
 
   const counts: ArticleStatusCounts = {
@@ -155,10 +155,11 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       totalPages={totalPages}
       categories={categories.map((c) => c.name)}
       authors={authors.map((a) => a.name)}
-      demoCount={demoStatus.inDatabase}
-      virtualDemoCount={demoStatus.virtualOnSite}
-      seedTotal={demoStatus.seedTotal}
+      demoCount={stats.overview.demo}
+      virtualDemoCount={stats.overview.virtualOnSite}
+      seedTotal={stats.overview.seedTotal}
       demoOnly={demoOnly}
+      stats={stats}
     />
   );
 }
