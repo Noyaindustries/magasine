@@ -7,6 +7,7 @@ import {
   userPaginationRangeLabel,
   USERS_PAGE_SIZE,
 } from "@/lib/pagination";
+import { canDeleteUserAsAdmin } from "@/lib/admin-user-permissions";
 import type { UserRole } from "@/types";
 
 const ROLE_COLORS: Partial<Record<UserRole, string>> = {
@@ -25,6 +26,7 @@ interface CmsUsersTableProps {
   totalFiltered: number;
   baseHref: string;
   actorId: string;
+  actorRole: UserRole;
   onEdit: (user: AdminUserRow) => void;
   onDelete: (user: AdminUserRow) => void;
 }
@@ -41,8 +43,13 @@ function formatDate(value: string) {
   }
 }
 
-function canDeleteUser(user: AdminUserRow, actorId: string): boolean {
-  return user._id !== actorId && user.role !== "super_admin";
+function canDeleteUser(user: AdminUserRow, actorId: string, actorRole: UserRole): boolean {
+  return canDeleteUserAsAdmin({
+    userId: user._id,
+    userRole: user.role,
+    actorId,
+    actorRole,
+  });
 }
 
 export function CmsUsersTable({
@@ -52,6 +59,7 @@ export function CmsUsersTable({
   totalFiltered,
   baseHref,
   actorId,
+  actorRole,
   onEdit,
   onDelete,
 }: CmsUsersTableProps) {
@@ -105,13 +113,13 @@ export function CmsUsersTable({
                   <button type="button" className="btn btn-xs btn-ghost" onClick={() => onEdit(user)}>
                     Edit
                   </button>
-                  {canDeleteUser(user, actorId) ? (
+                  {canDeleteUser(user, actorId, actorRole) ? (
                     <button
                       type="button"
                       className="btn btn-xs btn-ghost"
                       onClick={() => onDelete(user)}
                     >
-                      Remove
+                      Supprimer
                     </button>
                   ) : null}
                 </div>

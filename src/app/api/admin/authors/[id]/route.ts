@@ -5,6 +5,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
 import { imageSrcField } from "@/lib/image-src";
+import { deleteAuthorAsAdmin } from "@/lib/admin-delete-author";
 import { revalidateAuthorContent } from "@/lib/revalidate-public";
 
 const updateSchema = z.object({
@@ -64,11 +65,13 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
 
   const { id } = await context.params;
   await connectDB();
-  const result = await Author.findByIdAndDelete(id);
-  if (!result) {
-    return NextResponse.json({ error: "Author not found" }, { status: 404 });
+  const result = await deleteAuthorAsAdmin(id);
+  if (result.error) {
+    return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
   }
 
-  revalidateAuthorContent(result.slug);
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    detachedFromArticles: result.detachedFromArticles ?? 0,
+  });
 }

@@ -11,6 +11,7 @@ import { getRolePermissionsMatrix, type RoleMatrixRow } from "@/lib/role-permiss
 import type { AdminUserCounts, AdminUserRow, UserListFilter } from "@/lib/admin-users";
 import { toast } from "@/lib/toast";
 import { toastNetworkError } from "@/lib/api-toast";
+import { canDeleteUserAsAdmin } from "@/lib/admin-user-permissions";
 import { authorAvatarGradient, authorInitials } from "@/components/admin/cms/cms-ui";
 import { CMS_ROLE_LABELS } from "@/components/admin/cms/cms-nav";
 import type { UserRole } from "@/types";
@@ -172,11 +173,36 @@ export function CmsUsersView({
   };
 
   const removeMember = async (user: AdminUserRow) => {
-    if (user.role === "super_admin") {
-      toast.error("Cannot remove a super administrator.");
+    if (
+      !canDeleteUserAsAdmin({
+        userId: user._id,
+        userRole: user.role,
+        actorId,
+        actorRole,
+      })
+    ) {
+      if (user.role === "super_admin") {
+        toast.error("Impossible de supprimer un super administrateur.");
+      } else if (user.role === "admin") {
+        toast.error("Seul un super administrateur peut supprimer un administrateur.");
+      } else {
+        toast.error("Vous ne pouvez pas supprimer ce compte.");
+      }
       return;
     }
-    if (!confirm(`Remove ${user.name} (${user.email})? This cannot be undone.`)) return;
+
+    const articleHint =
+      user.articleCount > 0
+        ? `\n\nCe compte a ${user.articleCount} article(s) lié(s). La suppression échouera si un article n'a que cet auteur comme signature.`
+        : "";
+
+    if (
+      !confirm(
+        `Supprimer ${user.name} (${user.email}) ? Cette action est irréversible.${articleHint}`
+      )
+    ) {
+      return;
+    }
 
     const res = await fetch("/api/admin/users", {
       method: "DELETE",
@@ -184,11 +210,12 @@ export function CmsUsersView({
       body: JSON.stringify({ userId: user._id }),
     });
     if (res.ok) {
-      toast.success("User removed");
+      toast.success("Utilisateur supprimé");
+      setEditUser((current) => (current?._id === user._id ? null : current));
       refresh();
     } else {
       const data = await res.json();
-      toast.error(data.error ?? "Delete failed.");
+      toast.error(data.error ?? "Échec de la suppression.");
     }
   };
 
@@ -248,11 +275,16 @@ export function CmsUsersView({
                     </div>
                   </div>
                 </button>
-                {user._id !== actorId && user.role !== "super_admin" && (
+                {canDeleteUserAsAdmin({
+                  userId: user._id,
+                  userRole: user.role,
+                  actorId,
+                  actorRole,
+                }) && (
                   <button
                     type="button"
                     className="ucard-del btn btn-ghost btn-xs btn-icon"
-                    title="Remove user"
+                    title="Supprimer l'utilisateur"
                     onClick={() => void removeMember(user)}
                   >
                     <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />
@@ -318,6 +350,7 @@ export function CmsUsersView({
               totalFiltered={totalFiltered}
               baseHref={paginationBase}
               actorId={actorId}
+              actorRole={actorRole}
               onEdit={setEditUser}
               onDelete={(user) => void removeMember(user)}
             />
@@ -386,9 +419,27 @@ export function CmsUsersView({
               }
             : undefined
         }
+        canDelete={
+          editUser
+            ? canDeleteUserAsAdmin({
+                userId: editUser._id,
+                userRole: editUser.role,
+                actorId,
+                actorRole,
+              })
+            : false
+        }
+        articleCount={editUser?.articleCount ?? 0}
         saving={saving}
         onClose={() => setEditUser(null)}
         onSubmit={(values) => void updateUser(values)}
+        onDelete={
+          editUser
+            ? () => {
+                void removeMember(editUser);
+              }
+            : undefined
+        }
       />
     </CmsPage>
   );

@@ -29,9 +29,12 @@ interface CmsUserFormModalProps {
     isBanned: boolean;
     image?: string;
   };
+  canDelete?: boolean;
+  articleCount?: number;
   saving?: boolean;
   onClose: () => void;
   onSubmit: (values: CmsUserFormValues) => void;
+  onDelete?: () => void;
 }
 
 const DEFAULT_ROLE: UserRole = "author";
@@ -41,9 +44,12 @@ export function CmsUserFormModal({
   mode,
   actorRole,
   initial,
+  canDelete = false,
+  articleCount = 0,
   saving = false,
   onClose,
   onSubmit,
+  onDelete,
 }: CmsUserFormModalProps) {
   const [mounted, setMounted] = useState(false);
   const [name, setName] = useState("");
@@ -225,14 +231,35 @@ export function CmsUserFormModal({
               </>
             )}
           </div>
-          <div className="admin-modal-footer">
-            <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-red" disabled={saving}>
-              {saving ? "Saving…" : submitLabel}
-            </button>
+          <div className="admin-modal-footer" style={{ justifyContent: "space-between" }}>
+            <div>
+              {mode === "edit" && canDelete && onDelete ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ color: "var(--cms-red)" }}
+                  onClick={onDelete}
+                  disabled={saving}
+                >
+                  Supprimer
+                </button>
+              ) : null}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
+                Annuler
+              </button>
+              <button type="submit" className="btn btn-red" disabled={saving}>
+                {saving ? "Enregistrement…" : submitLabel}
+              </button>
+            </div>
           </div>
+          {mode === "edit" && articleCount > 0 ? (
+            <p className="cms-field-hint" style={{ padding: "0 1.25rem 1rem", margin: 0 }}>
+              {articleCount} article(s) lié(s) via le profil auteur. La suppression échouera si un
+              article n&apos;a que cet auteur.
+            </p>
+          ) : null}
         </form>
       </div>
     </div>,

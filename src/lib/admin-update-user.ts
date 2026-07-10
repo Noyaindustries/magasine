@@ -1,9 +1,12 @@
 import bcrypt from "bcryptjs";
 import { User } from "@/models/User";
+import { Author } from "@/models/Author";
 import type { UserRole } from "@/types";
 import { assertCanAssignRole } from "@/lib/user-roles";
-import { countUserArticlesByEmail } from "@/lib/admin-users";
 import { ensureAuthorForUser } from "@/lib/author-provision";
+import { deleteAuthorAsAdmin } from "@/lib/admin-delete-author";
+
+export { canDeleteUserAsAdmin } from "@/lib/admin-user-permissions";
 
 export interface UpdateUserInput {
   userId: string;
@@ -78,7 +81,6 @@ export async function updateUserAsAdmin(
 
   await user.save();
 
-  // Si le compte est (devenu) un rôle éditorial, garantit une signature auteur.
   await ensureAuthorForUser({
     userId: user._id,
     name: user.name,
@@ -104,28 +106,37 @@ export async function deleteUserAsAdmin(input: {
   actorRole: UserRole;
 }): Promise<{ success?: boolean; error?: string; status?: number }> {
   if (input.userId === input.actorId) {
-    return { error: "You cannot delete your own account.", status: 400 };
+    return { error: "Vous ne pouvez pas supprimer votre propre compte.", status: 400 };
   }
 
   const user = await User.findById(input.userId);
   if (!user) {
-    return { error: "User not found.", status: 404 };
+    return { error: "Utilisateur introuvable.", status: 404 };
   }
 
   if (user.role === "super_admin") {
-    return { error: "Cannot delete a super admin account.", status: 403 };
+    return { error: "Impossible de supprimer un super administrateur.", status: 403 };
   }
 
   if (user.role === "admin" && input.actorRole !== "super_admin") {
-    return { error: "Only a super admin can delete an admin account.", status: 403 };
+    return {
+      error: "Seul un super administrateur peut supprimer un compte administrateur.",
+      status: 403,
+    };
   }
 
-  const articleCount = await countUserArticlesByEmail(user.email);
-  if (articleCount > 0) {
-    return {
-      error: `This user has ${articleCount} article(s) linked via author profile. Reassign them before deleting.`,
-      status: 409,
-    };
+  const email = user.email.toLowerCase().trim();
+  const linkedAuthor = await Author.findOne({
+    $or: [{ user: user._id }, ...(email ? [{ email }] : [])],
+  })
+    .select("_id")
+    .lean();
+
+  if (linkedAuthor) {
+    const authorResult = await deleteAuthorAsAdmin(linkedAuthor._id);
+    if (authorResult.error) {
+      return { error: authorResult.error, status: authorResult.status ?? 409 };
+    }
   }
 
   await User.findByIdAndDelete(input.userId);

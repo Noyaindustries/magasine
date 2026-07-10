@@ -112,15 +112,28 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
     }
   };
 
-  const remove = async (id: string) => {
-    if (!globalThis.confirm("Delete this author?")) return;
-    const res = await fetch(`/api/admin/authors/${id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json();
-      toast.error(data.error ?? "Delete failed");
+  const remove = async (author: AuthorRow) => {
+    const articleHint =
+      author.articleCount > 0
+        ? `\n\n${author.articleCount} article(s) lié(s). La suppression échouera si un article n'a que cet auteur.`
+        : "";
+
+    if (!globalThis.confirm(`Supprimer ${author.name} ? Cette action est irréversible.${articleHint}`)) {
       return;
     }
-    toast.success("Author deleted");
+
+    const res = await fetch(`/api/admin/authors/${author._id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json();
+      toast.error(data.error ?? "Échec de la suppression");
+      return;
+    }
+    const data = await res.json();
+    if (data.detachedFromArticles > 0) {
+      toast.success(`Auteur supprimé (${data.detachedFromArticles} article(s) mis à jour)`);
+    } else {
+      toast.success("Auteur supprimé");
+    }
     reload();
   };
 
@@ -192,7 +205,12 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEdit(author)}>
                     <Pencil className="w-3.5 h-3.5" aria-hidden />
                   </button>
-                  <button type="button" className="adm-btn adm-btn--danger adm-btn--sm" onClick={() => remove(author._id)}>
+                  <button
+                    type="button"
+                    className="adm-btn adm-btn--danger adm-btn--sm"
+                    onClick={() => remove(author)}
+                    title="Supprimer l'auteur"
+                  >
                     <Trash2 className="w-3.5 h-3.5" aria-hidden />
                   </button>
                 </div>
