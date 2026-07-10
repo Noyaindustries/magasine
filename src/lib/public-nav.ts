@@ -36,20 +36,19 @@ function bySlugMap(categories: DbNavCategory[]): Map<string, DbNavCategory> {
   return new Map(categories.map((category) => [category.slug, category]));
 }
 
-/** Rubriques du menu principal (hors mega-menu News). */
+/**
+ * Rubriques du menu principal (hors mega-menu News).
+ * N’affiche que les catégories actives présentes en base — pas de lien statique vers une 404.
+ */
 export function buildPrimaryNav(categories: DbNavCategory[]): PublicNavLink[] {
   const map = bySlugMap(categories);
 
-  const fromDb = PRIMARY_NAV.flatMap((item) => {
+  return PRIMARY_NAV.flatMap((item) => {
     const slug = item.href.replace("/category/", "");
     const category = map.get(slug);
     if (!category || isRegionCategorySlug(slug)) return [];
     return [{ label: category.name, href: categoryHref(category.slug) }];
   });
-
-  if (fromDb.length > 0) return fromDb;
-
-  return PRIMARY_NAV.map((item) => ({ label: item.label, href: item.href }));
 }
 
 /** Régions du menu — noms et slugs issus de l’admin. */
@@ -84,26 +83,31 @@ export function buildRegionNav(categories: DbNavCategory[]): PublicNavLink[] {
   }));
 }
 
-/** Entrées du mega-menu News — libellés des rubriques synchronisés avec l’admin. */
+/**
+ * Entrées du mega-menu News.
+ * Les liens /category/* ne sont inclus que si la catégorie existe en base.
+ */
 export function buildNewsMenuNav(categories: DbNavCategory[]): PublicNewsMenuItem[] {
   const map = bySlugMap(categories);
 
-  return NEWS_MENU_NAV.map((item) => {
+  return NEWS_MENU_NAV.flatMap((item) => {
     if (!item.href.startsWith("/category/")) {
-      return { ...item };
+      return [{ ...item }];
     }
 
     const slug = item.href.replace("/category/", "");
     const category = map.get(slug);
     if (!category || isRegionCategorySlug(slug)) {
-      return { ...item };
+      return [];
     }
 
-    return {
-      label: category.name,
-      href: categoryHref(category.slug),
-      description: item.description,
-    };
+    return [
+      {
+        label: category.name,
+        href: categoryHref(category.slug),
+        description: item.description,
+      },
+    ];
   });
 }
 

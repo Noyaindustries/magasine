@@ -78,6 +78,17 @@ export async function ensureRegionCategoriesExist(): Promise<number> {
   return updated;
 }
 
+const seedCategoryBySlug = new Map(SEED_CATEGORIES.map((definition) => [definition.slug, definition]));
+
+/** Crée ou réactive une catégorie connue (seed) par slug — ex. culture, explainer. */
+export async function ensureCategoryExistsBySlug(slug: string): Promise<boolean> {
+  const definition = seedCategoryBySlug.get(slug);
+  if (!definition) return false;
+  await connectDB();
+  await upsertSeedCategory(definition);
+  return true;
+}
+
 async function ensureRegionCategoriesActive(): Promise<number> {
   const result = await Category.updateMany(
     { slug: { $in: [...REGION_SLUGS] } },

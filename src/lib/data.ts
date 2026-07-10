@@ -25,6 +25,7 @@ import { restoreMultimediaCategory } from "@/lib/migrate-multimedia-category";
 import {
   ensureRegionCategoriesExist,
   ensureTopicCategoriesExist,
+  ensureCategoryExistsBySlug,
   migrateArticleRegionLinksOnce,
   removeAutoAssignedAfricaRegionsOnce,
   repairAuthorRegionLinksOnce,
@@ -647,14 +648,23 @@ export async function getCategoryBySlug(slug: string) {
   await connectDB();
   await ensureCategoryMigrations();
 
-  await ensureRegionCategoriesExist();
-
   let category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
   if (!category) {
     const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
     if (inactive) {
       await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });
       category = { ...inactive, isActive: true };
+    }
+  }
+  if (!category) {
+    await ensureCategoryExistsBySlug(resolvedSlug);
+    category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
+    if (!category) {
+      const inactive = await Category.findOne({ slug: resolvedSlug }).lean();
+      if (inactive) {
+        await Category.updateOne({ _id: inactive._id }, { $set: { isActive: true } });
+        category = { ...inactive, isActive: true };
+      }
     }
   }
   if (!category) return null;
