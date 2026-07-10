@@ -11,7 +11,7 @@ import {
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveArticleContent } from "@/lib/article-content";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
-import { isRegionCategorySlug } from "@/lib/region-categories";
+import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 
 const AUTHOR_DEFAULT_REGION: Record<string, string> = {
   "lucia-mendoza": "latin-america",

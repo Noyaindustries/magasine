@@ -94,6 +94,7 @@ const ArticleSchema = new Schema<IArticle>(
 ArticleSchema.index({ title: "text", excerpt: "text", content: "text" });
 ArticleSchema.index({ status: 1, publishedAt: -1 });
 ArticleSchema.index({ category: 1, status: 1, publishedAt: -1 });
+ArticleSchema.index({ secondaryCategories: 1, status: 1, publishedAt: -1 });
 ArticleSchema.index({ status: 1, isUrgent: 1, publishedAt: -1 });
 ArticleSchema.index({ tags: 1 });
 

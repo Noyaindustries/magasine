@@ -10,7 +10,7 @@ import { filterRetiredCategories, filterArticlesByRetiredCategories } from "@/li
 import { resolveArticleContent } from "@/lib/article-content";
 import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveCategorySlug } from "@/lib/category-slugs";
-import { isRegionCategorySlug } from "@/lib/region-categories";
+import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 
 const AUTHOR_DEFAULT_REGION: Record<string, string> = {
   "lucia-mendoza": "latin-america",

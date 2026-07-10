@@ -27,7 +27,8 @@ import { resolveCategorySlug } from "@/lib/category-slugs";
 import { recordDailyPageView } from "@/lib/analytics-daily";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
-import { isRegionCategorySlug } from "@/lib/region-categories";
+import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import { findPublishedArticlesForCategorySlug } from "@/lib/find-category-articles";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -113,7 +114,7 @@ const articlePopulate = [
  * fortement la charge réseau/mémoire des requêtes de listing.
  */
 const ARTICLE_LIST_FIELDS =
-  "title slug excerpt featuredImage featuredImageAlt category authors publishedAt readingTime isPremium isEditorsChoice isFeatured isTopStory isUrgent views tags contentType videoUrl";
+  "title slug excerpt featuredImage featuredImageAlt category secondaryCategories authors publishedAt readingTime isPremium isEditorsChoice isFeatured isTopStory isUrgent views tags contentType videoUrl";
 
 /** Requête de liste standard : projection légère + populate + tri + limite. */
 function findArticleList(filter: Record<string, unknown>, limit: number) {
@@ -441,24 +442,19 @@ export async function getArticlesByCategorySlug(slug: string, limit = 12) {
   }
 
   await connectDB();
+  await ensureCategoryMigrations();
+
   const category = await Category.findOne({ slug: resolvedSlug, isActive: true }).lean();
   if (!category) {
-    return DEMO_CONTENT_ENABLED
-      ? (getMockCategoryBySlug(resolvedSlug)?.articles.slice(0, limit) ?? [])
-      : [];
+    return [];
   }
 
-  const articles = await findArticleList(
-    {
-      status: "published",
-      $or: [{ category: category._id }, { secondaryCategories: category._id }],
-    },
-    limit
-  );
+  const articles = await findPublishedArticlesForCategorySlug(resolvedSlug, limit, async (filter, articleLimit) => {
+    const docs = await findArticleList(filter, articleLimit);
+    return docs as unknown as Record<string, unknown>[];
+  });
 
-  const result = articles.map((a) => serializeArticle(a as unknown as Record<string, unknown>));
-  if (result.length > 0 || !DEMO_CONTENT_ENABLED) return result;
-  return getMockCategoryBySlug(resolvedSlug)?.articles.slice(0, limit) ?? [];
+  return articles.map((a) => serializeArticle(a));
 }
 
 export async function getArticleBySlug(slug: string) {
