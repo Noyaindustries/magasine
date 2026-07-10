@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsArticlesTable } from "@/components/admin/cms/CmsArticlesTable";
 import { CmsArticlesStats } from "@/components/admin/cms/CmsArticlesStats";
+import { CmsHomepageHeroGuide } from "@/components/admin/cms/CmsHomepageHeroGuide";
 import { DemoContentActions } from "@/components/admin/cms/DemoContentActions";
 import type { ArticleAdminStats } from "@/lib/article-admin-stats";
 import type { ArticleStatus } from "@/types";
@@ -125,6 +126,8 @@ export function CmsArticlesView({
       </div>
 
       <CmsArticlesStats stats={stats} />
+
+      <CmsHomepageHeroGuide stats={stats} />
 
       <div className="tabs">
         {demoOnly ? (

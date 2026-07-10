@@ -277,6 +277,7 @@ export function getMockHomePageData() {
         filterArticlesByCategorySlug(published, slug).slice(0, 4),
       ])
     ),
+    contentSource: "mock" as const,
   };
 }
 

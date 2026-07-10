@@ -159,6 +159,11 @@ let publishedArticleCountCache: { value: boolean; expiresAt: number } | null = n
 const HAS_ARTICLES_TTL_MS = 300_000; // 5 min quand des articles existent
 const NO_ARTICLES_TTL_MS = 10_000; // 10 s quand la base est vide / en erreur
 
+/** Invalide le cache après suppression/publication d'articles (évite un décalage sur la home). */
+export function invalidatePublishedArticleCountCache(): void {
+  publishedArticleCountCache = null;
+}
+
 /**
  * Indique s'il faut lire la vraie base plutôt que le contenu de démonstration.
  * - Démo désactivée : on lit toujours la base si elle est joignable (site vide si aucun article).
@@ -201,7 +206,7 @@ async function ensureCategoryMigrations(): Promise<void> {
 
 export const getHomePageData = cache(async function getHomePageData() {
   if (!(await hasDbArticles())) {
-    return getMockHomePageData();
+    return { ...getMockHomePageData(), contentSource: "mock" as const };
   }
 
   await connectDB();
@@ -342,6 +347,7 @@ export const getHomePageData = cache(async function getHomePageData() {
         }))
       )
     ),
+    contentSource: "database" as const,
   };
 });
 

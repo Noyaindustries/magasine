@@ -7,6 +7,7 @@ import {
   tagExistingDemoArticles,
 } from "@/lib/seed-import";
 import { revalidateContentListings, revalidateSiteLayout } from "@/lib/revalidate-public";
+import { invalidatePublishedArticleCountCache } from "@/lib/data";
 
 const bodySchema = z.object({
   action: z.enum(["import", "delete_all", "tag_existing"]).optional().default("import"),
@@ -28,6 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     if (action === "delete_all") {
       const result = await deleteAllDemoArticles();
+      invalidatePublishedArticleCountCache();
       revalidateContentListings();
       revalidateSiteLayout();
       return NextResponse.json({ success: true, ...result });

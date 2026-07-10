@@ -18,6 +18,7 @@ import {
   mergeRegionCategoryIdsForArticle,
 } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
+import { invalidatePublishedArticleCountCache } from "@/lib/data";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -223,6 +224,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }),
     previousRegionSlugs,
   });
+  invalidatePublishedArticleCountCache();
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }
 
@@ -246,5 +248,6 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
       secondaryCategories: result.secondaryCategories,
     }),
   });
+  invalidatePublishedArticleCountCache();
   return NextResponse.json({ success: true });
 }
