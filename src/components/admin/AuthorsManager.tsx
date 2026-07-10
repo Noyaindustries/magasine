@@ -193,33 +193,44 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                     {authorInitials(author.name)}
                   </span>
                 )}
-                <div className="min-w-0 flex-1">
+                <div className="adm-author-info">
                   <h3 className="adm-entity-title">{author.name}</h3>
                   <p className="adm-entity-meta">/{author.slug}</p>
-                  {author.email && <p className="adm-entity-meta" style={{ textTransform: "none", letterSpacing: 0 }}>{author.email}</p>}
+                  {author.email && (
+                    <p className="adm-entity-meta adm-entity-meta--plain">{author.email}</p>
+                  )}
                   <p className="adm-entity-meta">
                     {author.articleCount} {author.articleCount === 1 ? "article" : "articles"}
                   </p>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => openEdit(author)}>
-                    <Pencil className="w-3.5 h-3.5" aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    className="adm-btn adm-btn--danger adm-btn--sm"
-                    onClick={() => remove(author)}
-                    title="Supprimer l'auteur"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" aria-hidden />
-                  </button>
-                </div>
               </div>
               {author.bio && <p className="adm-entity-desc line-clamp-3">{author.bio}</p>}
-              <Link href={`/author/${author.slug}`} className="adm-btn adm-btn--ghost adm-btn--sm" target="_blank">
-                <ExternalLink className="w-3.5 h-3.5" aria-hidden />
-                View page
-              </Link>
+              <div className="adm-entity-actions">
+                <button
+                  type="button"
+                  className="adm-btn adm-btn--ghost adm-btn--sm"
+                  onClick={() => openEdit(author)}
+                >
+                  <Pencil className="adm-btn-icon" aria-hidden />
+                  Modifier
+                </button>
+                <button
+                  type="button"
+                  className="adm-btn adm-btn--danger adm-btn--sm"
+                  onClick={() => remove(author)}
+                >
+                  <Trash2 className="adm-btn-icon" aria-hidden />
+                  Supprimer
+                </button>
+                <Link
+                  href={`/author/${author.slug}`}
+                  className="adm-btn adm-btn--ghost adm-btn--sm"
+                  target="_blank"
+                >
+                  <ExternalLink className="adm-btn-icon" aria-hidden />
+                  Voir la page
+                </Link>
+              </div>
             </div>
           ))}
         </div>
@@ -258,13 +269,32 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                 <input value={form.linkedin} onChange={(e) => setForm({ ...form, linkedin: e.target.value })} />
               </div>
             </div>
-            <div className="admin-modal-footer">
-              <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
-                Cancel
-              </button>
-              <button type="button" className="adm-btn adm-btn--primary" disabled={loading || !form.name} onClick={save}>
-                {loading ? "Saving…" : "Save"}
-              </button>
+            <div className="admin-modal-footer adm-modal-footer--split">
+              {editing ? (
+                <button
+                  type="button"
+                  className="adm-btn adm-btn--danger adm-btn--sm"
+                  disabled={loading}
+                  onClick={() => void remove(editing)}
+                >
+                  Supprimer
+                </button>
+              ) : (
+                <span />
+              )}
+              <div className="adm-modal-footer-actions">
+                <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  className="adm-btn adm-btn--primary"
+                  disabled={loading || !form.name}
+                  onClick={save}
+                >
+                  {loading ? "Enregistrement…" : "Enregistrer"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

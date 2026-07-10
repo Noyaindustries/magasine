@@ -390,8 +390,39 @@
 .adm-author-top {
   display: flex;
   gap: 14px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 14px;
+}
+
+.adm-author-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.adm-entity-meta--plain {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.adm-btn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.adm-modal-footer--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adm-modal-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .adm-author-avatar {
