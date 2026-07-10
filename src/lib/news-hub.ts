@@ -1,4 +1,5 @@
 import { NEWS_MENU_NAV } from "@/data/site-home";
+import type { PublicNewsMenuItem } from "@/lib/public-nav";
 import type { ArticleListItem } from "@/types";
 
 export const NEWS_HUB_CATEGORY_SLUGS = new Set([
@@ -41,10 +42,11 @@ export function countArticlesForNewsMenuItem(
 
 export function buildNewsHubSectionCounts(
   articles: ArticleListItem[],
-  urgentCount: number
+  urgentCount: number,
+  menuItems: readonly Pick<PublicNewsMenuItem, "href">[] = NEWS_MENU_NAV
 ): Record<string, number> {
   const counts: Record<string, number> = {};
-  for (const item of NEWS_MENU_NAV) {
+  for (const item of menuItems) {
     counts[item.href] = countArticlesForNewsMenuItem(item.href, articles, urgentCount);
   }
   return counts;
@@ -73,8 +75,11 @@ export function isNewsMenuItemActive(
   return false;
 }
 
-export function newsHubActiveHref(categorySlug?: string): string | undefined {
+export function newsHubActiveHref(
+  categorySlug?: string,
+  menuItems: readonly Pick<PublicNewsMenuItem, "href">[] = NEWS_MENU_NAV
+): string | undefined {
   if (!categorySlug) return "/news";
-  const match = NEWS_MENU_NAV.find((item) => newsMenuCategorySlug(item.href) === categorySlug);
+  const match = menuItems.find((item) => newsMenuCategorySlug(item.href) === categorySlug);
   return match?.href;
 }

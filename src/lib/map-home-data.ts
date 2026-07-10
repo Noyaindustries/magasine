@@ -34,7 +34,7 @@ import {
   splitHeroTitle,
 } from "@/lib/format-article";
 import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
-import { resolveRubriqueTitle } from "@/lib/public-nav";
+import { buildHomeRubriqueSlugs, resolveRubriqueTitle } from "@/lib/public-nav";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
@@ -56,22 +56,39 @@ const EMPTY_LATEST: HomeLatest = {
   items: [],
 };
 
-const RUBRIQUE_SOURCES: {
-  slug: string;
-  title: string;
-  key: keyof HomeDataSource;
-}[] = [
-  { slug: "africa", title: "Africa", key: "africaNews" },
-  { slug: "latin-america", title: "Latin America", key: "latinAmericaNews" },
-  { slug: "south-asia", title: "South Asia", key: "southAsiaNews" },
-  { slug: "west-asia", title: "West Asia", key: "westAsiaNews" },
-  { slug: "news", title: "News", key: "nationalNews" },
-  { slug: "feature", title: "Feature", key: "featureNews" },
-  { slug: "politics", title: "Politics", key: "politicsNews" },
-  { slug: "culture", title: "Culture", key: "cultureNews" },
-  { slug: "investigations", title: "Investigations", key: "investigations" },
-  { slug: "special-reports", title: "Special Reports", key: "specialReports" },
-];
+const RUBRIQUE_KEY_BY_SLUG: Partial<Record<string, keyof HomeDataSource>> = {
+  africa: "africaNews",
+  "latin-america": "latinAmericaNews",
+  "south-asia": "southAsiaNews",
+  "west-asia": "westAsiaNews",
+  news: "nationalNews",
+  commentary: "commentaryNews",
+  explainer: "explainerNews",
+  politics: "politicsNews",
+  feature: "featureNews",
+  culture: "cultureNews",
+  investigations: "investigations",
+  "special-reports": "specialReports",
+  health: "healthNews",
+  local: "localNews",
+};
+
+const DEFAULT_RUBRIQUE_TITLES: Record<string, string> = {
+  africa: "Africa",
+  "latin-america": "Latin America",
+  "south-asia": "South Asia",
+  "west-asia": "West Asia",
+  news: "News",
+  commentary: "Commentary",
+  explainer: "Explainer",
+  politics: "Politics",
+  feature: "Feature",
+  culture: "Culture",
+  investigations: "Investigations",
+  "special-reports": "Special Reports",
+  health: "Health",
+  local: "Local",
+};
 
 function articlePath(slug: string): string {
   return `/article/${slug}`;
@@ -423,16 +440,23 @@ function buildRubriques(source: HomeDataSource): HomeRubriqueBlock[] {
     slug: category.slug,
   }));
 
-  return RUBRIQUE_SOURCES.flatMap(({ slug, title, key }) => {
+  const slugs = buildHomeRubriqueSlugs(navCategories);
+
+  return slugs.flatMap((slug) => {
+    const key = RUBRIQUE_KEY_BY_SLUG[slug];
+    if (!key) return [];
+
     const items = filterArticlesByRetiredCategories(
       (source[key] as ArticleListItem[] | undefined) ?? []
     );
     if (!items.length) return [];
 
+    const fallbackTitle = DEFAULT_RUBRIQUE_TITLES[slug] ?? slug;
+
     return [
       {
         slug,
-        title: resolveRubriqueTitle(slug, title, navCategories),
+        title: resolveRubriqueTitle(slug, fallbackTitle, navCategories),
         href: `/category/${slug}`,
         articles: items.slice(0, 4).map(toHomeCard),
       },

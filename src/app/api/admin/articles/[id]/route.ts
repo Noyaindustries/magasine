@@ -11,13 +11,11 @@ import { notifySubscribersOnMultimediaPublish } from "@/lib/newsletter-auto-publ
 import { z } from "zod";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
-import { getCategorySlug, resolveActiveCategory } from "@/lib/article-category";
+import { getCategorySlug } from "@/lib/article-category";
+import { assignArticleCategories } from "@/lib/article-category-assignment";
 import {
   getAllRegionSlugsForArticle,
-  isRegionCategorySlug,
   mergeRegionCategoryIdsForArticle,
-  mergeRegionCategoryIdsForArticleWithInference,
-  resolveRegionCategories,
 } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
@@ -143,21 +141,24 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     category: article.category,
     secondaryCategories: article.secondaryCategories,
   });
-  const previousCategoryDoc = await Category.findById(article.category).select("_id slug").lean();
 
-  if (data.categoryId) {
-    const category = await resolveActiveCategory(data.categoryId);
-    if (!category) {
-      return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
-    }
-    if (isRegionCategorySlug(category.slug) && String(article.category) !== String(category._id)) {
-      return NextResponse.json(
-        { error: "Choisissez une rubrique thématique ; les régions se sélectionnent ci-dessous." },
-        { status: 400 }
-      );
-    }
-    article.category = category._id;
+  const regionIds =
+    data.regionCategoryIds ??
+    article.secondaryCategories.map((categoryId: mongoose.Types.ObjectId) => String(categoryId));
+
+  const assignment = await assignArticleCategories({
+    currentPrimaryId: article.category,
+    categoryId: data.categoryId,
+    regionCategoryIds: regionIds,
+    authorId: data.authorId ?? (article.authors[0] ? String(article.authors[0]) : undefined),
+  });
+
+  if ("error" in assignment) {
+    return NextResponse.json({ error: assignment.error }, { status: 400 });
   }
+
+  article.category = assignment.primaryId;
+  article.secondaryCategories = assignment.secondaryCategoryIds as never;
 
   if (data.title) article.title = data.title;
   if (data.slug) {
@@ -203,28 +204,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.videoUrl !== undefined) {
     article.videoUrl = data.videoUrl.trim() || undefined;
   }
-
-  let regionIds =
-    data.regionCategoryIds ??
-    article.secondaryCategories.map((categoryId: mongoose.Types.ObjectId) => String(categoryId));
-  if (
-    previousCategoryDoc &&
-    isRegionCategorySlug(previousCategoryDoc.slug) &&
-    String(article.category) !== String(previousCategoryDoc._id)
-  ) {
-    regionIds = [...new Set([...regionIds, String(previousCategoryDoc._id)])];
-  }
-
-  const mergedRegionIds = await mergeRegionCategoryIdsForArticleWithInference(
-    article.category,
-    regionIds,
-    data.authorId ?? (article.authors[0] ? String(article.authors[0]) : undefined)
-  );
-  const regionCategories = await resolveRegionCategories(mergedRegionIds);
-  if (regionCategories === null) {
-    return NextResponse.json({ error: "Invalid region selection" }, { status: 400 });
-  }
-  article.secondaryCategories = regionCategories as never;
 
   await article.save();
 

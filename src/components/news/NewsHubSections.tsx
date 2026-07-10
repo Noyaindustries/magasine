@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { NEWS_MENU_NAV } from "@/data/site-home";
+import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
 import { newsHubFilterHref } from "@/lib/news-hub";
 
 interface NewsHubSectionsProps {
@@ -8,6 +10,8 @@ interface NewsHubSectionsProps {
 }
 
 export function NewsHubSections({ sectionCounts, activeHref }: NewsHubSectionsProps) {
+  const { newsMenu } = useSiteNav();
+
   return (
     <section className="news-hub-sections" aria-labelledby="news-hub-sections-title">
       <div className="news-hub-sections-head">
@@ -15,7 +19,7 @@ export function NewsHubSections({ sectionCounts, activeHref }: NewsHubSectionsPr
         <p>Jump to a desk, live feed, or reporting vertical.</p>
       </div>
       <ul className="news-hub-sections-grid">
-        {NEWS_MENU_NAV.map((item) => {
+        {newsMenu.map((item) => {
           const href = newsHubFilterHref(item.href);
           const isActive = activeHref === item.href || activeHref === href;
           const count = sectionCounts[item.href] ?? 0;

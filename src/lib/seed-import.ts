@@ -12,6 +12,7 @@ import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { resolveArticleContent } from "@/lib/article-content";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import { getDemoArticleFilter, getSeedArticleSlugs } from "@/lib/demo-articles";
 
 const AUTHOR_DEFAULT_REGION: Record<string, string> = {
   "lucia-mendoza": "latin-america",
@@ -33,6 +34,27 @@ export interface DemoImportResult {
   authorsCreated: number;
   articlesCreated: number;
   articlesSkipped: number;
+}
+
+export interface DemoDeleteResult {
+  deleted: number;
+}
+
+/** Marque les articles seed existants (sans isDemo) pour les retrouver dans l'admin. */
+export async function tagExistingDemoArticles(): Promise<number> {
+  await connectDB();
+  const result = await Article.updateMany(
+    { slug: { $in: getSeedArticleSlugs() }, isDemo: { $ne: true } },
+    { $set: { isDemo: true } }
+  );
+  return result.modifiedCount;
+}
+
+/** Supprime tous les articles de démonstration de la base. */
+export async function deleteAllDemoArticles(): Promise<DemoDeleteResult> {
+  await connectDB();
+  const result = await Article.deleteMany(getDemoArticleFilter());
+  return { deleted: result.deletedCount };
 }
 
 /**
@@ -139,6 +161,7 @@ export async function importDemoContent(): Promise<DemoImportResult> {
         url: resolveFeaturedImage(item.url),
       })),
       views: Math.floor(Math.random() * 8000) + 200,
+      isDemo: true,
     });
     articlesCreated += 1;
   }

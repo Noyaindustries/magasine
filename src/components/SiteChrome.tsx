@@ -7,6 +7,7 @@ import { HomeQuickNav } from "@/components/site-chrome/HomeQuickNav";
 import { SiteFooter } from "@/components/site-chrome/SiteFooter";
 import { ProgressBar } from "@/components/site-chrome/ProgressBar";
 import { ScrollReveal } from "@/components/site-chrome/ScrollReveal";
+import { SiteNavProvider } from "@/components/site-chrome/SiteNavContext";
 import type { SiteNav } from "@/lib/public-nav";
 
 interface SiteChromeProps {
@@ -27,7 +28,7 @@ export function SiteChrome({ children, siteNav }: SiteChromeProps) {
   }
 
   return (
-    <>
+    <SiteNavProvider siteNav={siteNav}>
       <ProgressBar />
       <div className="site-header-stack">
         <SiteHeader />
@@ -36,6 +37,6 @@ export function SiteChrome({ children, siteNav }: SiteChromeProps) {
       <main>{children}</main>
       <SiteFooter />
       <ScrollReveal />
-    </>
+    </SiteNavProvider>
   );
 }

@@ -34,7 +34,7 @@ import {
   isValidVideoSourceUrl,
 } from "@/lib/article-content-types";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
-import { isRegionCategorySlug } from "@/lib/region-category-slugs";
+import { isRegionCategoryRecord } from "@/lib/region-category-slugs";
 
 interface Category {
   _id: string;
@@ -177,11 +177,11 @@ export function CmsArticleEditor({
   }, []);
 
   const topicOptions = useMemo(() => {
-    const topics = categories.filter((category) => !isRegionCategorySlug(category.slug));
+    const topics = categories.filter((category) => !isRegionCategoryRecord(category));
     const selected = categories.find((category) => category._id === form.categoryId);
     if (
       selected &&
-      !isRegionCategorySlug(selected.slug) &&
+      !isRegionCategoryRecord(selected) &&
       !topics.some((category) => category._id === selected._id)
     ) {
       return [...topics, selected].sort((a, b) => a.name.localeCompare(b.name));
@@ -189,10 +189,16 @@ export function CmsArticleEditor({
     return topics;
   }, [categories, form.categoryId]);
   const regionCategories = useMemo(
-    () => categories.filter((category) => isRegionCategorySlug(category.slug)),
+    () =>
+      categories
+        .filter((category) => isRegionCategoryRecord(category))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     [categories]
   );
   const selectedCategory = categories.find((category) => category._id === form.categoryId);
+  const selectedCategoryIsRegion = selectedCategory
+    ? isRegionCategoryRecord(selectedCategory)
+    : false;
 
   const toggleRegionCategory = useCallback(
     (categoryId: string) => {
@@ -246,7 +252,7 @@ export function CmsArticleEditor({
 
   useEffect(() => {
     if (mode !== "create" || form.categoryId || categories.length === 0) return;
-    const firstTopic = categories.find((category) => !isRegionCategorySlug(category.slug));
+    const firstTopic = categories.find((category) => !isRegionCategoryRecord(category));
     if (firstTopic) {
       patchForm({ categoryId: firstTopic._id });
     }
@@ -439,9 +445,23 @@ export function CmsArticleEditor({
 
   const saveArticle = useCallback(
     async (options?: { redirectAfter?: boolean; publishMode?: PublishMode; silent?: boolean }) => {
-      if (!form.title.trim() || !form.categoryId || !form.authorId) {
+      if (!form.title.trim() || !form.authorId) {
         if (!options?.silent) {
-          toast.error("Title, category, and author are required.");
+          toast.error("Title and author are required.");
+        }
+        return false;
+      }
+
+      const selectedCat = categories.find((category) => category._id === form.categoryId);
+      const hasTopicRubrique =
+        Boolean(form.categoryId) && (!selectedCat || !isRegionCategoryRecord(selectedCat));
+      const hasRegion =
+        form.regionCategoryIds.length > 0 ||
+        (selectedCat !== undefined && isRegionCategoryRecord(selectedCat));
+
+      if (!hasTopicRubrique && !hasRegion) {
+        if (!options?.silent) {
+          toast.error("Choisissez une rubrique thématique et/ou une région.");
         }
         return false;
       }
@@ -508,7 +528,7 @@ export function CmsArticleEditor({
         setLoading(false);
       }
     },
-    [articleId, buildPayload, form.authorId, form.categoryId, form.title, mode, patchForm, router]
+    [articleId, buildPayload, categories, form.authorId, form.categoryId, form.regionCategoryIds, form.title, mode, patchForm, router]
   );
 
   useEffect(() => {
@@ -838,25 +858,30 @@ export function CmsArticleEditor({
                 <label className="lbl">
                   Rubrique <span className="req">*</span>
                 </label>
+                <p className="cms-field-hint">
+                  Thème éditorial (News, Politics, Culture…). Les régions comme Amérique latine
+                  se choisissent dans la section ci-dessous, pas ici.
+                </p>
                 <select
                   className="input sel"
                   aria-label="Rubrique"
-                  value={form.categoryId}
+                  value={selectedCategoryIsRegion ? "" : form.categoryId}
                   onChange={(e) => patchForm({ categoryId: e.target.value })}
                   required
                 >
                   <option value="">Choisir…</option>
-                  {selectedCategory && isRegionCategorySlug(selectedCategory.slug) && (
-                    <option value={selectedCategory._id}>
-                      {selectedCategory.name} (région — choisir une rubrique)
-                    </option>
-                  )}
                   {topicOptions.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
                     </option>
                   ))}
                 </select>
+                {selectedCategoryIsRegion && selectedCategory && (
+                  <p className="cms-field-hint" style={{ color: "var(--cms-amber, #b45309)" }}>
+                    « {selectedCategory.name} » est une région : cochez-la ci-dessous et choisissez
+                    une rubrique thématique ici, puis enregistrez.
+                  </p>
+                )}
                 {topicOptions.length === 0 && (
                   <p className="cms-field-hint" style={{ color: "var(--cms-red)" }}>
                     Aucune rubrique disponible. Utilisez « + Nouvelle catégorie » ou vérifiez
@@ -874,7 +899,8 @@ export function CmsArticleEditor({
               <div className="field">
                 <label className="lbl">Région / pays couverts</label>
                 <p className="cms-field-hint">
-                  L&apos;article apparaîtra aussi sur les pages régionales (Afrique, Amérique latine, etc.).
+                  Cochez une ou plusieurs régions pour afficher l&apos;article sur les pages
+                  /category/africa, /category/latin-america, etc.
                 </p>
                 <div className="cms-region-grid">
                   {regionCategories.map((region) => {

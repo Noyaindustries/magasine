@@ -34,6 +34,7 @@ export interface IArticle {
   sendPushOnPublish: boolean;
   commentsDisabled: boolean;
   allowSocialShare: boolean;
+  isDemo: boolean;
   version: number;
   createdAt: Date;
   updatedAt: Date;
@@ -86,11 +87,13 @@ const ArticleSchema = new Schema<IArticle>(
     sendPushOnPublish: { type: Boolean, default: false },
     commentsDisabled: { type: Boolean, default: false },
     allowSocialShare: { type: Boolean, default: true },
+    isDemo: { type: Boolean, default: false },
     version: { type: Number, default: 1 },
   },
   { timestamps: true }
 );
 
+ArticleSchema.index({ isDemo: 1, status: 1 });
 ArticleSchema.index({ title: "text", excerpt: "text", content: "text" });
 ArticleSchema.index({ status: 1, publishedAt: -1 });
 ArticleSchema.index({ category: 1, status: 1, publishedAt: -1 });

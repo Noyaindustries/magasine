@@ -1,4 +1,6 @@
 import {
+  ALL_NEWS_LINK,
+  FOOTER_FORMAT_LINKS,
   NEWS_MENU_NAV,
   PRIMARY_NAV,
   REGION_NAV,
@@ -22,11 +24,34 @@ export type PublicNewsMenuItem = {
 
 export type DbNavCategory = { name: string; slug: string };
 
+export type SiteNavFilter = { label: string; slug: string };
+
 export type SiteNav = {
   primary: PublicNavLink[];
   regions: PublicNavLink[];
   newsMenu: PublicNewsMenuItem[];
+  footerSections: PublicNavLink[];
+  footerRegions: PublicNavLink[];
+  footerFormats: PublicNavLink[];
+  searchFilters: SiteNavFilter[];
+  topicCategories: DbNavCategory[];
+  homeRubriqueSlugs: string[];
 };
+
+/** Ordre des blocs rubriques sur la page d'accueil (slugs canoniques). */
+export const HOME_RUBRIQUE_SLUG_ORDER = [
+  ...REGION_SLUGS,
+  "news",
+  "commentary",
+  "explainer",
+  "politics",
+  "feature",
+  "culture",
+  "investigations",
+  "special-reports",
+  "health",
+  "local",
+] as const;
 
 function categoryHref(slug: string): string {
   return `/category/${slug}`;
@@ -36,22 +61,40 @@ function bySlugMap(categories: DbNavCategory[]): Map<string, DbNavCategory> {
   return new Map(categories.map((category) => [category.slug, category]));
 }
 
-/**
- * Rubriques du menu principal (hors mega-menu News).
- * N’affiche que les catégories actives présentes en base — pas de lien statique vers une 404.
- */
-export function buildPrimaryNav(categories: DbNavCategory[]): PublicNavLink[] {
-  const map = bySlugMap(categories);
-
-  return PRIMARY_NAV.flatMap((item) => {
-    const slug = item.href.replace("/category/", "");
-    const category = map.get(slug);
-    if (!category || isRegionCategorySlug(slug)) return [];
-    return [{ label: category.name, href: categoryHref(category.slug) }];
-  });
+function topicCategoriesFromDb(categories: DbNavCategory[]): DbNavCategory[] {
+  return categories.filter((category) => !isRegionCategorySlug(category.slug));
 }
 
-/** Régions du menu — noms et slugs issus de l’admin. */
+/** Toutes les rubriques thématiques actives (admin), ordre menu puis alphabétique. */
+export function buildTopicCategories(categories: DbNavCategory[]): DbNavCategory[] {
+  const map = bySlugMap(categories);
+  const primarySlugs = PRIMARY_NAV.map((item) => item.href.replace("/category/", ""));
+  const ordered: DbNavCategory[] = [];
+
+  for (const slug of primarySlugs) {
+    const category = map.get(slug);
+    if (category && !isRegionCategorySlug(slug)) {
+      ordered.push(category);
+    }
+  }
+
+  const seen = new Set(ordered.map((category) => category.slug));
+  const extras = topicCategoriesFromDb(categories)
+    .filter((category) => !seen.has(category.slug))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  return [...ordered, ...extras];
+}
+
+export function buildPrimaryNav(categories: DbNavCategory[]): PublicNavLink[] {
+  return buildTopicCategories(categories)
+    .filter((category) => PRIMARY_NAV.some((item) => item.href === categoryHref(category.slug)))
+    .map((category) => ({
+      label: category.name,
+      href: categoryHref(category.slug),
+    }));
+}
+
 export function buildRegionNav(categories: DbNavCategory[]): PublicNavLink[] {
   const map = bySlugMap(categories);
   const staticByHref = new Map<string, (typeof REGION_NAV)[number]>(
@@ -83,10 +126,6 @@ export function buildRegionNav(categories: DbNavCategory[]): PublicNavLink[] {
   }));
 }
 
-/**
- * Entrées du mega-menu News.
- * Les liens /category/* ne sont inclus que si la catégorie existe en base.
- */
 export function buildNewsMenuNav(categories: DbNavCategory[]): PublicNewsMenuItem[] {
   const map = bySlugMap(categories);
 
@@ -111,11 +150,63 @@ export function buildNewsMenuNav(categories: DbNavCategory[]): PublicNewsMenuIte
   });
 }
 
+export function buildFooterSectionLinks(categories: DbNavCategory[]): PublicNavLink[] {
+  const topics = buildTopicCategories(categories).map((category) => ({
+    label: category.name,
+    href: categoryHref(category.slug),
+  }));
+
+  return [{ label: ALL_NEWS_LINK.label, href: ALL_NEWS_LINK.href }, ...topics];
+}
+
+export function buildFooterFormatLinks(categories: DbNavCategory[]): PublicNavLink[] {
+  const map = bySlugMap(categories);
+
+  return FOOTER_FORMAT_LINKS.map((link) => {
+    if (!link.href.startsWith("/category/")) {
+      return { label: link.label, href: link.href };
+    }
+    const slug = link.href.replace("/category/", "");
+    const category = map.get(slug);
+    return {
+      label: category?.name ?? link.label,
+      href: category ? categoryHref(category.slug) : link.href,
+    };
+  });
+}
+
+export function buildSearchCategoryFilters(categories: DbNavCategory[]): SiteNavFilter[] {
+  const topics = buildTopicCategories(categories).map((category) => ({
+    label: category.name,
+    slug: category.slug,
+  }));
+  const regions = buildRegionNav(categories).map((region) => ({
+    label: region.label,
+    slug: region.href.replace("/category/", ""),
+  }));
+
+  return [...topics, ...regions];
+}
+
+export function buildHomeRubriqueSlugs(categories: DbNavCategory[]): string[] {
+  const map = bySlugMap(categories);
+  return HOME_RUBRIQUE_SLUG_ORDER.filter((slug) => map.has(slug));
+}
+
 export function buildSiteNav(categories: DbNavCategory[]): SiteNav {
+  const regions = buildRegionNav(categories);
+  const topicCategories = buildTopicCategories(categories);
+
   return {
     primary: buildPrimaryNav(categories),
-    regions: buildRegionNav(categories),
+    regions,
     newsMenu: buildNewsMenuNav(categories),
+    footerSections: buildFooterSectionLinks(categories),
+    footerRegions: regions.map(({ label, href }) => ({ label, href })),
+    footerFormats: buildFooterFormatLinks(categories),
+    searchFilters: buildSearchCategoryFilters(categories),
+    topicCategories,
+    homeRubriqueSlugs: buildHomeRubriqueSlugs(categories),
   };
 }
 

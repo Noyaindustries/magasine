@@ -1,16 +1,34 @@
-import Link from "next/link";
-import { FOOTER_BOTTOM_LINKS, FOOTER_COLS, SITE_TAGLINE } from "@/data/site-home";
-import { SocialLinks } from "@/components/ui/SocialIcons";
+"use client";
 
-const FOOTER_COLUMNS = [
-  { title: "Sections", links: FOOTER_COLS.sections },
-  { title: "Regions", links: FOOTER_COLS.regions, variant: "regions" as const },
-  { title: "Formats", links: FOOTER_COLS.formats },
-  { title: "About & support", links: FOOTER_COLS.about },
-  { title: "Legal", links: FOOTER_COLS.legal },
-] as const;
+import Link from "next/link";
+import { ABOUT_NAV, FOOTER_BOTTOM_LINKS, FOOTER_SUPPORT_LINKS, SITE_TAGLINE } from "@/data/site-home";
+import { SocialLinks } from "@/components/ui/SocialIcons";
+import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
 
 export function SiteFooter() {
+  const { footerSections, footerRegions, footerFormats } = useSiteNav();
+
+  const footerColumns = [
+    { title: "Sections", links: footerSections },
+    { title: "Regions", links: footerRegions, variant: "regions" as const },
+    { title: "Formats", links: footerFormats },
+    {
+      title: "About & support",
+      links: [
+        ...ABOUT_NAV.map(({ label, href }) => ({ label, href })),
+        ...FOOTER_SUPPORT_LINKS.map(({ label, href }) => ({ label, href })),
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { label: "Legal notice", href: "/legal" },
+        { label: "Privacy policy", href: "/privacy" },
+        { label: "Terms of use", href: "/terms" },
+      ],
+    },
+  ] as const;
+
   return (
     <footer className="footer">
       <div className="container">
@@ -24,7 +42,7 @@ export function SiteFooter() {
             <SocialLinks />
           </div>
           <div className="footer-cols">
-            {FOOTER_COLUMNS.map((col) => (
+            {footerColumns.map((col) => (
               <div
                 key={col.title}
                 className={`footer-col${"variant" in col ? " footer-col--regions" : ""}`}

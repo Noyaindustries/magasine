@@ -158,6 +158,7 @@ export async function GET(request: NextRequest) {
           url: resolveFeaturedImage(item.url),
         })),
         views: Math.floor(Math.random() * 8000) + 200,
+        isDemo: true,
       };
     });
 

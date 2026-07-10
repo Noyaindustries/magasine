@@ -5,24 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Clock, Search, X } from "lucide-react";
 import { ArticleCard } from "@/components/article/ArticleCard";
-import { PRIMARY_NAV, REGION_NAV } from "@/data/site-home";
+import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
 import { toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import type { ArticleListItem } from "@/types";
 
 const RECENT_KEY = "gsw-recent-searches";
 const MAX_RECENT = 6;
-
-const CATEGORY_FILTERS = [
-  ...PRIMARY_NAV.map((item) => ({
-    label: item.label,
-    slug: item.href.replace("/category/", ""),
-  })),
-  ...REGION_NAV.map((item) => ({
-    label: item.label,
-    slug: item.href.replace("/category/", ""),
-  })),
-];
 
 const TYPE_FILTERS = [
   { label: "All formats", value: "" },
@@ -57,6 +46,7 @@ function saveRecent(term: string) {
 
 export function SearchPageView() {
   const router = useRouter();
+  const { searchFilters: categoryFilters } = useSiteNav();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -295,7 +285,7 @@ export function SearchPageView() {
               >
                 All
               </button>
-              {CATEGORY_FILTERS.map((item) => (
+              {categoryFilters.map((item) => (
                 <button
                   key={item.slug}
                   type="button"
@@ -359,7 +349,7 @@ export function SearchPageView() {
           <section className="search-page-browse" aria-label="Browse by section">
             <h2 className="search-page-section-title">Browse by section</h2>
             <div className="search-page-browse-grid">
-              {CATEGORY_FILTERS.map((item) => (
+              {categoryFilters.map((item) => (
                 <Link key={item.slug} href={`/category/${item.slug}`} className="search-page-browse-link">
                   {item.label}
                 </Link>

@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { HeartHandshake } from "lucide-react";
-import { HEADER_TOP_ACTIONS, MOBILE_NAV, NAV_SUBSCRIBE_LINK } from "@/data/site-home";
+import { ABOUT_MENU_NAV, HEADER_TOP_ACTIONS, NAV_SUBSCRIBE_LINK } from "@/data/site-home";
+import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
 import { useIsClient } from "@/lib/use-is-client";
 
 interface MobileNavDrawerProps {
@@ -65,6 +66,20 @@ function MobileNavSection({
 
 export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
   const mounted = useIsClient();
+  const { newsMenu, primary, regions, footerFormats } = useSiteNav();
+
+  const mobileNews = newsMenu.map(({ label, href }) => ({ label, href }));
+  const mobileSections = primary.filter((item) => item.href !== "/category/news");
+  const mobileRegions = regions.map(({ label, href }) => ({ label, href }));
+  const mobileFormats = footerFormats;
+  const mobileAbout = ABOUT_MENU_NAV.map(({ label, href }) => ({ label, href }));
+  const mobileSupport = [
+    { label: "Newsletter", href: "/newsletter" },
+    { label: "Donate", href: "/donate" },
+    { label: "Contact", href: "/contact" },
+    { label: "Write for us", href: "/write-for-us" },
+    { label: "Search", href: "/search" },
+  ];
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -87,7 +102,9 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
   }
 
   const legalLinks = [
-    ...MOBILE_NAV.legal,
+    { label: "Legal notice", href: "/legal" },
+    { label: "Privacy policy", href: "/privacy" },
+    { label: "Terms of use", href: "/terms" },
     { label: "Accessibility", href: "/accessibility" },
   ];
 
@@ -130,24 +147,24 @@ export function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
 
         <nav className="mobile-nav-body" aria-label="Mobile navigation">
           <ul className="mobile-nav-list mobile-nav-list--unified">
-            <MobileNavSection label="News" links={MOBILE_NAV.news} onClose={onClose} />
-            <MobileNavSection label="Sections" links={MOBILE_NAV.sections} onClose={onClose} />
+            <MobileNavSection label="News" links={mobileNews} onClose={onClose} />
+            <MobileNavSection label="Sections" links={mobileSections} onClose={onClose} />
             <MobileNavSection
               label="Regions"
-              links={MOBILE_NAV.regions}
+              links={mobileRegions}
               onClose={onClose}
               variant="region"
             />
-            <MobileNavSection label="Formats" links={MOBILE_NAV.formats} onClose={onClose} />
+            <MobileNavSection label="Formats" links={mobileFormats} onClose={onClose} />
             <MobileNavSection
               label="About"
-              links={MOBILE_NAV.about}
+              links={mobileAbout}
               onClose={onClose}
               variant="utility"
             />
             <MobileNavSection
               label="Support"
-              links={MOBILE_NAV.support}
+              links={mobileSupport}
               onClose={onClose}
               variant="utility"
             />

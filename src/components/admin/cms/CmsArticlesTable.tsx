@@ -196,7 +196,14 @@ export function CmsArticlesTable({
                       />
                     </td>
                     <td>
-                      <div className="tc-main">{article.title}</div>
+                      <div className="tc-main">
+                        {article.title}
+                        {article.isDemo && (
+                          <span className="cms-badge cms-badge--muted" style={{ marginLeft: 8 }}>
+                            Démo
+                          </span>
+                        )}
+                      </div>
                       <div className="tc-sub">
                         {article.readingTime > 0
                           ? `${article.readingTime} min read`

@@ -1,14 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import type { ArticleListItem } from "@/types";
 import { PageBackdrop } from "@/components/site-chrome/PageBackdrop";
 import { SectionImage } from "@/components/site-chrome/SectionImage";
 import { SectionRelatedNav } from "@/components/category/SectionRelatedNav";
-import { NEWS_MENU_NAV, REGION_NAV } from "@/data/site-home";
 import { ALL_NEWS_SECTION } from "@/lib/sections";
 import { formatArticleCardMeta } from "@/lib/format-article";
-import { newsHubActiveHref, newsHubFilterHref, newsMenuCategorySlug } from "@/lib/news-hub";
+import { newsHubActiveHref } from "@/lib/news-hub";
 import { NewsHubSections } from "@/components/news/NewsHubSections";
 import { NewsBreakingStrip } from "@/components/news/NewsBreakingStrip";
+import { AllNewsHubFilters, useActiveNewsLabel } from "@/components/news/AllNewsHubFilters";
+import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
 
 interface AllNewsPageViewProps {
   articles: ArticleListItem[];
@@ -18,34 +21,17 @@ interface AllNewsPageViewProps {
   alerts: { text: string; link?: string }[];
 }
 
-const NEWS_FILTERS = NEWS_MENU_NAV.map((item) => ({
-  label: item.label,
-  href: newsHubFilterHref(item.href),
-  slug: newsMenuCategorySlug(item.href),
-}));
-
-const REGION_FILTERS = REGION_NAV.map((item) => ({
-  label: item.label,
-  slug: item.href.replace("/category/", ""),
-}));
-
-function filterHref(slug?: string) {
-  return slug ? `/news?category=${slug}` : "/news";
-}
-
-export function AllNewsPageView({
+function AllNewsPageContent({
   articles,
   activeCategory,
   sectionCounts,
   urgentArticles,
   alerts,
 }: AllNewsPageViewProps) {
+  const { newsMenu } = useSiteNav();
   const [featured, ...rest] = articles;
-  const activeNewsHref = newsHubActiveHref(activeCategory);
-  const activeLabel =
-    NEWS_FILTERS.find((item) => item.slug === activeCategory)?.label ??
-    REGION_FILTERS.find((item) => item.slug === activeCategory)?.label ??
-    null;
+  const activeNewsHref = newsHubActiveHref(activeCategory, newsMenu);
+  const activeLabel = useActiveNewsLabel(activeCategory);
 
   return (
     <div className="category-page category-page--revolution all-news-page">
@@ -99,49 +85,7 @@ export function AllNewsPageView({
           </>
         )}
 
-        <div className="all-news-filters search-page-filters">
-          <div className="search-page-filter-group">
-            <span className="search-page-filter-label">News desks</span>
-            <div className="search-page-chips">
-              {NEWS_FILTERS.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`search-page-chip${
-                    (item.slug && activeCategory === item.slug) ||
-                    (!activeCategory && item.href === "/news")
-                      ? " is-active"
-                      : ""
-                  }`}
-                  aria-current={
-                    (item.slug && activeCategory === item.slug) ||
-                    (!activeCategory && item.href === "/news")
-                      ? "page"
-                      : undefined
-                  }
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div className="search-page-filter-group">
-            <span className="search-page-filter-label">Regions</span>
-            <div className="search-page-chips">
-              {REGION_FILTERS.map((item) => (
-                <Link
-                  key={item.slug}
-                  href={filterHref(item.slug)}
-                  className={`search-page-chip${activeCategory === item.slug ? " is-active" : ""}`}
-                  aria-current={activeCategory === item.slug ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
+        <AllNewsHubFilters activeCategory={activeCategory} />
 
         {activeCategory && (
           <NewsHubSections sectionCounts={sectionCounts} activeHref={activeNewsHref} />
@@ -245,4 +189,8 @@ export function AllNewsPageView({
       />
     </div>
   );
+}
+
+export function AllNewsPageView(props: AllNewsPageViewProps) {
+  return <AllNewsPageContent {...props} />;
 }

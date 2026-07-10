@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsArticlesTable } from "@/components/admin/cms/CmsArticlesTable";
-import { ImportDemoButton } from "@/components/admin/cms/ImportDemoButton";
+import { DemoContentActions } from "@/components/admin/cms/DemoContentActions";
 import type { ArticleStatus } from "@/types";
 
 export interface ArticleListRow {
@@ -16,6 +16,7 @@ export interface ArticleListRow {
   updatedAt: string;
   publishedAt?: string;
   scheduledAt?: string;
+  isDemo?: boolean;
 }
 
 export interface ArticleStatusCounts {
@@ -47,6 +48,8 @@ interface CmsArticlesViewProps {
   totalPages: number;
   categories: string[];
   authors: string[];
+  demoCount: number;
+  demoOnly?: boolean;
 }
 
 function buildArticlesHref(params: {
@@ -55,12 +58,14 @@ function buildArticlesHref(params: {
   category?: string;
   author?: string;
   page?: number;
+  demo?: boolean;
 }) {
   const sp = new URLSearchParams();
   if (params.status) sp.set("status", params.status);
   if (params.q?.trim()) sp.set("q", params.q.trim());
   if (params.category) sp.set("category", params.category);
   if (params.author) sp.set("author", params.author);
+  if (params.demo) sp.set("demo", "1");
   if (params.page && params.page > 1) sp.set("page", String(params.page));
   const qs = sp.toString();
   return qs ? `/admin/articles?${qs}` : "/admin/articles";
@@ -77,9 +82,11 @@ export function CmsArticlesView({
   totalPages,
   categories,
   authors,
+  demoCount,
+  demoOnly,
 }: CmsArticlesViewProps) {
   const activeCount = status ? counts[status] : counts.all;
-  const paginationBase = buildArticlesHref({ status, q: query, category, author });
+  const paginationBase = buildArticlesHref({ status, q: query, category, author, demo: demoOnly });
 
   return (
     <CmsPage>
@@ -92,7 +99,7 @@ export function CmsArticlesView({
           </div>
         </div>
         <div className="vacts">
-          {counts.all === 0 && <ImportDemoButton />}
+          <DemoContentActions demoCount={demoCount} />
           <Link href="/admin/articles/new?type=video" className="btn btn-out">
             + New video
           </Link>
@@ -103,9 +110,30 @@ export function CmsArticlesView({
       </div>
 
       <div className="tabs">
+        {demoOnly ? (
+          <span className="tab on">Demo ({demoCount.toLocaleString("en-US")})</span>
+        ) : (
+          <Link
+            href={buildArticlesHref({ status, q: query, category, author, demo: true })}
+            className="tab"
+          >
+            Demo ({demoCount.toLocaleString("en-US")})
+          </Link>
+        )}
+        {demoOnly && (
+          <Link href={buildArticlesHref({ status, q: query, category, author })} className="tab">
+            ← Tous les articles
+          </Link>
+        )}
         {TABS.map((tab) => {
-          const href = buildArticlesHref({ status: tab.id, q: query, category, author });
-          const active = tab.id ? status === tab.id : !status;
+          const href = buildArticlesHref({
+            status: tab.id,
+            q: query,
+            category,
+            author,
+            demo: demoOnly,
+          });
+          const active = !demoOnly && (tab.id ? status === tab.id : !status);
           const count = counts[tab.countKey];
           return (
             <Link key={tab.label} href={href} className={active ? "tab on" : "tab"}>
@@ -117,6 +145,7 @@ export function CmsArticlesView({
 
       <form className="fbar" action="/admin/articles" method="get">
         {status && <input type="hidden" name="status" value={status} />}
+        {demoOnly && <input type="hidden" name="demo" value="1" />}
         <div className="fsearch">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
             <circle cx="5" cy="5" r="3.5" stroke="var(--t3)" strokeWidth="1.5" />

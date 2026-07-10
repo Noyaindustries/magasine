@@ -10,6 +10,8 @@ import {
 import type { ArticleStatus } from "@/types";
 import { ARTICLES_PAGE_SIZE } from "@/lib/pagination";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
+import { getDemoArticleFilter } from "@/lib/demo-articles";
+import { tagExistingDemoArticles } from "@/lib/seed-import";
 
 interface PageProps {
   searchParams: Promise<{
@@ -18,6 +20,7 @@ interface PageProps {
     category?: string;
     author?: string;
     page?: string;
+    demo?: string;
   }>;
 }
 
@@ -35,7 +38,9 @@ const PAGE_SIZE = ARTICLES_PAGE_SIZE;
 export const dynamic = "force-dynamic";
 
 export default async function AdminArticlesPage({ searchParams }: PageProps) {
-  const { status: statusParam, q, category, author, page: pageParam } = await searchParams;
+  const { status: statusParam, q, category, author, page: pageParam, demo: demoParam } =
+    await searchParams;
+  const demoOnly = demoParam === "1";
   const status =
     statusParam && STATUSES.includes(statusParam as ArticleStatus)
       ? (statusParam as ArticleStatus)
@@ -43,8 +48,10 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(pageParam) || 1);
 
   await connectDB();
+  await tagExistingDemoArticles();
 
   const filter: Record<string, unknown> = {};
+  if (demoOnly) Object.assign(filter, getDemoArticleFilter());
   if (status) filter.status = status;
   if (q?.trim()) {
     const termRegex = buildCaseInsensitiveRegex(q);
@@ -65,7 +72,8 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
 
   const skip = (page - 1) * PAGE_SIZE;
 
-  const [articlesRaw, filteredCount, countResults, categories, authors] = await Promise.all([
+  const [articlesRaw, filteredCount, countResults, demoCount, categories, authors] =
+    await Promise.all([
     Article.find(filter)
       .populate("category", "name")
       .populate("authors", "name")
@@ -78,6 +86,7 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       Article.countDocuments(),
       ...STATUSES.map((s) => Article.countDocuments({ status: s })),
     ]),
+    Article.countDocuments(getDemoArticleFilter()),
     Category.find().sort({ name: 1 }).select("name").lean(),
     Author.find().sort({ name: 1 }).select("name").lean(),
   ]);
@@ -111,6 +120,7 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       scheduledAt: article.scheduledAt
         ? new Date(article.scheduledAt).toISOString()
         : undefined,
+      isDemo: Boolean(article.isDemo),
     };
   });
 
@@ -128,6 +138,8 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       totalPages={totalPages}
       categories={categories.map((c) => c.name)}
       authors={authors.map((a) => a.name)}
+      demoCount={demoCount}
+      demoOnly={demoOnly}
     />
   );
 }

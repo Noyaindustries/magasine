@@ -253,6 +253,8 @@ export function getMockHomePageData() {
     localNews: published.filter((a) => a.category.slug === "local").slice(0, 4),
     politicsNews: published.filter((a) => a.category.slug === "politics").slice(0, 4),
     cultureNews: published.filter((a) => a.category.slug === "culture").slice(0, 4),
+    commentaryNews: published.filter((a) => a.category.slug === "commentary").slice(0, 4),
+    explainerNews: published.filter((a) => a.category.slug === "explainer").slice(0, 4),
     urgentArticles: published.filter((a) => a.isUrgent || a.isTopStory).slice(0, 8),
     africaNews: published.filter((a) => articleMatchesRegion(a, "africa")).slice(0, 4),
     latinAmericaNews: published.filter((a) => articleMatchesRegion(a, "latin-america")).slice(0, 4),

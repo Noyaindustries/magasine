@@ -5,12 +5,13 @@ import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { estimateReadingTime } from "@/lib/utils";
 import { z } from "zod";
+import { Category } from "@/models/Category";
 import { isValidVideoSourceUrl } from "@/lib/article-content-types";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { IMG } from "@/lib/img";
-import { resolveActiveCategory } from "@/lib/article-category";
-import { isRegionCategorySlug, mergeRegionCategoryIdsForArticleWithInference, resolveRegionCategories, getAllRegionSlugsForArticle } from "@/lib/region-categories";
+import { assignArticleCategories } from "@/lib/article-category-assignment";
+import { getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 
 const galleryItemSchema = z.object({
@@ -65,25 +66,29 @@ export async function POST(request: NextRequest) {
     }
 
     await connectDB();
-    const category = await resolveActiveCategory(parsed.data.categoryId);
-    if (!category) {
-      return NextResponse.json({ error: "Invalid or inactive category" }, { status: 400 });
-    }
-    if (isRegionCategorySlug(category.slug)) {
+
+    const newsCategory = await Category.findOne({ slug: "news", isActive: true }).select("_id").lean();
+    if (!newsCategory) {
       return NextResponse.json(
-        { error: "Choisissez une rubrique thématique ; les régions se sélectionnent ci-dessous." },
+        { error: "Rubrique News introuvable. Créez-la dans Admin → Catégories." },
         { status: 400 }
       );
     }
 
-    const mergedRegionIds = await mergeRegionCategoryIdsForArticleWithInference(
-      category._id,
-      parsed.data.regionCategoryIds ?? [],
-      parsed.data.authorId
-    );
-    const regionCategories = await resolveRegionCategories(mergedRegionIds);
-    if (regionCategories === null) {
-      return NextResponse.json({ error: "Invalid region selection" }, { status: 400 });
+    const assignment = await assignArticleCategories({
+      currentPrimaryId: newsCategory._id,
+      categoryId: parsed.data.categoryId,
+      regionCategoryIds: parsed.data.regionCategoryIds ?? [],
+      authorId: parsed.data.authorId,
+    });
+
+    if ("error" in assignment) {
+      return NextResponse.json({ error: assignment.error }, { status: 400 });
+    }
+
+    const category = await Category.findById(assignment.primaryId).lean();
+    if (!category) {
+      return NextResponse.json({ error: "Rubrique introuvable" }, { status: 400 });
     }
 
     const slug = parsed.data.slug
@@ -113,8 +118,8 @@ export async function POST(request: NextRequest) {
       content: sanitizeArticleHtml(parsed.data.content),
       featuredImage,
       featuredImageCaption: parsed.data.featuredImageCaption,
-      category: category._id,
-      secondaryCategories: regionCategories,
+      category: assignment.primaryId,
+      secondaryCategories: assignment.secondaryCategoryIds,
       authors: [parsed.data.authorId],
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,

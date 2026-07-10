@@ -34,9 +34,9 @@ import { resolveCategorySlug } from "@/lib/category-slugs";
 import { recordDailyPageView } from "@/lib/analytics-daily";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { buildNewsHubSectionCounts } from "@/lib/news-hub";
+import { buildSiteNav } from "@/lib/public-nav";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 import { findPublishedArticlesForCategorySlug } from "@/lib/find-category-articles";
-import { buildSiteNav } from "@/lib/public-nav";
 
 function mapHomeArticles(
   docs: unknown[],
@@ -225,6 +225,8 @@ export const getHomePageData = cache(async function getHomePageData() {
     localNews,
     politicsNews,
     cultureNews,
+    commentaryNews,
+    explainerNews,
     urgentArticles,
     africaNews,
     latinAmericaNews,
@@ -270,6 +272,8 @@ export const getHomePageData = cache(async function getHomePageData() {
     getArticlesByCategorySlug("local", 4),
     getArticlesByCategorySlug("politics", 4),
     getArticlesByCategorySlug("culture", 4),
+    getArticlesByCategorySlug("commentary", 4),
+    getArticlesByCategorySlug("explainer", 4),
     findArticleList({ ...baseQuery, $or: [{ isUrgent: true }, { isTopStory: true }] }, 12),
     getArticlesByCategorySlug("africa", 4),
     getArticlesByCategorySlug("latin-america", 4),
@@ -315,6 +319,8 @@ export const getHomePageData = cache(async function getHomePageData() {
     localNews: filterHomeArticleList(localNews, 4),
     politicsNews: filterHomeArticleList(politicsNews, 4),
     cultureNews: filterHomeArticleList(cultureNews, 4),
+    commentaryNews: filterHomeArticleList(commentaryNews, 4),
+    explainerNews: filterHomeArticleList(explainerNews, 4),
     urgentArticles: mapHomeArticles(urgentArticles, 8),
     africaNews: filterHomeArticleList(africaNews, 4),
     latinAmericaNews: filterHomeArticleList(latinAmericaNews, 4),
@@ -430,17 +436,22 @@ export async function getAllNewsArticles(options?: { categorySlug?: string; limi
 
 export async function getNewsHubPageData(options?: { categorySlug?: string; limit?: number }) {
   const limit = options?.limit ?? 48;
-  const [articles, urgentData, catalog] = await Promise.all([
+  const [articles, urgentData, catalog, layoutNav] = await Promise.all([
     getAllNewsArticles({ categorySlug: options?.categorySlug, limit }),
     getUrgentPageData(8),
     getAllNewsArticles({ limit: 120 }),
+    getLayoutNavData(),
   ]);
 
   return {
     articles,
     urgentArticles: urgentData.articles,
     alerts: urgentData.alerts,
-    sectionCounts: buildNewsHubSectionCounts(catalog, urgentData.articles.length),
+    sectionCounts: buildNewsHubSectionCounts(
+      catalog,
+      urgentData.articles.length,
+      layoutNav.siteNav.newsMenu
+    ),
   };
 }
 
