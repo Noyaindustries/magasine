@@ -1,23 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { loginAsAdmin } from "./helpers/admin-auth";
+import { fetchMetaIds } from "./helpers/admin-meta";
 import { e2ePngUpload, MINIMAL_PNG } from "./helpers/test-fixtures";
 
 test.describe.configure({ mode: "serial", timeout: 180_000 });
-
-async function fetchMetaIds(page: import("@playwright/test").Page) {
-  const res = await page.request.get("/api/admin/meta");
-  expect(res.ok()).toBeTruthy();
-  const json = (await res.json()) as {
-    categories: { _id: string }[];
-    authors: { _id: string }[];
-  };
-  expect(json.categories.length).toBeGreaterThan(0);
-  expect(json.authors.length).toBeGreaterThan(0);
-  return {
-    categoryId: json.categories[0]!._id,
-    authorId: json.authors[0]!._id,
-  };
-}
 
 test.describe("Admin — médiathèque (API)", () => {
   test.beforeEach(async ({ page }) => {

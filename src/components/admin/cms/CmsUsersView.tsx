@@ -7,7 +7,7 @@ import { CmsPage } from "@/components/admin/cms/CmsPage";
 import { CmsActionIcons, Check, Star } from "@/components/admin/cms/CmsIcons";
 import { CmsUserFormModal, type CmsUserFormValues } from "@/components/admin/cms/CmsUserFormModal";
 import { CmsUsersTable } from "@/components/admin/cms/CmsUsersTable";
-import { getRolePermissionsMatrix, type RoleMatrixRow } from "@/lib/role-permissions-matrix";
+import type { RoleMatrixRow } from "@/lib/role-permissions-matrix";
 import type { AdminUserCounts, AdminUserRow, UserListFilter } from "@/lib/admin-users";
 import { toast } from "@/lib/toast";
 import { toastNetworkError } from "@/lib/api-toast";

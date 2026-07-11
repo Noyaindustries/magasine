@@ -35,6 +35,7 @@ export function CmsRichTextEditor({
   placeholder = "Continue writing your article here…",
 }: CmsRichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageInputId = "cms-rt-image-input";
 
   const editor = useEditor({
     extensions: [
@@ -140,7 +141,7 @@ export function CmsRichTextEditor({
         )}
         {toolBtn(
           <ImageIcon size={14} className="cms-icon" aria-hidden />,
-          () => imageInputRef.current?.click(),
+          () => document.getElementById(imageInputId)?.click(),
           editor.isActive("image")
         )}
         {toolBtn(
@@ -182,6 +183,7 @@ export function CmsRichTextEditor({
         <EditorContent editor={editor} />
       </div>
       <input
+        id={imageInputId}
         ref={imageInputRef}
         type="file"
         accept="image/png,image/jpeg,image/webp,image/gif"
