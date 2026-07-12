@@ -173,7 +173,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     const name = file.name.toLowerCase();
     if (name.endsWith(".zip")) {
       toast.error(
-        "ZIP file detected. Unzip the Mailchimp export and import the « subscribed_members » CSV."
+        'ZIP file detected. Unzip the Mailchimp export and import the "subscribed_members" CSV.'
       );
       return;
     }

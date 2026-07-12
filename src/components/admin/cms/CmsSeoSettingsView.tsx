@@ -305,7 +305,7 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
                 />
                 <p className="cms-field-hint">
                   Title below the logo in emails. Leave empty to use the site name. The logo is the one
-                  set in « Logo &amp; favicon ».
+                  set in "Logo &amp; favicon".
                 </p>
               </div>
               <div className="field">

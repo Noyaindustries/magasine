@@ -202,8 +202,8 @@ export function CmsArticlesView({
         <p className="demo-content-empty">
           No test articles in the database yet.
           {virtualDemoCount > 0
-            ? ` Click « Load test articles (${virtualDemoCount}) » above.`
-            : " Use « Load test articles » or « Identify seed articles »."}
+            ? ` Click "Load test articles (${virtualDemoCount})" above.`
+            : ' Use "Load test articles" or "Identify seed articles".'}
         </p>
       )}
 

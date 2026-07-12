@@ -2,18 +2,9 @@ import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { Category } from "@/models/Category";
 import { LEGACY_CATEGORY_SLUG_MAP } from "@/lib/category-slugs";
+import { syncSeedCategories } from "@/lib/seed-import";
 
 let migrationDone = false;
-
-const CANONICAL_CATEGORY_NAMES: Record<string, string> = {
-  feature: "Feature",
-  commentary: "Commentary",
-  news: "News",
-  health: "Health",
-  politics: "Politics",
-  culture: "Culture",
-  "special-reports": "Special Reports",
-};
 
 /** Renames legacy category slugs in MongoDB and merges duplicates (idempotent). */
 export async function migrateCategorySlugs(): Promise<number> {
@@ -39,20 +30,11 @@ export async function migrateCategorySlugs(): Promise<number> {
     }
 
     legacy.slug = newSlug;
-    const canonicalName = CANONICAL_CATEGORY_NAMES[newSlug];
-    if (canonicalName) {
-      legacy.name = canonicalName;
-    }
     await legacy.save();
     updated += 1;
   }
 
-  const feature = await Category.findOne({ slug: "feature" });
-  if (feature && feature.name !== "Feature") {
-    feature.name = "Feature";
-    await feature.save();
-    updated += 1;
-  }
+  updated += await syncSeedCategories();
 
   return updated;
 }

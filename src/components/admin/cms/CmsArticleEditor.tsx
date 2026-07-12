@@ -933,13 +933,13 @@ export function CmsArticleEditor({
                 </select>
                 {selectedCategoryIsRegion && selectedCategory && (
                   <p className="cms-field-hint" style={{ color: "var(--cms-amber, #b45309)" }}>
-                    « {selectedCategory.name} » is a region: check it below and choose a topic section
+                    "{selectedCategory.name}" is a region: check it below and choose a topic section
                     here, then save.
                   </p>
                 )}
                 {topicOptions.length === 0 && (
                   <p className="cms-field-hint" style={{ color: "var(--cms-red)" }}>
-                    No sections available. Use « + New category » or check the Categories admin.
+                    No sections available. Use "+ New category" or check the Categories admin.
                   </p>
                 )}
                 <button
@@ -1179,7 +1179,7 @@ export function CmsArticleEditor({
             <div className="card-body">
               <p className="cms-field-hint cms-gallery-intro">
                 Supplementary images shown on the article page (gallery at the end, or at the top for
-                a photo feature). Use « Insert into body » to place an image in the text at the
+                a photo feature). Use "Insert into body" to place an image in the text at the
                 cursor position.
               </p>
               <CmsArticleGalleryEditor

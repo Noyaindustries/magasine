@@ -70,7 +70,7 @@ export const SEED_ARTICLES: SeedArticle[] = [
     content: `<p>The WAEMU member states have just adopted an unprecedented package of tax reforms since the creation of the monetary union. This overhaul affects VAT, corporate tax, and sectoral exemptions.</p>
     <h2>Differentiated impacts</h2>
     <p>Agri-food SMEs benefit from targeted relief, while extractive sectors see their tax advantages gradually reduced over five years.</p>
-    <blockquote>« This reform aims to make the system fairer while preserving regional competitiveness. »</blockquote>
+    <blockquote>"This reform aims to make the system fairer while preserving regional competitiveness."</blockquote>
     <p>Our simulations show a net gain for urban middle-income households, but possible tensions in border areas.</p>`,
     tags: ["WAEMU", "economy", "taxation", "West Africa"],
     isFeatured: true,

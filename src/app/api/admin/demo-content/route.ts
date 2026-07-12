@@ -4,20 +4,21 @@ import { requireAdminApi } from "@/lib/admin-api";
 import {
   deleteAllDemoArticles,
   importDemoContent,
+  syncSeedEditorialContent,
   tagExistingDemoArticles,
 } from "@/lib/seed-import";
 import { revalidateContentListings, revalidateSiteLayout } from "@/lib/revalidate-public";
 import { invalidatePublishedArticleCountCache } from "@/lib/data";
 
 const bodySchema = z.object({
-  action: z.enum(["import", "delete_all", "tag_existing"]).optional().default("import"),
+  action: z.enum(["import", "delete_all", "tag_existing", "sync"]).optional().default("import"),
 });
 
 export async function POST(request: NextRequest) {
   const guard = await requireAdminApi("editorial");
   if (guard.error) return guard.error;
 
-  let action: "import" | "delete_all" | "tag_existing" = "import";
+  let action: "import" | "delete_all" | "tag_existing" | "sync" = "import";
   try {
     const json = await request.json().catch(() => ({}));
     const parsed = bodySchema.safeParse(json);
@@ -38,6 +39,14 @@ export async function POST(request: NextRequest) {
     if (action === "tag_existing") {
       const tagged = await tagExistingDemoArticles();
       return NextResponse.json({ success: true, tagged });
+    }
+
+    if (action === "sync") {
+      const result = await syncSeedEditorialContent();
+      await tagExistingDemoArticles();
+      revalidateContentListings();
+      revalidateSiteLayout();
+      return NextResponse.json({ success: true, ...result });
     }
 
     const result = await importDemoContent();

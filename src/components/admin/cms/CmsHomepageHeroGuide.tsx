@@ -53,7 +53,7 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
               {heroOk ? (
                 <>✓ {featuredCount} featured article(s)</>
               ) : (
-                <>⚠ No published « Homepage feature » article</>
+                <>⚠ No published "Homepage feature" article</>
               )}
             </p>
             <Link href="/admin/articles/new" className="articles-hero-guide-link">

@@ -425,7 +425,7 @@ export function CmsRichTextEditor({
           </>
         ) : (
           <span className="cms-image-layout-hint">
-            Click « Gallery » to insert 2 or more images, or select an existing gallery.
+            Click "Gallery" to insert 2 or more images, or select an existing gallery.
           </span>
         )}
       </div>

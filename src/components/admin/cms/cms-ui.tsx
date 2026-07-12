@@ -3,15 +3,27 @@ import { formatRelativeEn, formatScheduledLabel } from "@/lib/relative-time";
 export { formatRelativeEn };
 
 const CATEGORY_COLORS: Record<string, string> = {
+  economy: "var(--amber)",
+  economics: "var(--amber)",
   économie: "var(--amber)",
   economie: "var(--amber)",
+  politics: "var(--cms-red)",
   politique: "var(--cms-red)",
   sports: "var(--amber)",
   local: "var(--green)",
   investigations: "var(--purple)",
   finance: "var(--green)",
+  health: "var(--t3)",
   santé: "var(--t3)",
   sante: "var(--t3)",
+  news: "var(--cms-red)",
+  culture: "var(--purple)",
+  commentary: "var(--t2)",
+  opinion: "var(--t2)",
+  feature: "var(--amber)",
+  explainer: "var(--t3)",
+  multimedia: "var(--cms-red)",
+  "special reports": "var(--amber)",
 };
 
 export function categoryAccent(name: string) {

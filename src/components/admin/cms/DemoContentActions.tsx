@@ -57,11 +57,14 @@ export function DemoContentActions({
 
       if (action === "import") {
         const created = (data as { articlesCreated?: number }).articlesCreated ?? 0;
+        const updated = (data as { articlesUpdated?: number }).articlesUpdated ?? 0;
         const skipped = (data as { articlesSkipped?: number }).articlesSkipped ?? 0;
         toast.success(
           created > 0
-            ? `${created} test article(s) loaded${skipped ? `, ${skipped} already in database` : ""}.`
-            : "Test articles already in database — open the Demo tab to delete them."
+            ? `${created} test article(s) loaded${updated ? `, ${updated} updated` : ""}${skipped ? `, ${skipped} already in database` : ""}.`
+            : updated > 0
+              ? `${updated} test article(s) refreshed from the English demo pack.`
+              : "Test articles already in database — open the Demo tab to delete them."
         );
         if (options?.redirectToDemo ?? true) {
           router.push("/admin/articles?demo=1");
@@ -108,8 +111,8 @@ export function DemoContentActions({
             {virtualDemoCount > 0 ? (
               <>
                 <strong>{virtualDemoCount}</strong> test article(s) are visible on the public site
-                but <strong>not yet in the admin</strong> (placeholder content). Click « Load test
-                articles » to show them here and delete them one by one or in bulk.
+                but <strong>not yet in the admin</strong> (placeholder content). Click "Load test
+                articles" to show them here and delete them one by one or in bulk.
               </>
             ) : (
               <>
@@ -170,7 +173,7 @@ export function DemoContentActions({
             onClick={() =>
               void callDemoApi("tag_existing", {
                 confirmMessage:
-                  "Mark legacy seed articles as « test » so you can find them in the Demo tab?",
+                  "Mark legacy seed articles as \"test\" so you can find them in the Demo tab?",
               })
             }
             disabled={loading !== null}

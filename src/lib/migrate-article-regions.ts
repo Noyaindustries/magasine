@@ -28,19 +28,19 @@ async function upsertSeedCategory(definition: (typeof SEED_CATEGORIES)[number]):
     existing.isActive = true;
     changed = true;
   }
-  if (!existing.name) {
+  if (existing.name !== definition.name) {
     existing.name = definition.name;
     changed = true;
   }
-  if (!existing.color) {
+  if (existing.color !== definition.color) {
     existing.color = definition.color;
     changed = true;
   }
-  if (!existing.description) {
+  if (existing.description !== definition.description) {
     existing.description = definition.description;
     changed = true;
   }
-  if (existing.order == null) {
+  if (existing.order !== definition.order) {
     existing.order = definition.order;
     changed = true;
   }

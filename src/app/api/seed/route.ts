@@ -19,6 +19,7 @@ import { getAuthorAvatarUrl, resolveFeaturedImage } from "@/lib/images";
 import { ensureDefaultAdmin, DEFAULT_ADMIN_EMAIL } from "@/lib/ensure-admin";
 import { resolveArticleContent } from "@/lib/article-content";
 import { migrateCategorySlugs } from "@/lib/migrate-category-slugs";
+import { syncSeedEditorialContent } from "@/lib/seed-import";
 import { isBootstrapAuthorized, isProduction } from "@/lib/bootstrap-secret";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { sanitizeArticleHtml } from "@/lib/sanitize-html";
@@ -75,12 +76,15 @@ export async function GET(request: NextRequest) {
           })
         : null;
       const categoriesMigrated = await migrateCategorySlugs();
+      const syncEditorial = request.nextUrl.searchParams.get("syncEditorial") === "true";
+      const editorialSync = syncEditorial ? await syncSeedEditorialContent() : undefined;
       return NextResponse.json({
         message: repairAdmin
           ? "Admin account verified or repaired."
           : "Database already initialized. Use ?force=true as super_admin, or /api/bootstrap/admin with Bearer auth.",
         seeded: false,
         categoriesMigrated,
+        editorialSync,
         admin: admin
           ? {
               email: admin.email,
