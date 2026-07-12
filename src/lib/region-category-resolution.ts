@@ -87,7 +87,7 @@ export async function normalizeArticleCategoryAssignment(args: {
   if (args.categoryId) {
     const category = await resolveActiveCategory(args.categoryId);
     if (!category) {
-      return { error: "Rubrique invalide ou inactive" };
+      return { error: "Invalid or inactive category" };
     }
 
     const regionObjectId = await resolveCanonicalRegionCategoryId(category);
@@ -97,7 +97,7 @@ export async function normalizeArticleCategoryAssignment(args: {
       if (!topicId) {
         return {
           error:
-            "Rubrique thématique introuvable. Créez « News » dans Admin → Catégories, puis réessayez.",
+            "Topic category not found. Create \"News\" in Admin → Categories, then try again.",
         };
       }
       primaryId = topicId;

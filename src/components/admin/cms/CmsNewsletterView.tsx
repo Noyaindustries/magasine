@@ -173,12 +173,12 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     const name = file.name.toLowerCase();
     if (name.endsWith(".zip")) {
       toast.error(
-        "Fichier ZIP détecté. Décompressez l'export Mailchimp et importez le CSV « subscribed_members »."
+        "ZIP file detected. Unzip the Mailchimp export and import the « subscribed_members » CSV."
       );
       return;
     }
     if (!name.endsWith(".csv") && file.type && file.type !== "text/csv" && file.type !== "application/vnd.ms-excel") {
-      toast.error("Choisissez un fichier .csv exporté depuis Mailchimp.");
+      toast.error("Choose a .csv file exported from Mailchimp.");
       return;
     }
 
@@ -471,7 +471,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                   onChange={(e) => setSubject(e.target.value)}
                 />
                 <p className="cms-field-hint">
-                  Objet par défaut configurable dans{" "}
+                  Default subject configurable in{" "}
                   <Link href="/admin/seo">SEO settings → Newsletter &amp; contact</Link>.
                 </p>
               </div>

@@ -20,83 +20,83 @@ export const CMS_MEDIA_GRADIENTS = [
 ] as const;
 
 export const CMS_STORAGE_BREAKDOWN = [
-  { label: "Images (JPG / WebP)", value: "2.8 Go", pct: 56, color: "var(--blue)" },
-  { label: "Vidéos (MP4)", value: "1.1 Go", pct: 22, color: "var(--purple)" },
-  { label: "Podcasts (MP3)", value: "0.2 Go", pct: 4, color: "var(--amber)" },
-  { label: "Documents (PDF)", value: "0.1 Go", pct: 2, color: "var(--green)" },
+  { label: "Images (JPG / WebP)", value: "2.8 GB", pct: 56, color: "var(--blue)" },
+  { label: "Videos (MP4)", value: "1.1 GB", pct: 22, color: "var(--purple)" },
+  { label: "Podcasts (MP3)", value: "0.2 GB", pct: 4, color: "var(--amber)" },
+  { label: "Documents (PDF)", value: "0.1 GB", pct: 2, color: "var(--green)" },
 ] as const;
 
 export const CMS_AD_ZONES = [
   {
     id: "header",
-    name: "Bannière Top — Header",
-    position: "Au-dessus de la navigation principale",
+    name: "Top Banner — Header",
+    position: "Above the main navigation",
     size: "728 × 90 px — Leaderboard",
     active: true,
     impressions: "840k",
-    ctr: "4,2%",
+    ctr: "4.2%",
     revenue: "480k FCFA",
   },
   {
     id: "sidebar",
-    name: "Rectangle Sidebar",
-    position: "Colonne droite — page article",
+    name: "Sidebar Rectangle",
+    position: "Right column — article page",
     size: "300 × 250 px — Rectangle",
     active: true,
     impressions: "620k",
-    ctr: "3,6%",
+    ctr: "3.6%",
     revenue: "310k FCFA",
   },
   {
     id: "mid",
-    name: "Bannière Mid-Article",
-    position: "Au milieu du corps de l'article",
+    name: "Mid-Article Banner",
+    position: "Midway through the article body",
     size: "728 × 90 px — Mid-Content",
     active: true,
     impressions: "510k",
-    ctr: "3,1%",
+    ctr: "3.1%",
     revenue: "280k FCFA",
   },
   {
     id: "skyscraper",
-    name: "Skyscraper Latéral",
-    position: "Sidebar gauche — page catégorie",
+    name: "Side Skyscraper",
+    position: "Left sidebar — category page",
     size: "160 × 600 px — Skyscraper",
     active: false,
     impressions: "—",
     ctr: "—",
-    revenue: "En pause",
+    revenue: "Paused",
   },
 ] as const;
 
 export const CMS_NEWSLETTER_CAMPAIGNS = [
   {
-    title: "Newsletter du Matin — 22 juin 2026",
-    sub: "Sélection hebdo économie + sports",
+    title: "Morning Newsletter — June 22, 2026",
+    sub: "Weekly economy + sports roundup",
     sent: "14 523",
-    opens: "5 802 (39,9%)",
-    clicks: "1 848 (12,7%)",
+    opens: "5 802 (39.9%)",
+    clicks: "1 848 (12.7%)",
     status: "pub" as const,
   },
   {
-    title: "Spéciale CAN 2027 — 20 juin",
-    sub: "Couverture complète des qualifications",
+    title: "AFCON 2027 Special — June 20",
+    sub: "Full coverage of the qualifiers",
     sent: "13 980",
-    opens: "6 430 (46,0%)",
-    clicks: "2 190 (15,7%)",
+    opens: "6 430 (46.0%)",
+    clicks: "2 190 (15.7%)",
     status: "pub" as const,
   },
   {
-    title: "Newsletter Économie — 15 juin",
-    sub: "Marchés et politiques publiques de la semaine",
+    title: "Economy Newsletter — June 15",
+    sub: "Markets and public policy this week",
     sent: "13 750",
-    opens: "4 950 (36,0%)",
-    clicks: "1 540 (11,2%)",
+    opens: "4 950 (36.0%)",
+    clicks: "1 540 (11.2%)",
     status: "pub" as const,
   },
   {
-    title: "Newsletter du Matin — 29 juin 2026",
-    sub: "En cours de rédaction",
+    title: "Morning Newsletter — June 29, 2026",
+    sub: "Draft in progress",
     sent: "—",
     opens: "—",
     clicks: "—",
@@ -105,9 +105,9 @@ export const CMS_NEWSLETTER_CAMPAIGNS = [
 ] as const;
 
 export const CMS_NEWSLETTER_LISTS = [
-  { name: "Actualités générales", count: 8214, pct: 57, color: "var(--cms-red)" },
-  { name: "Sport", count: 4890, pct: 34, color: "var(--blue)" },
-  { name: "Finance & Économie", count: 3740, pct: 26, color: "var(--green)" },
+  { name: "General news", count: 8214, pct: 57, color: "var(--cms-red)" },
+  { name: "Sports", count: 4890, pct: 34, color: "var(--blue)" },
+  { name: "Finance & Economy", count: 3740, pct: 26, color: "var(--green)" },
 ] as const;
 
 export const CMS_ROLE_MATRIX = [
@@ -122,7 +122,7 @@ export const CMS_ROLE_MATRIX = [
     settings: true,
   },
   {
-    role: "Éditeur",
+    role: "Editor",
     color: "var(--purple)",
     write: true,
     publish: true,
@@ -132,7 +132,7 @@ export const CMS_ROLE_MATRIX = [
     settings: false,
   },
   {
-    role: "Auteur",
+    role: "Author",
     color: "var(--green)",
     write: true,
     publish: "own",
@@ -142,7 +142,7 @@ export const CMS_ROLE_MATRIX = [
     settings: false,
   },
   {
-    role: "Contributeur",
+    role: "Contributor",
     color: "var(--amber)",
     write: true,
     publish: false,
@@ -152,7 +152,7 @@ export const CMS_ROLE_MATRIX = [
     settings: false,
   },
   {
-    role: "Modérateur",
+    role: "Moderator",
     color: "var(--t3)",
     write: false,
     publish: false,

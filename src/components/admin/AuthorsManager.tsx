@@ -61,8 +61,8 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
       const linked = data.linked ?? 0;
       toast.success(
         created || linked
-          ? `${created} profil(s) créé(s), ${linked} lien(s) ajouté(s)`
-          : "Tous les comptes éditoriaux ont déjà un profil auteur"
+          ? `${created} profile(s) created, ${linked} link(s) added`
+          : "All editorial accounts already have an author profile"
       );
       reload();
     } finally {
@@ -115,24 +115,24 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
   const remove = async (author: AuthorRow) => {
     const articleHint =
       author.articleCount > 0
-        ? `\n\n${author.articleCount} article(s) lié(s). La suppression échouera si un article n'a que cet auteur.`
+        ? `\n\n${author.articleCount} linked article(s). Deletion will fail if an article has only this author.`
         : "";
 
-    if (!globalThis.confirm(`Supprimer ${author.name} ? Cette action est irréversible.${articleHint}`)) {
+    if (!globalThis.confirm(`Delete ${author.name}? This action cannot be undone.${articleHint}`)) {
       return;
     }
 
     const res = await fetch(`/api/admin/authors/${author._id}`, { method: "DELETE" });
     if (!res.ok) {
       const data = await res.json();
-      toast.error(data.error ?? "Échec de la suppression");
+      toast.error(data.error ?? "Delete failed");
       return;
     }
     const data = await res.json();
     if (data.detachedFromArticles > 0) {
-      toast.success(`Auteur supprimé (${data.detachedFromArticles} article(s) mis à jour)`);
+      toast.success(`Author deleted (${data.detachedFromArticles} article(s) updated)`);
     } else {
-      toast.success("Auteur supprimé");
+      toast.success("Author deleted");
     }
     reload();
   };
@@ -161,10 +161,10 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
             className="adm-btn adm-btn--ghost"
             onClick={syncAccounts}
             disabled={syncing}
-            title="Générer les profils auteur manquants pour les comptes éditoriaux"
+            title="Create missing author profiles for editorial accounts"
           >
             <RefreshCw className="w-4 h-4" aria-hidden />
-            {syncing ? "Synchronisation…" : "Synchroniser les comptes"}
+            {syncing ? "Syncing…" : "Sync accounts"}
           </button>
           <button type="button" className="adm-btn adm-btn--primary" onClick={openCreate}>
             <Plus className="w-4 h-4" aria-hidden />
@@ -212,7 +212,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   onClick={() => openEdit(author)}
                 >
                   <Pencil className="adm-btn-icon" aria-hidden />
-                  Modifier
+                  Edit
                 </button>
                 <button
                   type="button"
@@ -220,7 +220,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   onClick={() => remove(author)}
                 >
                   <Trash2 className="adm-btn-icon" aria-hidden />
-                  Supprimer
+                  Delete
                 </button>
                 <Link
                   href={`/author/${author.slug}`}
@@ -228,7 +228,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   target="_blank"
                 >
                   <ExternalLink className="adm-btn-icon" aria-hidden />
-                  Voir la page
+                  View page
                 </Link>
               </div>
             </div>
@@ -277,14 +277,14 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   disabled={loading}
                   onClick={() => void remove(editing)}
                 >
-                  Supprimer
+                  Delete
                 </button>
               ) : (
                 <span />
               )}
               <div className="adm-modal-footer-actions">
                 <button type="button" className="adm-btn adm-btn--ghost" onClick={() => setModalOpen(false)}>
-                  Annuler
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -292,7 +292,7 @@ export function AuthorsManager({ initial }: { initial: AuthorRow[] }) {
                   disabled={loading || !form.name}
                   onClick={save}
                 >
-                  {loading ? "Enregistrement…" : "Enregistrer"}
+                  {loading ? "Saving…" : "Save"}
                 </button>
               </div>
             </div>

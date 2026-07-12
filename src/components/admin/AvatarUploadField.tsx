@@ -18,7 +18,7 @@ export function AvatarUploadField({
   value,
   onChange,
   disabled,
-  hint = "JPG, PNG ou WebP — carré de préférence.",
+  hint = "JPG, PNG or WebP — square preferred.",
 }: AvatarUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -28,9 +28,9 @@ export function AvatarUploadField({
     try {
       const { url } = await uploadAdminMedia(file);
       onChange(url);
-      toast.success("Photo uploadée");
+      toast.success("Photo uploaded");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Échec de l'upload");
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -57,7 +57,7 @@ export function AvatarUploadField({
             disabled={disabled || uploading}
           >
             <Upload className="w-3.5 h-3.5" aria-hidden />
-            {uploading ? "Upload…" : value ? "Changer" : "Uploader une photo"}
+            {uploading ? "Uploading…" : value ? "Change" : "Upload photo"}
           </button>
           {value && (
             <button
@@ -67,7 +67,7 @@ export function AvatarUploadField({
               disabled={disabled || uploading}
             >
               <X className="w-3.5 h-3.5" aria-hidden />
-              Retirer
+              Remove
             </button>
           )}
         </div>
@@ -76,7 +76,7 @@ export function AvatarUploadField({
           type="file"
           accept="image/*"
           className="avatar-upload-input"
-          aria-label="Uploader une photo"
+          aria-label="Upload photo"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) void handleFile(file);
@@ -87,7 +87,7 @@ export function AvatarUploadField({
         className="avatar-upload-url"
         type="text"
         value={value}
-        placeholder="…ou coller une URL d'image"
+        placeholder="…or paste an image URL"
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled || uploading}
         aria-label={`${label} URL`}

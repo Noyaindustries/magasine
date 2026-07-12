@@ -67,9 +67,9 @@ const STATUSES: ArticleStatus[] = [
 
 const CONTENT_TYPE_LABELS: Record<string, string> = {
   article: "Articles",
-  video: "Vidéos",
+  video: "Videos",
   podcast: "Podcasts",
-  gallery: "Galeries",
+  gallery: "Galleries",
 };
 
 function getRealArticleFilter(): Record<string, unknown> {
@@ -170,7 +170,7 @@ export async function getArticleAdminStats(): Promise<ArticleAdminStats> {
       {
         $group: {
           _id: "$cat._id",
-          name: { $first: { $ifNull: ["$cat.name", "Sans catégorie"] } },
+          name: { $first: { $ifNull: ["$cat.name", "Uncategorized"] } },
           slug: { $first: { $ifNull: ["$cat.slug", "uncategorized"] } },
           total: { $sum: 1 },
           published: {
@@ -229,9 +229,9 @@ export async function getArticleAdminStats(): Promise<ArticleAdminStats> {
       views: row.views,
     })),
     editorialFlags: [
-      { key: "featured", label: "À la une", count: featuredCount },
+      { key: "featured", label: "Featured", count: featuredCount },
       { key: "topStory", label: "Top story", count: topStoryCount },
-      { key: "editorsChoice", label: "Choix rédaction", count: editorsChoiceCount },
+      { key: "editorsChoice", label: "Editor's choice", count: editorsChoiceCount },
       { key: "urgent", label: "Urgent", count: urgentCount },
       { key: "premium", label: "Premium", count: premiumCount },
     ],

@@ -13,10 +13,10 @@ export const AD_SLOTS = [
 export type AdSlotId = (typeof AD_SLOTS)[number];
 
 export const AD_SLOT_LABELS: Record<AdSlotId, string> = {
-  "home-below": "Accueil — bannière sous les sections",
-  "home-sidebar": "Accueil — encart latéral (rectangle)",
-  "article-right": "Article — grande image à droite",
-  "article-below": "Article — bannière sous le contenu",
+  "home-below": "Home — banner below sections",
+  "home-sidebar": "Home — side rectangle",
+  "article-right": "Article — large image on the right",
+  "article-below": "Article — banner below content",
 };
 
 /** Dimensions de référence par emplacement (ratio conservé, largeur fluide). */

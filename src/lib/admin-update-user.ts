@@ -106,21 +106,21 @@ export async function deleteUserAsAdmin(input: {
   actorRole: UserRole;
 }): Promise<{ success?: boolean; error?: string; status?: number }> {
   if (input.userId === input.actorId) {
-    return { error: "Vous ne pouvez pas supprimer votre propre compte.", status: 400 };
+    return { error: "You cannot delete your own account.", status: 400 };
   }
 
   const user = await User.findById(input.userId);
   if (!user) {
-    return { error: "Utilisateur introuvable.", status: 404 };
+    return { error: "User not found.", status: 404 };
   }
 
   if (user.role === "super_admin") {
-    return { error: "Impossible de supprimer un super administrateur.", status: 403 };
+    return { error: "Cannot delete a super admin account.", status: 403 };
   }
 
   if (user.role === "admin" && input.actorRole !== "super_admin") {
     return {
-      error: "Seul un super administrateur peut supprimer un compte administrateur.",
+      error: "Only a super admin can delete an admin account.",
       status: 403,
     };
   }

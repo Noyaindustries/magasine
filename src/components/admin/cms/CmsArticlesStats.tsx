@@ -6,7 +6,7 @@ interface CmsArticlesStatsProps {
 }
 
 function formatNumber(value: number): string {
-  return value.toLocaleString("fr-FR");
+  return value.toLocaleString("en-US");
 }
 
 function StatCard({
@@ -43,80 +43,80 @@ export function CmsArticlesStats({ stats }: CmsArticlesStatsProps) {
   const { overview, byContentType, byCategory, editorialFlags } = stats;
 
   return (
-    <section className="articles-stats" aria-label="Statistiques des articles">
+    <section className="articles-stats" aria-label="Article statistics">
       <div className="admin-stats-grid articles-stats-grid">
-        <StatCard value={formatNumber(overview.total)} label="Total en base" />
+        <StatCard value={formatNumber(overview.total)} label="Total in database" />
         <StatCard
           value={formatNumber(overview.real)}
-          label="Vos articles (hors test)"
-          hint={`${formatNumber(overview.publishedReal)} publié(s) sur le site`}
+          label="Your articles (excluding test)"
+          hint={`${formatNumber(overview.publishedReal)} published on site`}
         />
         <StatCard
           value={formatNumber(overview.demo)}
-          label="Articles de test"
+          label="Test articles"
           hint={
             overview.virtualOnSite > 0
-              ? `+ ${formatNumber(overview.virtualOnSite)} virtuels sur le site`
-              : `${formatNumber(overview.publishedDemo)} publié(s) en test`
+              ? `+ ${formatNumber(overview.virtualOnSite)} virtual on site`
+              : `${formatNumber(overview.publishedDemo)} published as test`
           }
           href="/admin/articles?demo=1"
         />
         <StatCard
           value={formatNumber(overview.publishedTotal)}
-          label="Publiés"
-          hint={`${formatNumber(overview.publishedThisWeek)} cette semaine · ${formatNumber(overview.publishedThisMonth)} ce mois`}
+          label="Published"
+          hint={`${formatNumber(overview.publishedThisWeek)} this week · ${formatNumber(overview.publishedThisMonth)} this month`}
           href="/admin/articles?status=published"
         />
         <StatCard
           value={formatNumber(
             stats.byStatus.draft + stats.byStatus.review + stats.byStatus.scheduled
           )}
-          label="En attente"
-          hint={`${formatNumber(stats.byStatus.draft)} brouillons · ${formatNumber(stats.byStatus.review)} en relecture · ${formatNumber(stats.byStatus.scheduled)} planifiés`}
+          label="Pending"
+          hint={`${formatNumber(stats.byStatus.draft)} drafts · ${formatNumber(stats.byStatus.review)} in review · ${formatNumber(stats.byStatus.scheduled)} scheduled`}
         />
         <StatCard
           value={formatNumber(overview.totalViews)}
-          label="Vues cumulées"
-          hint={`${formatNumber(overview.realViews)} sur vos articles · ~${overview.avgReadingTime} min lecture`}
+          label="Total views"
+          hint={`${formatNumber(overview.realViews)} on your articles · ~${overview.avgReadingTime} min read`}
         />
       </div>
 
       <div className="articles-stats-panels">
         <div className="articles-stats-panel">
-          <h3 className="articles-stats-panel-title">Par statut</h3>
+          <h3 className="articles-stats-panel-title">By status</h3>
           <ul className="articles-stats-list">
             <li>
-              <Link href="/admin/articles?status=published">Publiés</Link>
+              <Link href="/admin/articles?status=published">Published</Link>
               <span>{formatNumber(stats.byStatus.published)}</span>
             </li>
             <li>
-              <Link href="/admin/articles?status=draft">Brouillons</Link>
+              <Link href="/admin/articles?status=draft">Drafts</Link>
               <span>{formatNumber(stats.byStatus.draft)}</span>
             </li>
             <li>
-              <Link href="/admin/articles?status=review">En relecture</Link>
+              <Link href="/admin/articles?status=review">In review</Link>
               <span>{formatNumber(stats.byStatus.review)}</span>
             </li>
             <li>
-              <Link href="/admin/articles?status=scheduled">Planifiés</Link>
+              <Link href="/admin/articles?status=scheduled">Scheduled</Link>
               <span>{formatNumber(stats.byStatus.scheduled)}</span>
             </li>
             <li>
-              <Link href="/admin/articles?status=archived">Archivés</Link>
+              <Link href="/admin/articles?status=archived">Archived</Link>
               <span>{formatNumber(stats.byStatus.archived)}</span>
             </li>
           </ul>
         </div>
 
         <div className="articles-stats-panel">
-          <h3 className="articles-stats-panel-title">Par format</h3>
+          <h3 className="articles-stats-panel-title">By format</h3>
           <ul className="articles-stats-list">
             {byContentType.map((row) => (
               <li key={row.type}>
                 <span>{row.label}</span>
                 <span>
                   {formatNumber(row.total)}
-                  <em>{formatNumber(row.published)} publiés</em>
+                  <em>{formatNumber(row.published)} published</em>
                 </span>
               </li>
             ))}
@@ -124,7 +124,7 @@ export function CmsArticlesStats({ stats }: CmsArticlesStatsProps) {
         </div>
 
         <div className="articles-stats-panel">
-          <h3 className="articles-stats-panel-title">Mise en avant (publiés)</h3>
+          <h3 className="articles-stats-panel-title">Homepage features (published)</h3>
           <ul className="articles-stats-list">
             {editorialFlags.map((row) => (
               <li key={row.key}>
@@ -136,18 +136,18 @@ export function CmsArticlesStats({ stats }: CmsArticlesStatsProps) {
         </div>
 
         <div className="articles-stats-panel articles-stats-panel--wide">
-          <h3 className="articles-stats-panel-title">Par rubrique</h3>
+          <h3 className="articles-stats-panel-title">By section</h3>
           {byCategory.length === 0 ? (
-            <p className="articles-stats-empty">Aucun article en base.</p>
+            <p className="articles-stats-empty">No articles in database.</p>
           ) : (
             <div className="articles-stats-table-wrap">
               <table className="articles-stats-table">
                 <thead>
                   <tr>
-                    <th>Rubrique</th>
+                    <th>Section</th>
                     <th>Total</th>
-                    <th>Publiés</th>
-                    <th>Vues</th>
+                    <th>Published</th>
+                    <th>Views</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,12 +171,12 @@ export function CmsArticlesStats({ stats }: CmsArticlesStatsProps) {
                         </Link>
                         {unpublished && (
                           <span className="articles-stats-row-hint">
-                            Aucun publié — invisible sur le site
+                            None published — invisible on site
                           </span>
                         )}
                         {partial && (
                           <span className="articles-stats-row-hint">
-                            {row.total - row.published} non publié(s)
+                            {row.total - row.published} unpublished
                           </span>
                         )}
                       </td>

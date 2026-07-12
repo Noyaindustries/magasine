@@ -304,8 +304,8 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
                   placeholder={form.siteName || "Site name"}
                 />
                 <p className="cms-field-hint">
-                  Titre sous le logo dans les e-mails. Laissez vide pour utiliser le nom du site. Le
-                  logo est celui défini dans « Logo &amp; favicon ».
+                  Title below the logo in emails. Leave empty to use the site name. The logo is the one
+                  set in « Logo &amp; favicon ».
                 </p>
               </div>
               <div className="field">
@@ -322,8 +322,8 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
                   placeholder="Today's essentials — {siteName}"
                 />
                 <p className="cms-field-hint">
-                  Objet prérempli lors de la composition d&apos;une campagne. Utilisez{" "}
-                  <code>{"{siteName}"}</code> pour insérer le nom du site.
+                  Pre-filled subject when composing a campaign. Use <code>{"{siteName}"}</code> to
+                  insert the site name.
                 </p>
               </div>
             </div>

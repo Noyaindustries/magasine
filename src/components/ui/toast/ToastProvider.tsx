@@ -41,7 +41,7 @@ function ToastCard({ item }: { item: ToastItem }) {
         <button
           type="button"
           className="app-toast__close"
-          aria-label="Fermer la notification"
+          aria-label="Close notification"
           onClick={() => dismissToast(item.id)}
         >
           <X size={14} aria-hidden />

@@ -237,7 +237,7 @@ export function CmsArticleEditor({
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
           throw new Error(
-            (data as { error?: string }).error ?? "Impossible de charger les catégories"
+            (data as { error?: string }).error ?? "Unable to load categories"
           );
         }
         if (cancelled) return;
@@ -246,7 +246,7 @@ export function CmsArticleEditor({
       })
       .catch((error) => {
         if (!cancelled) {
-          toast.error(error instanceof Error ? error.message : "Erreur réseau");
+          toast.error(error instanceof Error ? error.message : "Network error");
         }
       });
 
@@ -264,9 +264,9 @@ export function CmsArticleEditor({
   }, [mode, form.categoryId, categories, patchForm]);
 
   const handleQuickCreateCategory = useCallback(async () => {
-    const name = window.prompt("Nom de la nouvelle catégorie ?")?.trim();
+    const name = window.prompt("New category name?")?.trim();
     if (!name) return;
-    const toastId = toast.loading("Création de la catégorie…");
+    const toastId = toast.loading("Creating category…");
     try {
       const res = await fetch("/api/admin/categories", {
         method: "POST",
@@ -276,7 +276,7 @@ export function CmsArticleEditor({
       const data = await res.json().catch(() => ({}));
       toast.dismiss(toastId);
       if (!res.ok) {
-        toast.error((data as { error?: string }).error ?? "Échec de la création");
+        toast.error((data as { error?: string }).error ?? "Creation failed");
         return;
       }
       const created: Category = {
@@ -293,19 +293,19 @@ export function CmsArticleEditor({
       patchForm({ categoryId: created._id });
       toast.success(
         (data as { reused?: boolean }).reused
-          ? "Catégorie existante sélectionnée"
-          : "Catégorie créée"
+          ? "Existing category selected"
+          : "Category created"
       );
     } catch {
       toast.dismiss(toastId);
-      toast.error("Échec de la création");
+      toast.error("Creation failed");
     }
   }, [patchForm]);
 
   const handleQuickCreateAuthor = useCallback(async () => {
-    const name = window.prompt("Nom du nouvel auteur ?")?.trim();
+    const name = window.prompt("New author name?")?.trim();
     if (!name) return;
-    const toastId = toast.loading("Création de l'auteur…");
+    const toastId = toast.loading("Creating author…");
     try {
       const res = await fetch("/api/admin/authors", {
         method: "POST",
@@ -315,7 +315,7 @@ export function CmsArticleEditor({
       const data = await res.json().catch(() => ({}));
       toast.dismiss(toastId);
       if (!res.ok) {
-        toast.error((data as { error?: string }).error ?? "Échec de la création");
+        toast.error((data as { error?: string }).error ?? "Creation failed");
         return;
       }
       const created: Author = { _id: String(data._id), name };
@@ -327,10 +327,10 @@ export function CmsArticleEditor({
           ? form.authorIds
           : [...form.authorIds, created._id],
       });
-      toast.success("Auteur créé");
+      toast.success("Author created");
     } catch {
       toast.dismiss(toastId);
-      toast.error("Échec de la création");
+      toast.error("Creation failed");
     }
   }, [form.authorIds, patchForm]);
 
@@ -466,7 +466,7 @@ export function CmsArticleEditor({
     async (options?: { redirectAfter?: boolean; publishMode?: PublishMode; silent?: boolean }) => {
       if (!form.title.trim() || form.authorIds.length === 0) {
         if (!options?.silent) {
-          toast.error("Le titre et au moins un auteur sont requis.");
+          toast.error("Title and at least one author are required.");
         }
         return false;
       }
@@ -480,7 +480,7 @@ export function CmsArticleEditor({
 
       if (!hasTopicRubrique && !hasRegion) {
         if (!options?.silent) {
-          toast.error("Choisissez une rubrique thématique et/ou une région.");
+          toast.error("Choose a topic section and/or a region.");
         }
         return false;
       }
@@ -581,7 +581,7 @@ export function CmsArticleEditor({
   const insertGalleryItemIntoBody = useCallback((item: GalleryFormItem) => {
     const actions = bodyEditorActionsRef.current;
     if (!actions) {
-      toast.error("L'éditeur de texte n'est pas prêt. Réessayez dans un instant.");
+      toast.error("The text editor isn't ready. Try again in a moment.");
       return;
     }
     const inserted = actions.insertImage({
@@ -591,9 +591,9 @@ export function CmsArticleEditor({
       layout: "block",
     });
     if (inserted) {
-      toast.success("Image insérée dans le corps de l'article.");
+      toast.success("Image inserted into the article body.");
     } else {
-      toast.error("Impossible d'insérer l'image dans le corps.");
+      toast.error("Unable to insert image into body.");
     }
   }, []);
 
@@ -827,7 +827,7 @@ export function CmsArticleEditor({
             </div>
             <div className="card-body cms-stack">
               <div className="field">
-                <label className="lbl">Statut</label>
+                <label className="lbl">Status</label>
                 <select
                   className="input sel"
                   value={form.publishMode}
@@ -835,15 +835,15 @@ export function CmsArticleEditor({
                     patchForm({ publishMode: e.target.value as PublishMode })
                   }
                 >
-                  <option value="draft">Brouillon</option>
-                  <option value="review">En relecture</option>
-                  <option value="publish">Publié</option>
-                  <option value="schedule">Planifié</option>
+                  <option value="draft">Draft</option>
+                  <option value="review">In review</option>
+                  <option value="publish">Published</option>
+                  <option value="schedule">Scheduled</option>
                 </select>
               </div>
               {form.publishMode === "publish" && (
                 <div className="field">
-                  <label className="lbl">Date affichée sur le site</label>
+                  <label className="lbl">Date shown on site</label>
                   <input
                     className="input"
                     type="datetime-local"
@@ -851,14 +851,14 @@ export function CmsArticleEditor({
                     onChange={(e) => patchForm({ publishedAt: e.target.value })}
                   />
                   <p className="cms-field-hint">
-                    Laissez vide pour la date et l&apos;heure actuelles. Choisissez une date passée
-                    pour antidater l&apos;article.
+                    Leave empty for the current date and time. Choose a past date to backdate the
+                    article.
                   </p>
                 </div>
               )}
               {form.publishMode === "schedule" && (
                 <div className="field">
-                  <label className="lbl">Date de publication planifiée</label>
+                  <label className="lbl">Scheduled publish date</label>
                   <input
                     className="input"
                     type="datetime-local"
@@ -911,20 +911,20 @@ export function CmsArticleEditor({
             <div className="card-body cms-stack">
               <div className="field">
                 <label className="lbl">
-                  Rubrique <span className="req">*</span>
+                  Section <span className="req">*</span>
                 </label>
                 <p className="cms-field-hint">
-                  Thème éditorial (News, Politics, Culture…). Les régions comme Amérique latine
-                  se choisissent dans la section ci-dessous, pas ici.
+                  Editorial theme (News, Politics, Culture…). Regions such as Latin America are
+                  selected in the section below, not here.
                 </p>
                 <select
                   className="input sel"
-                  aria-label="Rubrique"
+                  aria-label="Section"
                   value={selectedCategoryIsRegion ? "" : form.categoryId}
                   onChange={(e) => patchForm({ categoryId: e.target.value })}
                   required
                 >
-                  <option value="">Choisir…</option>
+                  <option value="">Choose…</option>
                   {topicOptions.map((c) => (
                     <option key={c._id} value={c._id}>
                       {c.name}
@@ -933,14 +933,13 @@ export function CmsArticleEditor({
                 </select>
                 {selectedCategoryIsRegion && selectedCategory && (
                   <p className="cms-field-hint" style={{ color: "var(--cms-amber, #b45309)" }}>
-                    « {selectedCategory.name} » est une région : cochez-la ci-dessous et choisissez
-                    une rubrique thématique ici, puis enregistrez.
+                    « {selectedCategory.name} » is a region: check it below and choose a topic section
+                    here, then save.
                   </p>
                 )}
                 {topicOptions.length === 0 && (
                   <p className="cms-field-hint" style={{ color: "var(--cms-red)" }}>
-                    Aucune rubrique disponible. Utilisez « + Nouvelle catégorie » ou vérifiez
-                    l&apos;admin Catégories.
+                    No sections available. Use « + New category » or check the Categories admin.
                   </p>
                 )}
                 <button
@@ -948,14 +947,14 @@ export function CmsArticleEditor({
                   className="cms-quick-add"
                   onClick={handleQuickCreateCategory}
                 >
-                  + Nouvelle catégorie
+                  + New category
                 </button>
               </div>
               <div className="field">
-                <label className="lbl">Région / pays couverts</label>
+                <label className="lbl">Region / countries covered</label>
                 <p className="cms-field-hint">
-                  Cochez une ou plusieurs régions pour afficher l&apos;article sur les pages
-                  /category/africa, /category/latin-america, etc.
+                  Check one or more regions to show the article on pages like /category/africa,
+                  /category/latin-america, etc.
                 </p>
                 <div className="cms-region-grid">
                   {regionCategories.map((region) => {
@@ -1004,8 +1003,8 @@ export function CmsArticleEditor({
                 </div>
               </div>
               <div className="field">
-                <label className="lbl">Auteur(s)</label>
-                <div className="cms-author-picker" role="group" aria-label="Auteurs">
+                <label className="lbl">Author(s)</label>
+                <div className="cms-author-picker" role="group" aria-label="Authors">
                   {authors.map((author) => {
                     const checked = form.authorIds.includes(author._id);
                     return (
@@ -1028,7 +1027,7 @@ export function CmsArticleEditor({
                 </div>
                 {form.authorIds.length === 0 && (
                   <p className="cms-field-hint cms-field-hint--warn">
-                    Sélectionnez au moins un auteur (co-signature possible).
+                    Select at least one author (co-byline supported).
                   </p>
                 )}
                 <button
@@ -1036,7 +1035,7 @@ export function CmsArticleEditor({
                   className="cms-quick-add"
                   onClick={handleQuickCreateAuthor}
                 >
-                  + Nouvel auteur
+                  + New author
                 </button>
               </div>
             </div>
@@ -1179,9 +1178,9 @@ export function CmsArticleEditor({
             </div>
             <div className="card-body">
               <p className="cms-field-hint cms-gallery-intro">
-                Images complémentaires affichées sur la fiche article (galerie en fin de page, ou en
-                tête pour un dossier photo). Utilisez « Insérer dans le corps » pour placer une image
-                dans le texte à la position du curseur.
+                Supplementary images shown on the article page (gallery at the end, or at the top for
+                a photo feature). Use « Insert into body » to place an image in the text at the
+                cursor position.
               </p>
               <CmsArticleGalleryEditor
                 items={form.gallery}

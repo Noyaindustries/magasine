@@ -36,7 +36,7 @@ async function ensureUniqueSlug(slug: string, excludeId: string) {
   const existing = await Category.findOne({ slug, _id: { $ne: excludeId } });
   if (existing) {
     return NextResponse.json(
-      { error: `Le slug « ${slug} » est déjà utilisé par la catégorie « ${existing.name} ».` },
+      { error: `Slug "${slug}" is already used by category "${existing.name}".` },
       { status: 409 }
     );
   }
@@ -70,7 +70,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.slug) {
     const slug = normalizeCategorySlug(data.slug);
     if (!slug) {
-      return NextResponse.json({ error: "Slug invalide" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
     }
     if (slug !== category.slug) {
       const conflict = await ensureUniqueSlug(slug, id);
@@ -101,7 +101,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
   if (inUse > 0) {
     return NextResponse.json(
       {
-        error: `Cette catégorie est utilisée par ${inUse} article(s). Désactivez-la plutôt que de la supprimer.`,
+        error: `This category is used by ${inUse} article(s). Deactivate it instead of deleting it.`,
       },
       { status: 409 }
     );

@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       });
     }
     return NextResponse.json(
-      { error: `Le slug « ${slug} » est déjà utilisé par la catégorie « ${existing.name} ».` },
+      { error: `Slug "${slug}" is already used by category "${existing.name}".` },
       { status: 409 }
     );
   }

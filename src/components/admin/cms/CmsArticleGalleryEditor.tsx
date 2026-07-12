@@ -88,9 +88,9 @@ export function CmsArticleGalleryEditor({
                 type="button"
                 className="btn btn-ghost btn-xs cms-gallery-insert-body"
                 onClick={() => onInsertIntoBody(item)}
-                title="Insérer dans le corps de l'article à la position du curseur"
+                title="Insert into article body at cursor position"
               >
-                Insérer dans le corps
+                Insert into body
               </button>
             )}
           </div>

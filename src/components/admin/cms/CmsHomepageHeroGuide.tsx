@@ -24,7 +24,7 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
   return (
     <details className="articles-hero-guide">
       <summary className="articles-hero-guide-summary">
-        <span className="articles-hero-guide-title">Comment remplir l&apos;accueil (hero)</span>
+        <span className="articles-hero-guide-title">How to fill the homepage (hero)</span>
         <span
           className={
             relatedOk && opinionOk && heroOk
@@ -32,70 +32,67 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
               : "articles-hero-guide-badge"
           }
         >
-          {relatedOk && opinionOk && heroOk ? "Complet" : "À compléter"}
+          {relatedOk && opinionOk && heroOk ? "Complete" : "Needs work"}
         </span>
       </summary>
 
       <div className="articles-hero-guide-body">
         <p className="articles-hero-guide-intro">
-          Après suppression des articles de test, seuls vos articles <strong>publiés</strong>{" "}
-          apparaissent sur la page d&apos;accueil. Voici comment alimenter chaque bloc visible sous
-          la grande image.
+          After removing test articles, only your <strong>published</strong> articles appear on the
+          homepage. Here is how to populate each block visible below the main image.
         </p>
 
         <div className="articles-hero-guide-grid">
           <article className="articles-hero-guide-card">
-            <h3>Grande image du hero</h3>
+            <h3>Hero main image</h3>
             <p>
-              Un article avec l&apos;option <strong>Homepage feature</strong> activée dans
-              l&apos;éditeur, puis statut <strong>Published</strong>.
+              An article with <strong>Homepage feature</strong> enabled in the editor, then status{" "}
+              <strong>Published</strong>.
             </p>
             <p className="articles-hero-guide-status">
               {heroOk ? (
-                <>✓ {featuredCount} article(s) à la une</>
+                <>✓ {featuredCount} featured article(s)</>
               ) : (
-                <>⚠ Aucun article « Homepage feature » publié</>
+                <>⚠ No published « Homepage feature » article</>
               )}
             </p>
             <Link href="/admin/articles/new" className="articles-hero-guide-link">
-              + Créer l&apos;article principal
+              + Create main article
             </Link>
           </article>
 
           <article className="articles-hero-guide-card">
             <h3>Related Stories</h3>
             <p>
-              Les <strong>derniers articles publiés</strong> (toutes rubriques), jusqu&apos;à 6
-              cartes. L&apos;article du hero principal est exclu automatiquement.
+              The <strong>latest published articles</strong> (all sections), up to 6 cards. The main
+              hero article is excluded automatically.
             </p>
             <p className="articles-hero-guide-status">
               {relatedOk ? (
-                <>✓ {publishedReal} article(s) publiés — bandeau complet</>
+                <>✓ {publishedReal} published article(s) — full row</>
               ) : (
                 <>
-                  ⚠ {publishedReal}/{relatedTarget} articles publiés recommandés (il en manque{" "}
-                  {Math.max(0, relatedTarget - publishedReal)})
+                  ⚠ {publishedReal}/{relatedTarget} published articles recommended ({Math.max(0, relatedTarget - publishedReal)} missing)
                 </>
               )}
             </p>
             <Link href="/admin/articles/new" className="articles-hero-guide-link">
-              + Ajouter un article
+              + Add an article
             </Link>
           </article>
 
           <article className="articles-hero-guide-card">
             <h3>Opinion &amp; Ideas</h3>
             <p>
-              Articles <strong>publiés</strong> dont la rubrique principale est{" "}
-              <strong>Opinion</strong> (pas seulement une région cochée à côté).
+              <strong>Published</strong> articles whose main section is <strong>Opinion</strong> (not
+              just a region checked alongside).
             </p>
             <p className="articles-hero-guide-status">
               {opinionOk ? (
-                <>✓ {opinionPublished} article(s) Opinion publiés</>
+                <>✓ {opinionPublished} published Opinion article(s)</>
               ) : (
                 <>
-                  ⚠ {opinionPublished}/{opinionTarget} articles Opinion publiés (il en manque{" "}
-                  {Math.max(0, opinionTarget - opinionPublished)})
+                  ⚠ {opinionPublished}/{opinionTarget} published Opinion articles ({Math.max(0, opinionTarget - opinionPublished)} missing)
                 </>
               )}
             </p>
@@ -103,30 +100,29 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
               href="/admin/articles/new"
               className="articles-hero-guide-link"
             >
-              + Créer un article Opinion
+              + Create an Opinion article
             </Link>
           </article>
         </div>
 
         <ol className="articles-hero-guide-steps">
           <li>
-            <Link href="/admin/articles/new">Nouvel article</Link> → titre, image à la une, extrait,
-            contenu, auteur.
+            <Link href="/admin/articles/new">New article</Link> → title, featured image, excerpt,
+            content, author.
           </li>
-          <li>Choisir la <strong>rubrique thématique</strong> (Politics, Feature, Opinion…).</li>
+          <li>Choose the <strong>topic section</strong> (Politics, Feature, Opinion…).</li>
           <li>
-            Cocher <strong>Homepage feature</strong> uniquement pour l&apos;article principal du
-            hero.
+            Check <strong>Homepage feature</strong> only for the main hero article.
           </li>
-          <li>Passer le statut à <strong>Published</strong> et enregistrer.</li>
+          <li>Set status to <strong>Published</strong> and save.</li>
           <li>
-            Répéter pour <strong>5–6 articles variés</strong> + <strong>2–3 en Opinion</strong>.
+            Repeat for <strong>5–6 varied articles</strong> + <strong>2–3 in Opinion</strong>.
           </li>
         </ol>
 
         <p className="articles-hero-guide-footnote">
-          La page d&apos;accueil se met à jour en ~1 minute. Pour désactiver tout contenu fictif
-          restant : <code>ENABLE_DEMO_CONTENT=false</code> dans <code>.env.local</code>.
+          The homepage updates in ~1 minute. To disable any remaining placeholder content:{" "}
+          <code>ENABLE_DEMO_CONTENT=false</code> in <code>.env.local</code>.
         </p>
       </div>
     </details>

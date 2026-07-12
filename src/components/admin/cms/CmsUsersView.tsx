@@ -122,17 +122,17 @@ export function CmsUsersView({
 
       setCreateOpen(false);
       if (data.inviteEmailSent) {
-        toast.success("Utilisateur créé", {
-          description: `Invitation envoyée à ${data.email}`,
+        toast.success("User created", {
+          description: `Invitation sent to ${data.email}`,
         });
       } else if (data.tempPassword) {
-        toast.success("Utilisateur créé", {
-          description: `${data.email} · Mot de passe temporaire : ${data.tempPassword}`,
+        toast.success("User created", {
+          description: `${data.email} · Temporary password: ${data.tempPassword}`,
           duration: 12000,
         });
       } else if (data.inviteEmailError) {
-        toast.success("Utilisateur créé", {
-          description: `E-mail non envoyé : ${data.inviteEmailError}`,
+        toast.success("User created", {
+          description: `Email not sent: ${data.inviteEmailError}`,
           duration: 10000,
         });
       } else {
@@ -156,18 +156,18 @@ export function CmsUsersView({
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Impossible d'envoyer l'invitation.");
+        toast.error(data.error ?? "Unable to send invitation.");
         return;
       }
       if (data.inviteEmailSent) {
-        toast.success("Invitation renvoyée", { description: data.email });
+        toast.success("Invitation resent", { description: data.email });
       } else if (data.tempPassword) {
-        toast.success("Mot de passe régénéré", {
-          description: `${data.email} · Nouveau mot de passe : ${data.tempPassword}`,
+        toast.success("Password regenerated", {
+          description: `${data.email} · New password: ${data.tempPassword}`,
           duration: 12000,
         });
       } else {
-        toast.error(data.inviteEmailError ?? "Échec de l'envoi de l'invitation.");
+        toast.error(data.inviteEmailError ?? "Failed to send invitation.");
       }
     } catch {
       toastNetworkError();
@@ -224,23 +224,23 @@ export function CmsUsersView({
       })
     ) {
       if (user.role === "super_admin") {
-        toast.error("Impossible de supprimer un super administrateur.");
+        toast.error("Cannot delete a super administrator.");
       } else if (user.role === "admin") {
-        toast.error("Seul un super administrateur peut supprimer un administrateur.");
+        toast.error("Only a super administrator can delete an administrator.");
       } else {
-        toast.error("Vous ne pouvez pas supprimer ce compte.");
+        toast.error("You cannot delete this account.");
       }
       return;
     }
 
     const articleHint =
       user.articleCount > 0
-        ? `\n\nCe compte a ${user.articleCount} article(s) lié(s). La suppression échouera si un article n'a que cet auteur comme signature.`
+        ? `\n\nThis account has ${user.articleCount} linked article(s). Deletion will fail if an article has only this author as byline.`
         : "";
 
     if (
       !confirm(
-        `Supprimer ${user.name} (${user.email}) ? Cette action est irréversible.${articleHint}`
+        `Delete ${user.name} (${user.email})? This action cannot be undone.${articleHint}`
       )
     ) {
       return;
@@ -252,12 +252,12 @@ export function CmsUsersView({
       body: JSON.stringify({ userId: user._id }),
     });
     if (res.ok) {
-      toast.success("Utilisateur supprimé");
+      toast.success("User deleted");
       setEditUser((current) => (current?._id === user._id ? null : current));
       refresh();
     } else {
       const data = await res.json();
-      toast.error(data.error ?? "Échec de la suppression.");
+      toast.error(data.error ?? "Delete failed.");
     }
   };
 
@@ -282,10 +282,9 @@ export function CmsUsersView({
         <div className="card mb20">
           <div className="card-body">
             <p className="cms-field-hint" style={{ margin: 0 }}>
-              Les invitations par e-mail ne sont pas actives. Configurez{" "}
-              <strong>SMTP_HOST</strong> et <strong>SMTP_FROM</strong> dans votre environnement (mêmes
-              variables que la newsletter) pour envoyer automatiquement les identifiants aux nouveaux
-              membres.
+              Email invitations are not active. Configure{" "}
+              <strong>SMTP_HOST</strong> and <strong>SMTP_FROM</strong> in your environment (same
+              variables as the newsletter) to automatically send credentials to new members.
             </p>
           </div>
         </div>
@@ -339,7 +338,7 @@ export function CmsUsersView({
                   <button
                     type="button"
                     className="ucard-del btn btn-ghost btn-xs btn-icon"
-                    title="Supprimer l'utilisateur"
+                    title="Delete user"
                     onClick={() => void removeMember(user)}
                   >
                     <CmsActionIcons.delete size={14} className="cms-icon cms-icon--error" aria-hidden />

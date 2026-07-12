@@ -13,12 +13,12 @@ function formatImpressions(n: number) {
 
 function formatCtr(impressions: number, clicks: number) {
   if (impressions <= 0) return "—";
-  return `${((clicks / impressions) * 100).toFixed(1).replace(".", ",")}%`;
+  return `${((clicks / impressions) * 100).toFixed(1)}%`;
 }
 
 function formatRevenue(n: number) {
   if (n <= 0) return "Paused";
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2).replace(".", ",")}M FCFA`;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M FCFA`;
   if (n >= 1000) return `${Math.round(n / 1000)}k FCFA`;
   return `${n} FCFA`;
 }
@@ -90,7 +90,7 @@ const optionalUrl = z
   .max(2000)
   .refine(
     (v) => v === "" || /^https?:\/\//i.test(v) || v.startsWith("/"),
-    "Lien invalide (http(s):// ou chemin interne)"
+    "Invalid link (http(s):// or internal path)"
   )
   .optional();
 

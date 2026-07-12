@@ -14,8 +14,8 @@ export interface SectionMeta {
 
 export const URGENT_SECTION = {
   eyebrow: "Alert feed",
-  title: "Breaking â€” Live",
-  lead: "Alerts, breaking news, and priority updates on Global South affairs â€” updated as stories develop.",
+  title: "Breaking — Live",
+  lead: "Alerts, breaking news, and priority updates on Global South affairs — updated as stories develop.",
   relatedSlugs: ["news", "feature", "investigations", "africa", "west-asia"],
 } as const;
 
@@ -32,7 +32,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "Africa",
     kind: "region",
     eyebrow: "Region",
-    lead: "News, analysis, and investigations across the African continent â€” from the Sahel to the Cape.",
+    lead: "News, analysis, and investigations across the African continent — from the Sahel to the Cape.",
     relatedSlugs: ["west-asia", "feature", "politics", "investigations", "commentary"],
     linkHref: "/rss?category=africa",
     linkLabel: "Africa RSS feed",
@@ -42,7 +42,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "Latin America",
     kind: "region",
     eyebrow: "Region",
-    lead: "Coverage from Mexico to Patagonia â€” politics, economy, environment, and society.",
+    lead: "Coverage from Mexico to Patagonia — politics, economy, environment, and society.",
     relatedSlugs: ["feature", "politics", "news", "investigations", "special-reports"],
     linkHref: "/rss?category=latin-america",
     linkLabel: "Latin America RSS",
@@ -52,7 +52,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "South Asia",
     kind: "region",
     eyebrow: "Region",
-    lead: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent â€” trade, tech, and public policy.",
+    lead: "India, Pakistan, Bangladesh, Sri Lanka, and the wider subcontinent — trade, tech, and public policy.",
     relatedSlugs: ["feature", "politics", "news", "commentary", "health"],
     linkHref: "/rss?category=south-asia",
     linkLabel: "South Asia RSS",
@@ -62,7 +62,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "West Asia",
     kind: "region",
     eyebrow: "Region",
-    lead: "Gulf states, Levant, Turkey, and Iran â€” energy, diplomacy, and regional security.",
+    lead: "Gulf states, Levant, Turkey, and Iran — energy, diplomacy, and regional security.",
     relatedSlugs: ["africa", "feature", "politics", "investigations", "news"],
     linkHref: "/rss?category=west-asia",
     linkLabel: "West Asia RSS",
@@ -116,7 +116,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "Politics",
     kind: "topic",
     eyebrow: "Politics",
-    lead: "Elections, parliaments, parties, and governance â€” political news from the Global South.",
+    lead: "Elections, parliaments, parties, and governance — political news from the Global South.",
     relatedSlugs: ["news", "feature", "opinion", "investigations", "africa"],
     linkHref: "/rss?category=politics",
     linkLabel: "Politics RSS",
@@ -164,7 +164,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     label: "Local",
     kind: "topic",
     eyebrow: "Local",
-    lead: "City and regional stories â€” heritage, communities, and life beyond the capital.",
+    lead: "City and regional stories — heritage, communities, and life beyond the capital.",
     relatedSlugs: ["news", "culture", "special-reports", "africa"],
     linkHref: "/rss?category=local",
     linkLabel: "Local RSS",
@@ -253,7 +253,7 @@ export function resolveSectionMeta(
   return getSectionMeta(slug) ?? buildFallbackSectionMeta(slug, category);
 }
 
-/** @deprecated Legacy French slugs â€” resolved for old bookmarks and RSS links. */
+/** @deprecated Legacy French slugs — resolved for old bookmarks and RSS links. */
 const LEGACY_SECTION_SLUG_MAP: Record<string, string> = {
   actualites: "news",
   politique: "politics",

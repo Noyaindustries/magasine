@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     const newsCategory = await Category.findOne({ slug: "news", isActive: true }).select("_id").lean();
     if (!newsCategory) {
       return NextResponse.json(
-        { error: "Rubrique News introuvable. Créez-la dans Admin → Catégories." },
+        { error: "News category not found. Create it in Admin → Categories." },
         { status: 400 }
       );
     }
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     const category = await Category.findById(assignment.primaryId).lean();
     if (!category) {
-      return NextResponse.json({ error: "Rubrique introuvable" }, { status: 400 });
+      return NextResponse.json({ error: "Category not found" }, { status: 400 });
     }
 
     const slug = parsed.data.slug
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
       publishedAtInput: parsed.data.publishedAt,
     });
     if (publishedAt === "invalid") {
-      return NextResponse.json({ error: "Date de publication invalide" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid publication date" }, { status: 400 });
     }
 
     const article = await Article.create({

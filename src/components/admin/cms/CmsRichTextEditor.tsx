@@ -210,12 +210,12 @@ export function CmsRichTextEditor({
         updateGalleryItems([...galleryItems, ...uploads]);
       } else if (uploads.length >= INLINE_GALLERY_MIN_ITEMS) {
         editor.chain().focus().insertInlineGallery(uploads).run();
-        toast.success("Galerie insérée.");
+        toast.success("Gallery inserted.");
       } else {
-        toast.error(`Sélectionnez au moins ${INLINE_GALLERY_MIN_ITEMS} images pour une galerie.`);
+        toast.error(`Select at least ${INLINE_GALLERY_MIN_ITEMS} images for a gallery.`);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Échec de l'upload.");
+      toast.error(error instanceof Error ? error.message : "Upload failed.");
     }
   };
 
@@ -347,10 +347,10 @@ export function CmsRichTextEditor({
             disabled={!imageActive}
             title={
               layout === "float-left"
-                ? "Image à gauche, texte à droite"
+                ? "Image on the left, text on the right"
                 : layout === "float-right"
-                  ? "Image à droite, texte à gauche"
-                  : "Image pleine largeur"
+                  ? "Image on the right, text on the left"
+                  : "Full-width image"
             }
             onClick={() => setImageLayout(layout)}
           >
@@ -358,16 +358,16 @@ export function CmsRichTextEditor({
           </button>
         ))}
         {!imageActive && (
-          <span className="cms-image-layout-hint">Sélectionnez une image dans le texte.</span>
+          <span className="cms-image-layout-hint">Select an image in the text.</span>
         )}
         <label className="cms-image-caption-field">
-          <span className="cms-image-layout-label">Légende</span>
+          <span className="cms-image-layout-label">Caption</span>
           <input
             type="text"
             className="input cms-image-caption-input"
             value={(editor.getAttributes("image").caption as string | null) ?? ""}
             disabled={!imageActive}
-            placeholder="Texte sous l'illustration (facultatif)"
+            placeholder="Text below the illustration (optional)"
             onChange={(event) => {
               editor.chain().focus().setImageCaption(event.target.value).run();
             }}
@@ -377,21 +377,19 @@ export function CmsRichTextEditor({
       <div
         className={cn("cms-column-row-bar", (columnRowActive || columnActive) && "cms-column-row-bar--active")}
       >
-        <span className="cms-image-layout-label">Colonnes</span>
+        <span className="cms-image-layout-label">Columns</span>
         {columnRowActive || columnActive ? (
           <span className="cms-image-layout-hint">
-            Cliquez dans une colonne pour y saisir du texte ou insérer une illustration via le bouton
-            image.
+            Click inside a column to enter text or insert an illustration via the image button.
           </span>
         ) : (
           <span className="cms-image-layout-hint">
-            Insérez une ligne à 2 ou 3 colonnes (texte et images par colonne). Sur mobile, les colonnes
-            s&apos;empilent.
+            Insert a 2- or 3-column row (text and images per column). On mobile, columns stack.
           </span>
         )}
       </div>
       <div className={cn("cms-inline-gallery-bar", galleryActive && "cms-inline-gallery-bar--active")}>
-        <span className="cms-image-layout-label">Galerie inline</span>
+        <span className="cms-image-layout-label">Inline gallery</span>
         {galleryActive ? (
           <>
             <div className="cms-inline-gallery-items">
@@ -403,14 +401,14 @@ export function CmsRichTextEditor({
                     type="text"
                     className="input cms-inline-gallery-edit-caption"
                     value={item.caption ?? ""}
-                    placeholder="Légende"
+                    placeholder="Caption"
                     onChange={(event) => patchGalleryItem(index, { caption: event.target.value })}
                   />
                   <button
                     type="button"
                     className="cms-inline-gallery-remove"
                     onClick={() => removeGalleryItem(index)}
-                    title="Retirer l'image"
+                    title="Remove image"
                   >
                     ×
                   </button>
@@ -422,13 +420,12 @@ export function CmsRichTextEditor({
               className="cms-quick-add"
               onClick={() => galleryInputRef.current?.click()}
             >
-              + Ajouter une image
+              + Add image
             </button>
           </>
         ) : (
           <span className="cms-image-layout-hint">
-            Cliquez sur « Galerie » pour insérer 2 images ou plus, ou sélectionnez une galerie
-            existante.
+            Click « Gallery » to insert 2 or more images, or select an existing gallery.
           </span>
         )}
       </div>
@@ -452,7 +449,7 @@ export function CmsRichTextEditor({
                 .focus()
                 .setImage({ src: url, alt: file.name, layout: "block" })
                 .run();
-              toast.success("Image insérée.");
+              toast.success("Image inserted.");
             } catch (error) {
               toast.error(error instanceof Error ? error.message : "Upload failed.");
             } finally {

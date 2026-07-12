@@ -220,11 +220,11 @@ export function CmsUserFormModal({
                     onChange={(e) => setSendInvite(e.target.checked)}
                     disabled={saving}
                   />
-                  Envoyer une invitation par e-mail
+                  Send email invitation
                 </label>
                 <p className="cms-field-hint">
-                  L&apos;invité recevra un lien de connexion et son mot de passe temporaire (sauf si
-                  vous en définissez un vous-même).
+                  The invitee will receive a sign-in link and a temporary password (unless you set
+                  one yourself).
                 </p>
               </div>
             )}
@@ -268,7 +268,7 @@ export function CmsUserFormModal({
                   onClick={onDelete}
                   disabled={saving}
                 >
-                  Supprimer
+                  Delete
                 </button>
               ) : null}
               {mode === "edit" && mailConfigured && onResendInvite && !initial?.isBanned ? (
@@ -277,25 +277,25 @@ export function CmsUserFormModal({
                   className="btn btn-out"
                   onClick={onResendInvite}
                   disabled={saving || initial?.role === "super_admin"}
-                  title="Génère un nouveau mot de passe temporaire et l'envoie par e-mail"
+                  title="Generates a new temporary password and sends it by email"
                 >
-                  Renvoyer l&apos;invitation
+                  Resend invitation
                 </button>
               ) : null}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>
-                Annuler
+                Cancel
               </button>
               <button type="submit" className="btn btn-red" disabled={saving}>
-                {saving ? "Enregistrement…" : submitLabel}
+                {saving ? "Saving…" : submitLabel}
               </button>
             </div>
           </div>
           {mode === "edit" && articleCount > 0 ? (
             <p className="cms-field-hint" style={{ padding: "0 1.25rem 1rem", margin: 0 }}>
-              {articleCount} article(s) lié(s) via le profil auteur. La suppression échouera si un
-              article n&apos;a que cet auteur.
+              {articleCount} linked article(s) via author profile. Deletion will fail if an article
+              has only this author.
             </p>
           ) : null}
         </form>

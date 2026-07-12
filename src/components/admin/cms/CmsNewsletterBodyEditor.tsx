@@ -36,7 +36,7 @@ interface CmsNewsletterBodyEditorProps {
 export function CmsNewsletterBodyEditor({
   value,
   onChange,
-  placeholder = "Rédigez votre message…",
+  placeholder = "Write your message…",
 }: CmsNewsletterBodyEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const imageInputId = "cms-nl-image-input";
@@ -96,9 +96,9 @@ export function CmsNewsletterBodyEditor({
         const { url } = await uploadAdminMedia(file, file.name);
         insertImage(url, file.name);
       }
-      toast.success(list.length > 1 ? "Images insérées." : "Image insérée.");
+      toast.success(list.length > 1 ? "Images inserted." : "Image inserted.");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Échec de l'upload.");
+      toast.error(error instanceof Error ? error.message : "Upload failed.");
     }
   };
 
@@ -109,13 +109,13 @@ export function CmsNewsletterBodyEditor({
       const res = await fetch("/api/admin/medias?kind=image&sort=recent");
       const data = (await res.json()) as { items?: MediaRow[]; error?: string };
       if (!res.ok) {
-        toast.error(data.error ?? "Impossible de charger la médiathèque.");
+        toast.error(data.error ?? "Unable to load media library.");
         setLibraryItems([]);
         return;
       }
       setLibraryItems(data.items ?? []);
     } catch {
-      toast.error("Impossible de charger la médiathèque.");
+      toast.error("Unable to load media library.");
       setLibraryItems([]);
     } finally {
       setLibraryLoading(false);
@@ -143,7 +143,7 @@ export function CmsNewsletterBodyEditor({
     return (
       <div className="cms-editor-wrap cms-newsletter-editor">
         <div className="etb" />
-        <div className="ebody cms-editor-loading">Chargement de l'éditeur…</div>
+        <div className="ebody cms-editor-loading">Loading editor…</div>
       </div>
     );
   }
@@ -171,10 +171,10 @@ export function CmsNewsletterBodyEditor({
               else editor.chain().focus().setParagraph().run();
             }}
           >
-            <option value="p">Paragraphe</option>
-            <option value="h2">Titre H2</option>
-            <option value="h3">Titre H3</option>
-            <option value="quote">Citation</option>
+            <option value="p">Paragraph</option>
+            <option value="h2">Heading H2</option>
+            <option value="h3">Heading H3</option>
+            <option value="quote">Quote</option>
           </select>
           <div className="etsep" />
           {toolBtn(<b>B</b>, () => editor.chain().focus().toggleBold().run(), editor.isActive("bold"))}
@@ -199,7 +199,7 @@ export function CmsNewsletterBodyEditor({
           {toolBtn(
             <Link2 size={14} className="cms-icon" aria-hidden />,
             () => {
-              const url = window.prompt("URL du lien");
+              const url = window.prompt("Link URL");
               if (!url) return;
               editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
             },
@@ -210,7 +210,7 @@ export function CmsNewsletterBodyEditor({
             () => document.getElementById(imageInputId)?.click(),
             editor.isActive("image")
           )}
-          {toolBtn("Médias", () => void openLibrary(), false)}
+          {toolBtn("Media", () => void openLibrary(), false)}
           <input
             ref={imageInputRef}
             id={imageInputId}
@@ -227,8 +227,8 @@ export function CmsNewsletterBodyEditor({
         </div>
         <EditorContent editor={editor} className="ebody" />
         <p className="cms-field-hint cms-newsletter-editor-hint">
-          Utilisez <strong>Image</strong> pour téléverser une illustration, ou <strong>Médias</strong> pour
-          en choisir une dans la bibliothèque.
+          Use <strong>Image</strong> to upload an illustration, or <strong>Media</strong> to pick one
+          from the library.
         </p>
       </div>
 
@@ -245,17 +245,17 @@ export function CmsNewsletterBodyEditor({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="cms-ad-modal-head">
-              <h3 id="nl-media-title">Choisir une illustration</h3>
+              <h3 id="nl-media-title">Choose an illustration</h3>
               <button type="button" className="btn btn-ghost btn-xs" onClick={() => setLibraryOpen(false)}>
-                Fermer
+                Close
               </button>
             </div>
             <div className="cms-newsletter-media-modal-body">
               {libraryLoading ? (
-                <p className="cms-field-hint">Chargement…</p>
+                <p className="cms-field-hint">Loading…</p>
               ) : libraryItems.length === 0 ? (
                 <p className="cms-field-hint">
-                  Aucune image dans la médiathèque. Téléversez-en une avec le bouton Image.
+                  No images in the media library. Upload one with the Image button.
                 </p>
               ) : (
                 <div className="cms-newsletter-media-grid">
@@ -268,7 +268,7 @@ export function CmsNewsletterBodyEditor({
                       onClick={() => {
                         insertImage(item.url, item.title);
                         setLibraryOpen(false);
-                        toast.success("Image insérée.");
+                        toast.success("Image inserted.");
                       }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}

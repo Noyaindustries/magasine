@@ -119,7 +119,7 @@ export function CmsUsersTable({
                       className="btn btn-xs btn-ghost"
                       onClick={() => onDelete(user)}
                     >
-                      Supprimer
+                      Delete
                     </button>
                   ) : null}
                 </div>

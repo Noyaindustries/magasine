@@ -200,7 +200,7 @@ export function CmsArticlesTable({
                         {article.title}
                         {article.isDemo && (
                           <span className="cms-badge cms-badge--muted" style={{ marginLeft: 8 }}>
-                            Démo
+                            Demo
                           </span>
                         )}
                       </div>

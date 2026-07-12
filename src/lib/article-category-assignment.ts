@@ -32,7 +32,7 @@ export async function assignArticleCategories(args: {
 
   const regionCategories = await resolveRegionCategories(mergedRegionIds);
   if (regionCategories === null) {
-    return { error: "Sélection de région invalide" };
+    return { error: "Invalid region selection" };
   }
 
   return {

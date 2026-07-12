@@ -170,18 +170,18 @@ export function CmsSidebar({
         <button
           type="button"
           className="cms-sidebar-backdrop"
-          aria-label="Fermer le menu"
+          aria-label="Close menu"
           onClick={onCloseMobile}
         />
       )}
-      <aside className={cn("sidebar", mobileOpen && "sidebar--open")} aria-label="Navigation CMS">
+      <aside className={cn("sidebar", mobileOpen && "sidebar--open")} aria-label="CMS navigation">
         <div className="sb-header">
           <CmsBrandLogo onNavigate={handleNav} />
           <button
             type="button"
             className="cms-sidebar-close"
             onClick={onCloseMobile}
-            aria-label="Fermer le menu"
+            aria-label="Close menu"
           >
             <X className="w-4 h-4" />
           </button>

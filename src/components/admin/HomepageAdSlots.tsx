@@ -92,9 +92,9 @@ export function HomepageAdSlots() {
     try {
       const { url } = await uploadAdminMedia(file, AD_SLOT_LABELS[slot]);
       patchSlot(slot, { imageUrl: url });
-      toast.success("Image téléversée");
+      toast.success("Image uploaded");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Échec du téléversement");
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setUploadingSlot(null);
     }
@@ -118,7 +118,7 @@ export function HomepageAdSlots() {
             size: SLOT_SIZES[slot],
           }),
         });
-        if (await toastIfNotOk(res, "Enregistrement impossible")) return;
+        if (await toastIfNotOk(res, "Unable to save")) return;
       } else {
         const res = await fetch("/api/admin/publicites", {
           method: "POST",
@@ -132,9 +132,9 @@ export function HomepageAdSlots() {
             linkUrl: state.linkUrl,
           }),
         });
-        if (await toastIfNotOk(res, "Création impossible")) return;
+        if (await toastIfNotOk(res, "Unable to create")) return;
       }
-      toast.success("Emplacement enregistré");
+      toast.success("Slot saved");
       await load();
     } catch {
       toastNetworkError();
@@ -147,16 +147,16 @@ export function HomepageAdSlots() {
     <div className="hpg-panel-card">
       <div className="hpg-panel-head">
         <div>
-          <h3 className="hpg-panel-title">Grandes images (emplacements)</h3>
+          <h3 className="hpg-panel-title">Large images (ad slots)</h3>
           <p className="hpg-panel-desc">
-            Téléverse une image, ajoute un lien cliquable et active l&apos;emplacement. Les images
-            s&apos;affichent automatiquement sur le site public (accueil et articles).
+            Upload an image, add a clickable link, and activate the slot. Images appear automatically
+            on the public site (homepage and articles).
           </p>
         </div>
       </div>
 
       {loading ? (
-        <p className="hpg-slot-empty">Chargement des emplacements…</p>
+        <p className="hpg-slot-empty">Loading slots…</p>
       ) : (
         <div className="hpg-partners">
           {AD_SLOTS.map((slot) => {
@@ -169,7 +169,7 @@ export function HomepageAdSlots() {
                 className={`hpg-partner-card${state.active && state.imageUrl ? " hpg-partner-card--active" : ""}`}
               >
                 <div className="hpg-partner-head">
-                  <label className="hpg-switch" title="Activer" aria-label={`Activer ${AD_SLOT_LABELS[slot]}`}>
+                  <label className="hpg-switch" title="Activate" aria-label={`Activate ${AD_SLOT_LABELS[slot]}`}>
                     <input
                       type="checkbox"
                       checked={state.active}
@@ -192,14 +192,14 @@ export function HomepageAdSlots() {
                   <div className="hpg-field">
                     <label>Image</label>
                     <div className="hpg-logo-upload">
-                      <code>{state.imageUrl ? "Image définie" : "Aucune image"}</code>
+                      <code>{state.imageUrl ? "Image set" : "No image"}</code>
                       <button
                         type="button"
                         className="admin-btn admin-btn--secondary"
                         disabled={isUploading}
                         onClick={() => fileInputs.current[slot]?.click()}
                       >
-                        {isUploading ? "Téléversement…" : state.imageUrl ? "Remplacer" : "Téléverser"}
+                        {isUploading ? "Uploading…" : state.imageUrl ? "Replace" : "Upload"}
                       </button>
                     </div>
                     <input
@@ -209,16 +209,16 @@ export function HomepageAdSlots() {
                       type="file"
                       accept="image/*"
                       className="hpg-hidden-file"
-                      aria-label={`Téléverser une image pour ${AD_SLOT_LABELS[slot]}`}
+                      aria-label={`Upload image for ${AD_SLOT_LABELS[slot]}`}
                       onChange={(e) => void handleUpload(slot, e)}
                     />
                   </div>
                   <div className="hpg-field">
-                    <label>Lien cliquable (http/https)</label>
+                    <label>Clickable link (http/https)</label>
                     <input
                       value={state.linkUrl}
                       onChange={(e) => patchSlot(slot, { linkUrl: e.target.value })}
-                      placeholder="https://exemple.com"
+                      placeholder="https://example.com"
                     />
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export function HomepageAdSlots() {
                       className="admin-btn admin-btn--sm admin-btn--secondary"
                       onClick={() => patchSlot(slot, { imageUrl: "" })}
                     >
-                      Retirer l&apos;image
+                      Remove image
                     </button>
                   )}
                   <button
@@ -240,7 +240,7 @@ export function HomepageAdSlots() {
                     onClick={() => void saveSlot(slot)}
                   >
                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Enregistrer
+                    Save
                   </button>
                 </div>
               </div>

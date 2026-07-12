@@ -103,9 +103,9 @@ export function CmsArticlesView({
         <div>
           <div className="vh1">Articles</div>
           <div className="vh2">
-            {stats.overview.total.toLocaleString("fr-FR")} en base ·{" "}
-            {stats.overview.publishedReal.toLocaleString("fr-FR")} publiés (vos articles) ·{" "}
-            {stats.byStatus.review} en relecture
+            {stats.overview.total.toLocaleString("en-US")} in database ·{" "}
+            {stats.overview.publishedReal.toLocaleString("en-US")} published (your articles) ·{" "}
+            {stats.byStatus.review} in review
           </div>
         </div>
         <div className="vacts vacts--stacked">
@@ -131,18 +131,18 @@ export function CmsArticlesView({
 
       <div className="tabs">
         {demoOnly ? (
-          <span className="tab on">Tests ({demoCount.toLocaleString("fr-FR")})</span>
+          <span className="tab on">Tests ({demoCount.toLocaleString("en-US")})</span>
         ) : (
           <Link
             href={buildArticlesHref({ status, q: query, category, author, demo: true })}
             className="tab"
           >
-            Tests ({demoCount.toLocaleString("fr-FR")})
+            Tests ({demoCount.toLocaleString("en-US")})
           </Link>
         )}
         {demoOnly && (
           <Link href={buildArticlesHref({ status, q: query, category, author })} className="tab">
-            ← Tous les articles
+            ← All articles
           </Link>
         )}
         {TABS.map((tab) => {
@@ -200,10 +200,10 @@ export function CmsArticlesView({
 
       {demoOnly && articles.length === 0 && (
         <p className="demo-content-empty">
-          Aucun article de test en base pour le moment.
+          No test articles in the database yet.
           {virtualDemoCount > 0
-            ? ` Cliquez sur « Charger les articles de test (${virtualDemoCount}) » ci-dessus.`
-            : " Utilisez « Charger les articles de test » ou « Identifier les articles seed »."}
+            ? ` Click « Load test articles (${virtualDemoCount}) » above.`
+            : " Use « Load test articles » or « Identify seed articles »."}
         </p>
       )}
 

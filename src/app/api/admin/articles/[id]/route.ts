@@ -207,7 +207,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     existingPublishedAt: article.publishedAt,
   });
   if (resolvedPublishedAt === "invalid") {
-    return NextResponse.json({ error: "Date de publication invalide" }, { status: 400 });
+    return NextResponse.json({ error: "Invalid publication date" }, { status: 400 });
   }
 
   if (data.status) {

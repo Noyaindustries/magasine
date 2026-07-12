@@ -24,23 +24,23 @@ export async function resendUserInviteAsAdmin(
   input: ResendUserInviteInput
 ): Promise<{ result?: ResendUserInviteResult; error?: string; status?: number }> {
   if (!canManageUsers(input.actorRole)) {
-    return { error: "Accès refusé.", status: 403 };
+    return { error: "Access denied.", status: 403 };
   }
 
   if (!isUserInviteMailConfigured()) {
     return {
-      error: "SMTP non configuré. Ajoutez SMTP_HOST et SMTP_FROM à votre environnement.",
+      error: "SMTP is not configured. Add SMTP_HOST and SMTP_FROM to your environment.",
       status: 503,
     };
   }
 
   const user = await User.findById(input.userId);
   if (!user) {
-    return { error: "Utilisateur introuvable.", status: 404 };
+    return { error: "User not found.", status: 404 };
   }
 
   if (user.isBanned) {
-    return { error: "Impossible d'inviter un compte banni.", status: 400 };
+    return { error: "Cannot invite a banned account.", status: 400 };
   }
 
   const tempPassword = randomBytes(9).toString("base64url");
@@ -60,7 +60,7 @@ export async function resendUserInviteAsAdmin(
     });
     inviteEmailSent = true;
   } catch (error) {
-    inviteEmailError = error instanceof Error ? error.message : "Échec de l'envoi.";
+    inviteEmailError = error instanceof Error ? error.message : "Failed to send email.";
     console.error("[user-invite] resend failed", user.email, error);
   }
 
@@ -99,7 +99,7 @@ export async function sendInviteAfterUserCreation(options: {
     });
     return { inviteEmailSent: true };
   } catch (error) {
-    const inviteEmailError = error instanceof Error ? error.message : "Échec de l'envoi.";
+    const inviteEmailError = error instanceof Error ? error.message : "Failed to send email.";
     console.error("[user-invite] create failed", options.email, error);
     return { inviteEmailSent: false, inviteEmailError };
   }

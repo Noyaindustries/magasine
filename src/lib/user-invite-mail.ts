@@ -36,69 +36,69 @@ export function buildUserInviteEmailContent(input: UserInviteEmailInput): {
   const loginUrl = `${getSiteUrl()}/login`;
   const roleLabel = CMS_ROLE_LABELS[input.role];
   const inviterLine = input.inviterName
-    ? `${input.inviterName} vous a invité(e) à rejoindre l'équipe.`
-    : `Vous avez été invité(e) à rejoindre ${SITE_NAME}.`;
+    ? `${input.inviterName} invited you to join the team.`
+    : `You have been invited to join ${SITE_NAME}.`;
 
   let credentialsText: string;
   let credentialsHtml: string;
 
   if (input.tempPassword) {
     credentialsText = [
-      `E-mail : ${input.to}`,
-      `Mot de passe temporaire : ${input.tempPassword}`,
+      `Email: ${input.to}`,
+      `Temporary password: ${input.tempPassword}`,
       "",
-      "Changez ce mot de passe après votre première connexion si possible.",
+      "Please change this password after your first sign-in if possible.",
     ].join("\n");
     credentialsHtml = `
-      <p><strong>E-mail :</strong> ${escapeHtml(input.to)}</p>
-      <p><strong>Mot de passe temporaire :</strong> <code style="background:#f4f4f5;padding:2px 6px;border-radius:4px;">${escapeHtml(input.tempPassword)}</code></p>
-      <p style="color:#555;font-size:14px;">Nous vous recommandons de modifier ce mot de passe après votre première connexion.</p>
+      <p><strong>Email:</strong> ${escapeHtml(input.to)}</p>
+      <p><strong>Temporary password:</strong> <code style="background:#f4f4f5;padding:2px 6px;border-radius:4px;">${escapeHtml(input.tempPassword)}</code></p>
+      <p style="color:#555;font-size:14px;">We recommend changing this password after your first sign-in.</p>
     `;
   } else if (input.passwordWasSetByAdmin) {
     credentialsText = [
-      `E-mail : ${input.to}`,
-      "Utilisez le mot de passe que votre administrateur vous a communiqué.",
+      `Email: ${input.to}`,
+      "Use the password your administrator shared with you.",
     ].join("\n");
     credentialsHtml = `
-      <p><strong>E-mail :</strong> ${escapeHtml(input.to)}</p>
-      <p>Utilisez le mot de passe que votre administrateur vous a communiqué.</p>
+      <p><strong>Email:</strong> ${escapeHtml(input.to)}</p>
+      <p>Use the password your administrator shared with you.</p>
     `;
   } else {
-    credentialsText = `E-mail : ${input.to}\nConnectez-vous avec le mot de passe que vous avez choisi.`;
-    credentialsHtml = `<p><strong>E-mail :</strong> ${escapeHtml(input.to)}</p>`;
+    credentialsText = `Email: ${input.to}\nSign in with the password you chose.`;
+    credentialsHtml = `<p><strong>Email:</strong> ${escapeHtml(input.to)}</p>`;
   }
 
-  const subject = `Invitation à rejoindre ${SITE_NAME}`;
+  const subject = `Invitation to join ${SITE_NAME}`;
 
   const text = [
-    `Bonjour ${input.name},`,
+    `Hello ${input.name},`,
     "",
     inviterLine,
     "",
-    `Rôle attribué : ${roleLabel}.`,
+    `Assigned role: ${roleLabel}.`,
     "",
     credentialsText,
     "",
-    `Connexion : ${loginUrl}`,
+    `Sign in: ${loginUrl}`,
     "",
     `— ${getNewsletterFromName()}`,
   ].join("\n");
 
   const html = `
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
   <body style="font-family:Georgia,'Times New Roman',serif;line-height:1.6;color:#111;max-width:560px;margin:0 auto;padding:24px;">
-    <p>Bonjour ${escapeHtml(input.name)},</p>
+    <p>Hello ${escapeHtml(input.name)},</p>
     <p>${escapeHtml(inviterLine)}</p>
-    <p>Votre rôle : <strong>${escapeHtml(roleLabel)}</strong>.</p>
+    <p>Your role: <strong>${escapeHtml(roleLabel)}</strong>.</p>
     ${credentialsHtml}
     <p style="margin-top:24px;">
       <a href="${escapeHtml(loginUrl)}" style="display:inline-block;background:#c41e3a;color:#fff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600;">
-        Se connecter
+        Sign in
       </a>
     </p>
     <p style="font-size:13px;color:#666;margin-top:28px;">
-      Lien direct : <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a>
+      Direct link: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a>
     </p>
     <p style="font-size:13px;color:#888;margin-top:32px;">— ${escapeHtml(getNewsletterFromName())}</p>
   </body>
@@ -109,7 +109,7 @@ export function buildUserInviteEmailContent(input: UserInviteEmailInput): {
 
 export async function sendUserInviteEmail(input: UserInviteEmailInput): Promise<void> {
   if (!isUserInviteMailConfigured()) {
-    throw new Error("SMTP non configuré (SMTP_HOST, SMTP_FROM).");
+    throw new Error("SMTP is not configured (SMTP_HOST, SMTP_FROM).");
   }
 
   const { subject, text, html } = buildUserInviteEmailContent(input);

@@ -35,10 +35,10 @@ export function DemoContentActions({
     setLoading(actionLabels[action]);
     const toastId = toast.loading(
       action === "import"
-        ? "Chargement des articles de test…"
+        ? "Loading test articles…"
         : action === "delete_all"
-          ? "Suppression des articles de test…"
-          : "Marquage des articles de test…"
+          ? "Deleting test articles…"
+          : "Tagging test articles…"
     );
 
     try {
@@ -51,7 +51,7 @@ export function DemoContentActions({
       toast.dismiss(toastId);
 
       if (!res.ok) {
-        toast.error((data as { error?: string }).error ?? "Échec de l'opération");
+        toast.error((data as { error?: string }).error ?? "Operation failed");
         return;
       }
 
@@ -60,8 +60,8 @@ export function DemoContentActions({
         const skipped = (data as { articlesSkipped?: number }).articlesSkipped ?? 0;
         toast.success(
           created > 0
-            ? `${created} article(s) de test chargé(s)${skipped ? `, ${skipped} déjà en base` : ""}.`
-            : "Articles de test déjà en base — ouvrez l'onglet Démo pour les supprimer."
+            ? `${created} test article(s) loaded${skipped ? `, ${skipped} already in database` : ""}.`
+            : "Test articles already in database — open the Demo tab to delete them."
         );
         if (options?.redirectToDemo ?? true) {
           router.push("/admin/articles?demo=1");
@@ -72,15 +72,15 @@ export function DemoContentActions({
         const deleted = (data as { deleted?: number }).deleted ?? 0;
         toast.success(
           deleted > 0
-            ? `${deleted} article(s) de test supprimé(s).`
-            : "Aucun article de test en base."
+            ? `${deleted} test article(s) deleted.`
+            : "No test articles in database."
         );
       } else {
         const tagged = (data as { tagged?: number }).tagged ?? 0;
         toast.success(
           tagged > 0
-            ? `${tagged} article(s) marqué(s) comme test.`
-            : "Les articles de test sont déjà identifiés."
+            ? `${tagged} article(s) tagged as test.`
+            : "Test articles are already identified."
         );
         if (tagged > 0) {
           router.push("/admin/articles?demo=1");
@@ -92,7 +92,7 @@ export function DemoContentActions({
       router.refresh();
     } catch {
       toast.dismiss(toastId);
-      toast.error("Erreur réseau");
+      toast.error("Network error");
     } finally {
       setLoading(null);
     }
@@ -107,16 +107,15 @@ export function DemoContentActions({
           <div className="demo-content-banner-text">
             {virtualDemoCount > 0 ? (
               <>
-                <strong>{virtualDemoCount}</strong> article(s) de test sont visibles sur le site
-                public mais <strong>pas encore dans l&apos;admin</strong> (contenu fictif). Cliquez
-                sur «&nbsp;Charger les articles de test&nbsp;» pour les afficher ici et les
-                supprimer un par un ou en masse.
+                <strong>{virtualDemoCount}</strong> test article(s) are visible on the public site
+                but <strong>not yet in the admin</strong> (placeholder content). Click « Load test
+                articles » to show them here and delete them one by one or in bulk.
               </>
             ) : (
               <>
-                <strong>{demoCount}</strong> article(s) de test en base sur{" "}
-                {seedTotal.toLocaleString("fr-FR")} du pack de démonstration. Utilisez l&apos;onglet{" "}
-                <strong>Démo</strong> pour les filtrer.
+                <strong>{demoCount}</strong> test article(s) in database out of{" "}
+                {seedTotal.toLocaleString("en-US")} in the demo pack. Use the <strong>Demo</strong>{" "}
+                tab to filter them.
               </>
             )}
           </div>
@@ -130,36 +129,36 @@ export function DemoContentActions({
             className="btn btn-out"
             onClick={() =>
               void callDemoApi("import", {
-                confirmMessage: `Charger les articles de test en base (${virtualDemoCount > 0 ? virtualDemoCount : "restants"} à importer) ? Vous pourrez ensuite les supprimer depuis l'onglet Démo.`,
+                confirmMessage: `Load test articles into the database (${virtualDemoCount > 0 ? virtualDemoCount : "remaining"} to import)? You can then delete them from the Demo tab.`,
                 redirectToDemo: true,
               })
             }
             disabled={loading !== null}
           >
             {loading === "import"
-              ? "Chargement…"
+              ? "Loading…"
               : virtualDemoCount > 0
-                ? `Charger les articles de test (${virtualDemoCount})`
-                : "Compléter les articles de test"}
+                ? `Load test articles (${virtualDemoCount})`
+                : "Complete test articles"}
           </button>
         )}
 
         {demoCount > 0 && (
           <>
             <Link href="/admin/articles?demo=1" className="btn btn-ghost">
-              Voir les tests ({demoCount})
+              View tests ({demoCount})
             </Link>
             <button
               type="button"
               className="btn btn-ghost cms-delete-btn"
               onClick={() =>
                 void callDemoApi("delete_all", {
-                  confirmMessage: `Supprimer définitivement les ${demoCount} article(s) de test ? Vos propres articles ne seront pas touchés.`,
+                  confirmMessage: `Permanently delete ${demoCount} test article(s)? Your own articles will not be affected.`,
                 })
               }
               disabled={loading !== null}
             >
-              {loading === "delete" ? "Suppression…" : "Supprimer tous les tests"}
+              {loading === "delete" ? "Deleting…" : "Delete all tests"}
             </button>
           </>
         )}
@@ -171,13 +170,13 @@ export function DemoContentActions({
             onClick={() =>
               void callDemoApi("tag_existing", {
                 confirmMessage:
-                  "Marquer les anciens articles seed comme « test » pour les retrouver dans l'onglet Démo ?",
+                  "Mark legacy seed articles as « test » so you can find them in the Demo tab?",
               })
             }
             disabled={loading !== null}
-            title="Si des articles de test sont en base mais non détectés"
+            title="If test articles are in the database but not detected"
           >
-            {loading === "tag" ? "…" : "Identifier les articles seed"}
+            {loading === "tag" ? "…" : "Identify seed articles"}
           </button>
         )}
       </div>

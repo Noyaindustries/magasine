@@ -39,7 +39,7 @@ export async function deleteAuthorAsAdmin(
 ): Promise<DeleteAuthorResult> {
   const author = await Author.findById(authorId);
   if (!author) {
-    return { error: "Auteur introuvable.", status: 404 };
+    return { error: "Author not found.", status: 404 };
   }
 
   const articles = await Article.find({ authors: authorId }).select("slug authors").lean();
@@ -49,8 +49,8 @@ export async function deleteAuthorAsAdmin(
     return {
       error:
         soleAuthorArticles.length === 1
-          ? "Impossible de supprimer : 1 article n'a que cet auteur. Réattribuez-le d'abord dans Articles."
-          : `Impossible de supprimer : ${soleAuthorArticles.length} articles n'ont que cet auteur. Réattribuez-les d'abord dans Articles.`,
+          ? "Cannot delete: 1 article has only this author. Reassign it first in Articles."
+          : `Cannot delete: ${soleAuthorArticles.length} articles have only this author. Reassign them first in Articles.`,
       status: 409,
     };
   }
