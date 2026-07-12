@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { isNewsletterMailConfigured } from "@/lib/newsletter-mail";
 import { connectDB } from "@/lib/mongodb";
+import { isNewsletterBodyHtml, sanitizeNewsletterBodyHtml } from "@/lib/newsletter-body-html";
 import { getSubscriberEmailsForList, sendNewsletterCampaignById } from "@/lib/newsletter-send";
 import { NewsletterCampaign } from "@/models/NewsletterCampaign";
 
@@ -71,11 +72,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No active subscribers match this list." }, { status: 400 });
   }
 
+  const rawBody = parsed.data.body.trim();
+  const campaignBody = isNewsletterBodyHtml(rawBody)
+    ? sanitizeNewsletterBodyHtml(rawBody) || rawBody
+    : rawBody;
+
   const campaign = await NewsletterCampaign.create({
     title: parsed.data.title,
     subtitle: parsed.data.subject,
     subject: parsed.data.subject,
-    body: parsed.data.body,
+    body: campaignBody,
     listTarget: parsed.data.listTarget,
     status: isScheduled ? "scheduled" : "draft",
     scheduledAt: isScheduled ? scheduledAt : undefined,

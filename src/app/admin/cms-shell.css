@@ -2571,6 +2571,77 @@ body:has(.cms-shell) {
   line-height: 1.7;
 }
 
+.cms-shell .cms-newsletter-editor .ebody {
+  min-height: 180px;
+}
+
+.cms-shell .cms-newsletter-editor-hint {
+  margin: 8px 2px 0;
+}
+
+.cms-shell .cms-prose.cms-newsletter-prose img,
+.cms-shell .nlptxt.cms-newsletter-prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 12px auto;
+  border-radius: 8px;
+}
+
+.cms-shell .cms-prose.cms-newsletter-prose figure,
+.cms-shell .nlptxt.cms-newsletter-prose figure {
+  margin: 12px 0;
+}
+
+.cms-shell .cms-newsletter-media-modal {
+  max-width: 720px;
+}
+
+.cms-shell .cms-newsletter-media-modal-body {
+  max-height: min(60dvh, 520px);
+  overflow-y: auto;
+}
+
+.cms-shell .cms-newsletter-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.cms-shell .cms-newsletter-media-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg0);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: left;
+}
+
+.cms-shell .cms-newsletter-media-item:hover {
+  border-color: var(--cms-red);
+}
+
+.cms-shell .cms-newsletter-media-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.cms-shell .cms-newsletter-media-item span {
+  font-size: 11px;
+  color: var(--t2);
+  padding: 0 8px 8px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cms-shell .cms-newsletter-main {
   display: flex;
   flex-direction: column;

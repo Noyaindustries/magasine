@@ -7,6 +7,11 @@ import {
   resolveNewsletterEmailHeaderTitle,
   resolveNewsletterEmailLogoUrl,
 } from "@/lib/newsletter-email-branding";
+import {
+  isNewsletterBodyHtml,
+  newsletterBodyHtmlToEmailFragment,
+  newsletterBodyToPlainText,
+} from "@/lib/newsletter-body-html";
 import { createNewsletterUnsubscribeUrl } from "@/lib/newsletter-unsubscribe";
 import { getSiteUrl } from "@/lib/site";
 import { getPublicSiteSettings } from "@/lib/site-settings";
@@ -32,6 +37,13 @@ function textToHtmlParagraphs(text: string): string {
     .join("");
 }
 
+function buildNewsletterBodyHtml(body: string): string {
+  if (isNewsletterBodyHtml(body)) {
+    return newsletterBodyHtmlToEmailFragment(body);
+  }
+  return textToHtmlParagraphs(body);
+}
+
 export function buildNewsletterEmailContent(options: {
   subject: string;
   body: string;
@@ -40,8 +52,11 @@ export function buildNewsletterEmailContent(options: {
   logoUrl: string;
   unsubscribeUrl: string;
 }): { text: string; html: string } {
+  const bodyText = isNewsletterBodyHtml(options.body)
+    ? newsletterBodyToPlainText(options.body)
+    : options.body;
   const footer = `\n\n— ${options.headerTitle}\nUnsubscribe: ${options.unsubscribeUrl}`;
-  const text = `${options.body}${footer}`;
+  const text = `${bodyText}${footer}`;
 
   const siteUrl = getSiteUrl();
   const headerHtml = `
@@ -76,7 +91,7 @@ export function buildNewsletterEmailContent(options: {
             </tr>
             <tr>
               <td style="padding:0 32px 32px;font-size:16px;">
-                ${textToHtmlParagraphs(options.body)}
+                ${buildNewsletterBodyHtml(options.body)}
               </td>
             </tr>
             <tr>

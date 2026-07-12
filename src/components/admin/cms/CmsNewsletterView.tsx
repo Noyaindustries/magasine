@@ -11,6 +11,12 @@ import {
   formatNewsletterDefaultSubject,
   resolveNewsletterEmailHeaderTitle,
 } from "@/lib/newsletter-email-branding";
+import {
+  isNewsletterBodyHtml,
+  plainTextToNewsletterEditorHtml,
+  sanitizeNewsletterBodyHtml,
+} from "@/lib/newsletter-body-html";
+import { CmsNewsletterBodyEditor } from "@/components/admin/cms/CmsNewsletterBodyEditor";
 
 interface CampaignRow {
   _id: string;
@@ -51,7 +57,9 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
   const [listTarget, setListTarget] = useState("all");
   const [scheduledAt, setScheduledAt] = useState("");
   const [body, setBody] = useState(
-    `Hello,\n\nHere is today's editorial selection.\n\n— The ${siteName} team`
+    plainTextToNewsletterEditorHtml(
+      `Hello,\n\nHere is today's editorial selection.\n\n— The ${siteName} team`
+    )
   );
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -409,9 +417,16 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
             </div>
             <div className="nlpbody">
               <div className="nlpsubj">{subject}</div>
-              <div className="nlptxt" style={{ whiteSpace: "pre-wrap" }}>
-                {body}
-              </div>
+              {isNewsletterBodyHtml(body) ? (
+                <div
+                  className="nlptxt cms-prose cms-newsletter-prose"
+                  dangerouslySetInnerHTML={{ __html: sanitizeNewsletterBodyHtml(body) }}
+                />
+              ) : (
+                <div className="nlptxt" style={{ whiteSpace: "pre-wrap" }}>
+                  {body}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -464,13 +479,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                 <label className="lbl" htmlFor="nl-body">
                   Message body
                 </label>
-                <textarea
-                  id="nl-body"
-                  className="input"
-                  rows={4}
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                />
+                <CmsNewsletterBodyEditor value={body} onChange={setBody} />
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="nl-list">
