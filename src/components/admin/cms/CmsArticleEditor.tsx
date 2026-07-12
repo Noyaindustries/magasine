@@ -35,6 +35,7 @@ import {
 } from "@/lib/article-content-types";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { isRegionCategoryRecord } from "@/lib/region-category-slugs";
+import { toDatetimeLocalValue } from "@/lib/admin-article-dates";
 
 interface Category {
   _id: string;
@@ -61,6 +62,7 @@ interface ArticleEditorForm {
   authorIds: string[];
   tags: string[];
   publishMode: PublishMode;
+  publishedAt: string;
   scheduledAt: string;
   seoTitle: string;
   seoDescription: string;
@@ -87,6 +89,7 @@ const EMPTY_FORM: ArticleEditorForm = {
   authorIds: [],
   tags: [],
   publishMode: "draft",
+  publishedAt: "",
   scheduledAt: "",
   seoTitle: "",
   seoDescription: "",
@@ -353,9 +356,8 @@ export function CmsArticleEditor({
                 : [],
           tags: article.tags ?? [],
           publishMode: mapStatusToPublishMode(article.status ?? "draft"),
-          scheduledAt: article.scheduledAt
-            ? new Date(article.scheduledAt).toISOString().slice(0, 16)
-            : "",
+          publishedAt: toDatetimeLocalValue(article.publishedAt),
+          scheduledAt: toDatetimeLocalValue(article.scheduledAt),
           seoTitle: article.seoTitle ?? "",
           seoDescription: article.seoDescription ?? "",
           slug: article.slug ?? "",
@@ -427,8 +429,14 @@ export function CmsArticleEditor({
         authorIds: form.authorIds,
         tags: form.tags,
         status: publishModeToStatus(publishMode),
+        publishedAt:
+          publishMode === "publish" && form.publishedAt
+            ? new Date(form.publishedAt).toISOString()
+            : undefined,
         scheduledAt:
-          publishMode === "schedule" && form.scheduledAt ? form.scheduledAt : undefined,
+          publishMode === "schedule" && form.scheduledAt
+            ? new Date(form.scheduledAt).toISOString()
+            : undefined,
         seoTitle: form.seoTitle.trim() || undefined,
         seoDescription: form.seoDescription.trim() || undefined,
         slug: form.slug.trim() || undefined,
@@ -797,7 +805,7 @@ export function CmsArticleEditor({
             </div>
             <div className="card-body cms-stack">
               <div className="field">
-                <label className="lbl">Status</label>
+                <label className="lbl">Statut</label>
                 <select
                   className="input sel"
                   value={form.publishMode}
@@ -805,22 +813,38 @@ export function CmsArticleEditor({
                     patchForm({ publishMode: e.target.value as PublishMode })
                   }
                 >
-                  <option value="draft">Draft</option>
-                  <option value="review">In review</option>
-                  <option value="publish">Publish immediately</option>
-                  <option value="schedule">Schedule</option>
+                  <option value="draft">Brouillon</option>
+                  <option value="review">En relecture</option>
+                  <option value="publish">Publié</option>
+                  <option value="schedule">Planifié</option>
                 </select>
               </div>
-              <div className="field">
-                <label className="lbl">Publish date</label>
-                <input
-                  className="input"
-                  type="datetime-local"
-                  value={form.scheduledAt}
-                  onChange={(e) => patchForm({ scheduledAt: e.target.value })}
-                  disabled={form.publishMode !== "schedule"}
-                />
-              </div>
+              {form.publishMode === "publish" && (
+                <div className="field">
+                  <label className="lbl">Date affichée sur le site</label>
+                  <input
+                    className="input"
+                    type="datetime-local"
+                    value={form.publishedAt}
+                    onChange={(e) => patchForm({ publishedAt: e.target.value })}
+                  />
+                  <p className="cms-field-hint">
+                    Laissez vide pour la date et l&apos;heure actuelles. Choisissez une date passée
+                    pour antidater l&apos;article.
+                  </p>
+                </div>
+              )}
+              {form.publishMode === "schedule" && (
+                <div className="field">
+                  <label className="lbl">Date de publication planifiée</label>
+                  <input
+                    className="input"
+                    type="datetime-local"
+                    value={form.scheduledAt}
+                    onChange={(e) => patchForm({ scheduledAt: e.target.value })}
+                  />
+                </div>
+              )}
               <div className="cms-publish-actions">
                 <button
                   type="button"

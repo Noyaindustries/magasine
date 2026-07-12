@@ -131,4 +131,34 @@ test.describe("Admin — articles (API)", () => {
     await page.request.delete(`/api/admin/articles/${created._id}`);
     await page.request.delete(`/api/admin/authors/${secondAuthor._id}`);
   });
+
+  test("antidate un article publié via publishedAt", async ({ page }) => {
+    const stamp = Date.now();
+    const { categoryId, authorId } = await fetchMetaIds(page);
+    const backdate = new Date("2020-06-15T10:30:00.000Z").toISOString();
+
+    const createRes = await page.request.post("/api/admin/articles", {
+      data: {
+        title: `E2E antidate ${stamp}`,
+        excerpt: "Résumé antidate E2E",
+        content: "<p>Article antidaté E2E.</p>",
+        featuredImage:
+          "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=630&fit=crop",
+        categoryId,
+        authorId,
+        status: "published",
+        publishedAt: backdate,
+        slug: `e2e-antidate-${stamp}`,
+      },
+    });
+    expect(createRes.status(), await createRes.text()).toBe(201);
+    const created = (await createRes.json()) as { _id: string };
+
+    const getRes = await page.request.get(`/api/admin/articles/${created._id}`);
+    expect(getRes.ok()).toBeTruthy();
+    const article = (await getRes.json()) as { publishedAt?: string };
+    expect(new Date(article.publishedAt!).toISOString()).toBe(backdate);
+
+    await page.request.delete(`/api/admin/articles/${created._id}`);
+  });
 });

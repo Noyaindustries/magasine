@@ -14,6 +14,7 @@ import { assignArticleCategories } from "@/lib/article-category-assignment";
 import { getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 import { resolveAuthorIdsFromInput } from "@/lib/admin-article-authors";
+import { resolvePublishedAtForSave } from "@/lib/admin-article-dates";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -35,6 +36,7 @@ const schema = z.object({
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]),
   scheduledAt: z.string().optional(),
+  publishedAt: z.string().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
   slug: z.string().optional(),
@@ -119,6 +121,14 @@ export async function POST(request: NextRequest) {
       featuredImage = IMG.finance;
     }
 
+    const publishedAt = resolvePublishedAtForSave({
+      status: parsed.data.status,
+      publishedAtInput: parsed.data.publishedAt,
+    });
+    if (publishedAt === "invalid") {
+      return NextResponse.json({ error: "Date de publication invalide" }, { status: 400 });
+    }
+
     const article = await Article.create({
       title: parsed.data.title,
       subtitle: parsed.data.subtitle,
@@ -132,7 +142,7 @@ export async function POST(request: NextRequest) {
       authors: authorIds,
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,
-      publishedAt: parsed.data.status === "published" ? new Date() : undefined,
+      publishedAt: parsed.data.status === "published" ? publishedAt : undefined,
       scheduledAt: parsed.data.scheduledAt ? new Date(parsed.data.scheduledAt) : undefined,
       readingTime: estimateReadingTime(parsed.data.content),
       seoTitle: parsed.data.seoTitle,

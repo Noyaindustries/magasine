@@ -20,6 +20,7 @@ import {
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 import { invalidatePublishedArticleCountCache } from "@/lib/data";
 import { normalizeAuthorIds } from "@/lib/format-authors";
+import { resolvePublishedAtForSave } from "@/lib/admin-article-dates";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -41,6 +42,7 @@ const updateSchema = z.object({
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]).optional(),
   scheduledAt: z.string().optional(),
+  publishedAt: z.string().optional(),
   seoTitle: z.string().optional(),
   seoDescription: z.string().optional(),
   slug: z.string().optional(),
@@ -99,6 +101,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     authorId: article.authors[0] ? String(article.authors[0]) : "",
     tags: article.tags,
     status: article.status,
+    publishedAt: article.publishedAt ? new Date(article.publishedAt).toISOString() : undefined,
     scheduledAt: article.scheduledAt ? new Date(article.scheduledAt).toISOString() : undefined,
     seoTitle: article.seoTitle ?? "",
     seoDescription: article.seoDescription ?? "",
@@ -196,12 +199,26 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.tags) article.tags = data.tags;
   if (data.seoTitle !== undefined) article.seoTitle = data.seoTitle;
   if (data.seoDescription !== undefined) article.seoDescription = data.seoDescription;
+
+  const nextStatus = data.status ?? article.status;
+  const resolvedPublishedAt = resolvePublishedAtForSave({
+    status: nextStatus,
+    publishedAtInput: data.publishedAt,
+    existingPublishedAt: article.publishedAt,
+  });
+  if (resolvedPublishedAt === "invalid") {
+    return NextResponse.json({ error: "Date de publication invalide" }, { status: 400 });
+  }
+
   if (data.status) {
     article.status = data.status;
-    if (data.status === "published" && !article.publishedAt) {
-      article.publishedAt = new Date();
-    }
   }
+  if (nextStatus === "published" && resolvedPublishedAt) {
+    article.publishedAt = resolvedPublishedAt;
+  } else if (data.publishedAt !== undefined && resolvedPublishedAt) {
+    article.publishedAt = resolvedPublishedAt;
+  }
+
   if (data.scheduledAt) {
     article.scheduledAt = new Date(data.scheduledAt);
     if (!data.status) article.status = "scheduled";
