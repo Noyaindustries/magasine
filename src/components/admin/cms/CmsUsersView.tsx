@@ -36,6 +36,7 @@ const FILTER_TABS: { id: UserListFilter; label: string; countKey: keyof AdminUse
 interface CmsUsersViewProps {
   actorRole: UserRole;
   actorId: string;
+  mailConfigured: boolean;
   users: AdminUserRow[];
   counts: AdminUserCounts;
   editorialTeam: AdminUserRow[];
@@ -71,6 +72,7 @@ function matrixCell(value: boolean | "own" | string) {
 export function CmsUsersView({
   actorRole,
   actorId,
+  mailConfigured,
   users,
   counts,
   editorialTeam,
@@ -94,10 +96,11 @@ export function CmsUsersView({
   const createUser = async (values: CmsUserFormValues) => {
     setSaving(true);
     try {
-      const payload: Record<string, string> = {
+      const payload: Record<string, string | boolean> = {
         name: values.name.trim(),
         email: values.email.trim(),
         role: values.role,
+        sendInvite: values.sendInvite,
       };
       if (values.password.trim()) {
         payload.password = values.password.trim();
@@ -118,15 +121,54 @@ export function CmsUsersView({
       }
 
       setCreateOpen(false);
-      if (data.tempPassword) {
-        toast.success("User created", {
-          description: `${data.email} · Temporary password: ${data.tempPassword}`,
+      if (data.inviteEmailSent) {
+        toast.success("Utilisateur créé", {
+          description: `Invitation envoyée à ${data.email}`,
+        });
+      } else if (data.tempPassword) {
+        toast.success("Utilisateur créé", {
+          description: `${data.email} · Mot de passe temporaire : ${data.tempPassword}`,
           duration: 12000,
+        });
+      } else if (data.inviteEmailError) {
+        toast.success("Utilisateur créé", {
+          description: `E-mail non envoyé : ${data.inviteEmailError}`,
+          duration: 10000,
         });
       } else {
         toast.success("User created", { description: data.email });
       }
       refresh();
+    } catch {
+      toastNetworkError();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const resendInvite = async (user: AdminUserRow) => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/users/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user._id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Impossible d'envoyer l'invitation.");
+        return;
+      }
+      if (data.inviteEmailSent) {
+        toast.success("Invitation renvoyée", { description: data.email });
+      } else if (data.tempPassword) {
+        toast.success("Mot de passe régénéré", {
+          description: `${data.email} · Nouveau mot de passe : ${data.tempPassword}`,
+          duration: 12000,
+        });
+      } else {
+        toast.error(data.inviteEmailError ?? "Échec de l'envoi de l'invitation.");
+      }
     } catch {
       toastNetworkError();
     } finally {
@@ -235,6 +277,19 @@ export function CmsUsersView({
           </button>
         </div>
       </div>
+
+      {!mailConfigured && (
+        <div className="card mb20">
+          <div className="card-body">
+            <p className="cms-field-hint" style={{ margin: 0 }}>
+              Les invitations par e-mail ne sont pas actives. Configurez{" "}
+              <strong>SMTP_HOST</strong> et <strong>SMTP_FROM</strong> dans votre environnement (mêmes
+              variables que la newsletter) pour envoyer automatiquement les identifiants aux nouveaux
+              membres.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="card mb20">
         <div className="card-header">
@@ -398,6 +453,7 @@ export function CmsUsersView({
         open={createOpen}
         mode="create"
         actorRole={actorRole}
+        mailConfigured={mailConfigured}
         saving={saving}
         onClose={() => setCreateOpen(false)}
         onSubmit={(values) => void createUser(values)}
@@ -407,6 +463,7 @@ export function CmsUsersView({
         open={editUser !== null}
         mode="edit"
         actorRole={actorRole}
+        mailConfigured={mailConfigured}
         initial={
           editUser
             ? {
@@ -437,6 +494,13 @@ export function CmsUsersView({
           editUser
             ? () => {
                 void removeMember(editUser);
+              }
+            : undefined
+        }
+        onResendInvite={
+          editUser && !editUser.isBanned
+            ? () => {
+                void resendInvite(editUser);
               }
             : undefined
         }

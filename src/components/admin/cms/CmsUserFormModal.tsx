@@ -15,12 +15,14 @@ export interface CmsUserFormValues {
   isPremium: boolean;
   isBanned: boolean;
   image: string;
+  sendInvite: boolean;
 }
 
 interface CmsUserFormModalProps {
   open: boolean;
   mode: "create" | "edit";
   actorRole: UserRole;
+  mailConfigured?: boolean;
   initial?: {
     name: string;
     email: string;
@@ -35,6 +37,7 @@ interface CmsUserFormModalProps {
   onClose: () => void;
   onSubmit: (values: CmsUserFormValues) => void;
   onDelete?: () => void;
+  onResendInvite?: () => void;
 }
 
 const DEFAULT_ROLE: UserRole = "author";
@@ -43,6 +46,7 @@ export function CmsUserFormModal({
   open,
   mode,
   actorRole,
+  mailConfigured = false,
   initial,
   canDelete = false,
   articleCount = 0,
@@ -50,6 +54,7 @@ export function CmsUserFormModal({
   onClose,
   onSubmit,
   onDelete,
+  onResendInvite,
 }: CmsUserFormModalProps) {
   const [mounted, setMounted] = useState(false);
   const [name, setName] = useState("");
@@ -59,6 +64,7 @@ export function CmsUserFormModal({
   const [isPremium, setIsPremium] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
   const [image, setImage] = useState("");
+  const [sendInvite, setSendInvite] = useState(true);
 
   const assignableRoles = getAssignableRoles(actorRole);
 
@@ -76,6 +82,7 @@ export function CmsUserFormModal({
       setIsPremium(initial.isPremium);
       setIsBanned(initial.isBanned);
       setImage(initial.image ?? "");
+      setSendInvite(false);
       return;
     }
     setName("");
@@ -85,7 +92,8 @@ export function CmsUserFormModal({
     setIsPremium(false);
     setIsBanned(false);
     setImage("");
-  }, [open, mode, initial, assignableRoles]);
+    setSendInvite(mailConfigured);
+  }, [open, mode, initial, assignableRoles, mailConfigured]);
 
   if (!open || !mounted) return null;
 
@@ -94,7 +102,7 @@ export function CmsUserFormModal({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onSubmit({ name, email, role, password, isPremium, isBanned, image });
+    onSubmit({ name, email, role, password, isPremium, isBanned, image, sendInvite });
   };
 
   return createPortal(
@@ -183,7 +191,8 @@ export function CmsUserFormModal({
                   disabled={saving}
                 />
                 <p className="cms-field-hint">
-                  If empty, a temporary password is generated and shown once after creation.
+                  If empty, a temporary password is generated and shown once after creation
+                  {mailConfigured ? " (or sent by email if invitation is enabled)." : "."}
                 </p>
               </div>
             ) : (
@@ -199,6 +208,24 @@ export function CmsUserFormModal({
                   placeholder="Leave empty to keep current password"
                   disabled={saving}
                 />
+              </div>
+            )}
+
+            {mode === "create" && mailConfigured && (
+              <div className="admin-field">
+                <label className="admin-checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={sendInvite}
+                    onChange={(e) => setSendInvite(e.target.checked)}
+                    disabled={saving}
+                  />
+                  Envoyer une invitation par e-mail
+                </label>
+                <p className="cms-field-hint">
+                  L&apos;invité recevra un lien de connexion et son mot de passe temporaire (sauf si
+                  vous en définissez un vous-même).
+                </p>
               </div>
             )}
 
@@ -232,7 +259,7 @@ export function CmsUserFormModal({
             )}
           </div>
           <div className="admin-modal-footer" style={{ justifyContent: "space-between" }}>
-            <div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {mode === "edit" && canDelete && onDelete ? (
                 <button
                   type="button"
@@ -242,6 +269,17 @@ export function CmsUserFormModal({
                   disabled={saving}
                 >
                   Supprimer
+                </button>
+              ) : null}
+              {mode === "edit" && mailConfigured && onResendInvite && !initial?.isBanned ? (
+                <button
+                  type="button"
+                  className="btn btn-out"
+                  onClick={onResendInvite}
+                  disabled={saving || initial?.role === "super_admin"}
+                  title="Génère un nouveau mot de passe temporaire et l'envoie par e-mail"
+                >
+                  Renvoyer l&apos;invitation
                 </button>
               ) : null}
             </div>

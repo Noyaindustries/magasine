@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { createUserAsAdmin } from "@/lib/admin-create-user";
+import { sendInviteAfterUserCreation } from "@/lib/admin-resend-user-invite";
 import { deleteUserAsAdmin, updateUserAsAdmin } from "@/lib/admin-update-user";
 import { getAdminUsers, type UserListFilter } from "@/lib/admin-users";
 import { USER_ROLES, assertCanAssignRole } from "@/lib/user-roles";
@@ -19,6 +20,7 @@ const createSchema = z.object({
   role: roleEnum,
   password: z.string().min(8).optional(),
   image: imageSrcField,
+  sendInvite: z.boolean().optional(),
 });
 
 const patchSchema = z.object({
@@ -67,7 +69,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: result.status ?? 400 });
   }
 
-  return NextResponse.json(result.user, { status: 201 });
+  const user = result.user!;
+  const shouldSendInvite = parsed.data.sendInvite !== false;
+  let inviteEmailSent = false;
+  let inviteEmailError: string | undefined;
+
+  if (shouldSendInvite) {
+    const invite = await sendInviteAfterUserCreation({
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      tempPassword: user.tempPassword,
+      passwordWasSetByAdmin: Boolean(parsed.data.password?.trim() && !user.tempPassword),
+      inviterName: guard.session!.user.name ?? undefined,
+    });
+    inviteEmailSent = invite.inviteEmailSent;
+    inviteEmailError = invite.inviteEmailError;
+  }
+
+  return NextResponse.json(
+    {
+      ...user,
+      inviteEmailSent,
+      inviteEmailError,
+    },
+    { status: 201 }
+  );
 }
 
 export async function PATCH(request: NextRequest) {

@@ -5,6 +5,7 @@ import { CmsUsersView } from "@/components/admin/cms/CmsUsersView";
 import { canManageUsers } from "@/lib/permissions";
 import { getAdminUsers, type UserListFilter } from "@/lib/admin-users";
 import { getRolePermissionsMatrix } from "@/lib/role-permissions-matrix";
+import { isUserInviteMailConfigured } from "@/lib/user-invite-mail";
 
 interface PageProps {
   searchParams: Promise<{
@@ -37,6 +38,7 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
     <CmsUsersView
       actorRole={session.user.role}
       actorId={session.user.id}
+      mailConfigured={isUserInviteMailConfigured()}
       users={data.users}
       counts={data.counts}
       editorialTeam={data.editorialTeam}
