@@ -15,12 +15,14 @@ interface CmsArticleGalleryEditorProps {
   items: GalleryFormItem[];
   onChange: (items: GalleryFormItem[]) => void;
   uploadTitle?: string;
+  onInsertIntoBody?: (item: GalleryFormItem) => void;
 }
 
 export function CmsArticleGalleryEditor({
   items,
   onChange,
   uploadTitle,
+  onInsertIntoBody,
 }: CmsArticleGalleryEditorProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -81,6 +83,16 @@ export function CmsArticleGalleryEditor({
             <p className="cms-branding-path">
               <code>{item.url}</code>
             </p>
+            {onInsertIntoBody && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-xs cms-gallery-insert-body"
+                onClick={() => onInsertIntoBody(item)}
+                title="Insérer dans le corps de l'article à la position du curseur"
+              >
+                Insérer dans le corps
+              </button>
+            )}
           </div>
           <div className="cms-gallery-item-actions">
             <button

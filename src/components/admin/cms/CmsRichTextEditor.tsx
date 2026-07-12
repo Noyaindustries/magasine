@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import { cn } from "@/lib/utils";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
@@ -40,16 +40,30 @@ import {
   Video,
 } from "@/components/admin/cms/CmsIcons";
 
+export interface CmsRichTextEditorInsertImageOptions {
+  src: string;
+  alt?: string;
+  caption?: string | null;
+  layout?: ArticleImageLayout;
+}
+
+export interface CmsRichTextEditorActions {
+  insertImage: (options: CmsRichTextEditorInsertImageOptions) => boolean;
+  focus: () => void;
+}
+
 interface CmsRichTextEditorProps {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  editorActionsRef?: MutableRefObject<CmsRichTextEditorActions | null>;
 }
 
 export function CmsRichTextEditor({
   value,
   onChange,
   placeholder = "Continue writing your article here…",
+  editorActionsRef,
 }: CmsRichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -100,6 +114,33 @@ export function CmsRichTextEditor({
       editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [editor, value]);
+
+  useEffect(() => {
+    if (!editor || !editorActionsRef) return;
+
+    editorActionsRef.current = {
+      insertImage: ({ src, alt, caption, layout = "block" }) => {
+        if (!src.trim()) return false;
+        return editor
+          .chain()
+          .focus()
+          .setImage({
+            src: src.trim(),
+            alt: alt?.trim() || "",
+            layout,
+            caption: caption?.trim() || null,
+          })
+          .run();
+      },
+      focus: () => {
+        editor.commands.focus();
+      },
+    };
+
+    return () => {
+      editorActionsRef.current = null;
+    };
+  }, [editor, editorActionsRef]);
 
   const toolBtn = (label: React.ReactNode, action: () => void, active?: boolean, disabled?: boolean) => (
     <button

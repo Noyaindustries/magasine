@@ -3132,6 +3132,11 @@ body:has(.cms-shell) {
   gap: 6px;
 }
 
+.cms-shell .cms-gallery-insert-body {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
 .cms-shell .cms-gallery-item-actions {
   display: flex;
   flex-direction: column;

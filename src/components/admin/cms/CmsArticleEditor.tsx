@@ -28,6 +28,7 @@ import { estimateReadingTime } from "@/lib/utils";
 import { getSiteHostname } from "@/lib/site";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { CmsArticleGalleryEditor, type GalleryFormItem } from "@/components/admin/cms/CmsArticleGalleryEditor";
+import type { CmsRichTextEditorActions } from "@/components/admin/cms/CmsRichTextEditor";
 import {
   ARTICLE_CONTENT_TYPES,
   type ArticleContentType,
@@ -171,6 +172,7 @@ export function CmsArticleEditor({
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const coverFileRef = useRef<HTMLInputElement>(null);
   const videoFileRef = useRef<HTMLInputElement>(null);
+  const bodyEditorActionsRef = useRef<CmsRichTextEditorActions | null>(null);
   const autoSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyRef = useRef(false);
 
@@ -576,6 +578,25 @@ export function CmsArticleEditor({
     }
   };
 
+  const insertGalleryItemIntoBody = useCallback((item: GalleryFormItem) => {
+    const actions = bodyEditorActionsRef.current;
+    if (!actions) {
+      toast.error("L'éditeur de texte n'est pas prêt. Réessayez dans un instant.");
+      return;
+    }
+    const inserted = actions.insertImage({
+      src: item.url,
+      alt: item.caption || item.credit || "",
+      caption: item.caption || null,
+      layout: "block",
+    });
+    if (inserted) {
+      toast.success("Image insérée dans le corps de l'article.");
+    } else {
+      toast.error("Impossible d'insérer l'image dans le corps.");
+    }
+  }, []);
+
   const uploadVideo = async (file: File) => {
     if (!file.type.startsWith("video/")) {
       toast.error("Only video files are allowed (MP4 recommended).");
@@ -713,6 +734,7 @@ export function CmsArticleEditor({
             <CmsRichTextEditor
               value={form.content}
               onChange={(content) => patchForm({ content })}
+              editorActionsRef={bodyEditorActionsRef}
             />
             <div className="cms-editor-meta-row">
               <span>
@@ -1157,12 +1179,15 @@ export function CmsArticleEditor({
             </div>
             <div className="card-body">
               <p className="cms-field-hint cms-gallery-intro">
-                Additional images shown in the article detail page (caption and credit optional).
+                Images complémentaires affichées sur la fiche article (galerie en fin de page, ou en
+                tête pour un dossier photo). Utilisez « Insérer dans le corps » pour placer une image
+                dans le texte à la position du curseur.
               </p>
               <CmsArticleGalleryEditor
                 items={form.gallery}
                 onChange={(gallery) => patchForm({ gallery })}
                 uploadTitle={form.title}
+                onInsertIntoBody={insertGalleryItemIntoBody}
               />
             </div>
           </div>
