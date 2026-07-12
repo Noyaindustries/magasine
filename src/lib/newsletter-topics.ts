@@ -43,4 +43,38 @@ export const NEWSLETTER_TOPICS = [
 
 export type NewsletterTopicId = (typeof NEWSLETTER_TOPICS)[number]["id"];
 
+/** Une seule édition pour l'instant — repasser à `true` pour réactiver le choix multi-éditions. */
+export const NEWSLETTER_MULTI_EDITION_ENABLED = false;
+
+export const PRIMARY_NEWSLETTER_TOPIC_ID: NewsletterTopicId = "general";
+
 export const DEFAULT_NEWSLETTER_TOPICS: NewsletterTopicId[] = ["general", "weekly"];
+
+export function isNewsletterMultiEditionEnabled(): boolean {
+  return NEWSLETTER_MULTI_EDITION_ENABLED;
+}
+
+export function getNewsletterSignupPreferences(
+  preferences?: readonly string[] | null
+): NewsletterTopicId[] {
+  if (!NEWSLETTER_MULTI_EDITION_ENABLED) {
+    return [PRIMARY_NEWSLETTER_TOPIC_ID];
+  }
+
+  if (preferences?.length) {
+    const valid = preferences.filter((id): id is NewsletterTopicId =>
+      NEWSLETTER_TOPICS.some((topic) => topic.id === id)
+    );
+    if (valid.length > 0) return valid;
+  }
+
+  return [...DEFAULT_NEWSLETTER_TOPICS];
+}
+
+export const DEFAULT_NEWSLETTER_BENEFITS = [
+  "Daily briefing every morning",
+  isNewsletterMultiEditionEnabled()
+    ? "Regional editions you choose"
+    : "Independent journalism from the Global South",
+  "Investigation alerts — always free",
+] as const;

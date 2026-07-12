@@ -3,7 +3,11 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { Newsletter } from "@/models/Newsletter";
-import { NEWSLETTER_TOPICS, type NewsletterTopicId } from "@/lib/newsletter-topics";
+import {
+  getNewsletterSignupPreferences,
+  NEWSLETTER_TOPICS,
+  type NewsletterTopicId,
+} from "@/lib/newsletter-topics";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import { sendWelcomeNewsletterEmail } from "@/lib/newsletter-send";
 import { enforceRateLimit } from "@/lib/rate-limit";
@@ -69,9 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     const email = parsed.data.email.toLowerCase().trim();
-    const preferences = parsed.data.preferences?.length
-      ? parsed.data.preferences
-      : ["general", "weekly"];
+    const preferences = getNewsletterSignupPreferences(parsed.data.preferences);
 
     await connectDB();
     const existing = await Newsletter.findOne({ email });
@@ -122,7 +124,7 @@ export async function PATCH(request: NextRequest) {
 
     await connectDB();
     const email = session.user.email.toLowerCase();
-    const preferences = parsed.data.preferences ?? ["general"];
+    const preferences = getNewsletterSignupPreferences(parsed.data.preferences);
 
     const subscriber = await Newsletter.findOne({ email });
     if (!subscriber) {

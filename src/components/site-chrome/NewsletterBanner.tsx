@@ -2,6 +2,8 @@
 
 import { NewsletterSignupForm } from "@/components/newsletter/NewsletterSignupForm";
 
+import { DEFAULT_NEWSLETTER_BENEFITS } from "@/lib/newsletter-topics";
+
 interface NewsletterBannerProps {
   enabled?: boolean;
   title?: string;
@@ -10,11 +12,7 @@ interface NewsletterBannerProps {
   benefits?: string[];
 }
 
-const DEFAULT_BENEFITS = [
-  "Daily briefing every morning",
-  "Regional editions you choose",
-  "Investigation alerts — always free",
-];
+const DEFAULT_BENEFITS = [...DEFAULT_NEWSLETTER_BENEFITS];
 
 export function NewsletterBanner({
   enabled = true,

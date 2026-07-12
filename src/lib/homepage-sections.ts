@@ -1,3 +1,5 @@
+import { DEFAULT_NEWSLETTER_BENEFITS } from "@/lib/newsletter-topics";
+
 export type HomeSectionId =
   | "intro"
   | "urgent"
@@ -134,11 +136,7 @@ export const DEFAULT_NEWSLETTER_COPY = {
   titleEm: "delivered straight to your inbox.",
   description:
     "An editorial selection of the most important news from Africa and the Global South, curated by our newsroom.",
-  benefits: [
-    "Daily briefing every morning",
-    "Regional editions you choose",
-    "Investigation alerts — always free",
-  ],
+  benefits: [...DEFAULT_NEWSLETTER_BENEFITS],
 };
 
 /** En-tête et objet par défaut des e-mails newsletter (campagnes SMTP). */

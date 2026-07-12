@@ -22,7 +22,7 @@ import type {
   ReaderProfileData,
   ReaderTab,
 } from "@/components/reader/types";
-import { NEWSLETTER_TOPICS } from "@/lib/newsletter-topics";
+import { isNewsletterMultiEditionEnabled, NEWSLETTER_TOPICS } from "@/lib/newsletter-topics";
 import { toast } from "@/lib/toast";
 import { readApiError, toastNetworkError } from "@/lib/api-toast";
 
@@ -84,6 +84,7 @@ export function ReaderSpaceView({
     [onProfileRefresh]
   );
 
+  const multiEdition = isNewsletterMultiEditionEnabled();
   const preferenceLabels = (newsletter?.preferences ?? [])
     .map((id) => NEWSLETTER_TOPICS.find((t) => t.id === id)?.label)
     .filter(Boolean) as string[];
@@ -143,12 +144,14 @@ export function ReaderSpaceView({
               <span className="reader-kpi-val">{loading ? "—" : historyCount}</span>
               <span className="reader-kpi-lbl">Read</span>
             </div>
-            <div className="reader-kpi">
-              <span className="reader-kpi-val">
-                {loading ? "—" : newsletter?.subscribed ? preferenceLabels.length : 0}
-              </span>
-              <span className="reader-kpi-lbl">Editions</span>
-            </div>
+            {multiEdition && (
+              <div className="reader-kpi">
+                <span className="reader-kpi-val">
+                  {loading ? "—" : newsletter?.subscribed ? preferenceLabels.length : 0}
+                </span>
+                <span className="reader-kpi-lbl">Editions</span>
+              </div>
+            )}
             <div className="reader-kpi">
               <span className="reader-kpi-val">{isPremium ? "Pro" : "Free"}</span>
               <span className="reader-kpi-lbl">Plan</span>
@@ -244,7 +247,11 @@ export function ReaderSpaceView({
                   <span className="reader-action-text">
                     <strong>Newsletter</strong>
                     <span>
-                      {newsletter?.subscribed ? "Manage editions" : "Subscribe for free"}
+                      {newsletter?.subscribed
+                        ? multiEdition
+                          ? "Manage editions"
+                          : "Manage subscription"
+                        : "Subscribe for free"}
                     </span>
                   </span>
                 </Link>
@@ -406,7 +413,9 @@ export function ReaderSpaceView({
                   Newsletter preferences
                 </h2>
                 <p className="reader-section-sub">
-                  Regional editions delivered to your inbox
+                  {multiEdition
+                    ? "Regional editions delivered to your inbox"
+                    : "Daily briefing delivered to your inbox"}
                 </p>
               </div>
             </div>
@@ -414,12 +423,13 @@ export function ReaderSpaceView({
             {newsletter?.subscribed ? (
               <>
                 <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>
-                  You are subscribed to Global South Watch newsletters.
-                  {preferenceLabels.length > 0
-                    ? " Your selected editions appear below."
-                    : " Choose your regional editions to personalize coverage."}
+                  You are subscribed to the Global South Watch newsletter.
+                  {multiEdition &&
+                    (preferenceLabels.length > 0
+                      ? " Your selected editions appear below."
+                      : " Choose your regional editions to personalize coverage.")}
                 </p>
-                {preferenceLabels.length > 0 && (
+                {multiEdition && preferenceLabels.length > 0 && (
                   <div className="reader-topic-chips">
                     {preferenceLabels.map((label) => (
                       <span key={label} className="reader-topic-chip">
@@ -429,22 +439,25 @@ export function ReaderSpaceView({
                   </div>
                 )}
                 <Link href="/newsletter" className="reader-empty-cta">
-                  Update preferences
+                  {multiEdition ? "Update preferences" : "Manage subscription"}
                 </Link>
               </>
             ) : (
               <>
                 <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 20px" }}>
-                  Get curated briefings on Africa, Latin America, Asia-Pacific, and
-                  more — free, independent, and aligned with your interests.
+                  {multiEdition
+                    ? "Get curated briefings on Africa, Latin America, Asia-Pacific, and more — free, independent, and aligned with your interests."
+                    : "Get our free daily briefing — independent journalism from across the Global South."}
                 </p>
-                <div className="reader-topic-chips">
-                  {NEWSLETTER_TOPICS.slice(0, 5).map((topic) => (
-                    <span key={topic.id} className="reader-topic-chip">
-                      {topic.label}
-                    </span>
-                  ))}
-                </div>
+                {multiEdition && (
+                  <div className="reader-topic-chips">
+                    {NEWSLETTER_TOPICS.slice(0, 5).map((topic) => (
+                      <span key={topic.id} className="reader-topic-chip">
+                        {topic.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <Link href="/newsletter" className="reader-empty-cta">
                   Subscribe now
                 </Link>

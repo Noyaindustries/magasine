@@ -3,6 +3,8 @@
 import { useState } from "react";
 import {
   DEFAULT_NEWSLETTER_TOPICS,
+  getNewsletterSignupPreferences,
+  isNewsletterMultiEditionEnabled,
   NEWSLETTER_TOPICS,
   type NewsletterTopicId,
 } from "@/lib/newsletter-topics";
@@ -24,7 +26,9 @@ export function NewsletterSignupForm({
   onSuccess,
 }: NewsletterSignupFormProps) {
   const [email, setEmail] = useState(defaultEmail);
-  const [topics, setTopics] = useState<NewsletterTopicId[]>([...DEFAULT_NEWSLETTER_TOPICS]);
+  const [topics, setTopics] = useState<NewsletterTopicId[]>(() => [
+    ...getNewsletterSignupPreferences(DEFAULT_NEWSLETTER_TOPICS),
+  ]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -47,7 +51,10 @@ export function NewsletterSignupForm({
       const res = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, preferences: topics }),
+        body: JSON.stringify({
+          email,
+          preferences: getNewsletterSignupPreferences(topics),
+        }),
       });
       const data = (await res.json()) as { error?: string; message?: string };
 
@@ -80,13 +87,14 @@ export function NewsletterSignupForm({
             setMessage("");
           }}
         >
-          Update preferences
+          Update your subscription
         </button>
       </div>
     );
   }
 
-  const topicsVisible = showTopics && variant !== "inline";
+  const topicsVisible =
+    showTopics && isNewsletterMultiEditionEnabled() && variant !== "inline";
   const topicsCompact = variant === "sidebar";
 
   return (
@@ -140,7 +148,9 @@ export function NewsletterSignupForm({
 
       {variant === "inline" && (
         <p className="nl-signup-inline-hint">
-          Free morning briefing · regional editions · unsubscribe anytime
+          {isNewsletterMultiEditionEnabled()
+            ? "Free morning briefing · regional editions · unsubscribe anytime"
+            : "Free morning briefing · unsubscribe anytime"}
         </p>
       )}
 

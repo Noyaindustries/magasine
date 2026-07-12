@@ -12,48 +12,93 @@ import {
   Sparkles,
 } from "lucide-react";
 import { NewsletterSignupForm } from "@/components/newsletter/NewsletterSignupForm";
-import { NEWSLETTER_TOPICS } from "@/lib/newsletter-topics";
+import {
+  isNewsletterMultiEditionEnabled,
+  NEWSLETTER_TOPICS,
+} from "@/lib/newsletter-topics";
+
+const multiEdition = isNewsletterMultiEditionEnabled();
 
 export const metadata: Metadata = {
   title: "Newsletter",
-  description:
-    "Subscribe to Global South Watch newsletters — daily briefings and regional editions for Africa, Latin America, South Asia and West Asia.",
+  description: multiEdition
+    ? "Subscribe to Global South Watch newsletters — daily briefings and regional editions for Africa, Latin America, South Asia and West Asia."
+    : "Subscribe to the Global South Watch newsletter — a free daily briefing of independent journalism from the Global South.",
 };
 
-const STATS = [
-  { value: "145k+", label: "Morning readers" },
-  { value: "8", label: "Editions to choose" },
-  { value: "Free", label: "Independent journalism" },
-];
+const STATS = multiEdition
+  ? [
+      { value: "145k+", label: "Morning readers" },
+      { value: "8", label: "Editions to choose" },
+      { value: "Free", label: "Independent journalism" },
+    ]
+  : [
+      { value: "145k+", label: "Morning readers" },
+      { value: "Daily", label: "Editorial briefing" },
+      { value: "Free", label: "Independent journalism" },
+    ];
 
-const PERKS = [
-  {
-    icon: Sparkles,
-    title: "Editorial curation",
-    text: "Stories selected by our newsroom, not algorithms.",
-  },
-  {
-    icon: Globe2,
-    title: "Regional editions",
-    text: "Follow Africa, Latin America, South Asia or West Asia.",
-  },
-  {
-    icon: Search,
-    title: "Investigations first",
-    text: "Early alerts when our reporters publish major probes.",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Always free",
-    text: "No paywall on breaking news — the newsletter is our reader relationship.",
-  },
-];
+const PERKS = multiEdition
+  ? [
+      {
+        icon: Sparkles,
+        title: "Editorial curation",
+        text: "Stories selected by our newsroom, not algorithms.",
+      },
+      {
+        icon: Globe2,
+        title: "Regional editions",
+        text: "Follow Africa, Latin America, South Asia or West Asia.",
+      },
+      {
+        icon: Search,
+        title: "Investigations first",
+        text: "Early alerts when our reporters publish major probes.",
+      },
+      {
+        icon: CheckCircle2,
+        title: "Always free",
+        text: "No paywall on breaking news — the newsletter is our reader relationship.",
+      },
+    ]
+  : [
+      {
+        icon: Sparkles,
+        title: "Editorial curation",
+        text: "Stories selected by our newsroom, not algorithms.",
+      },
+      {
+        icon: Globe2,
+        title: "Global South coverage",
+        text: "Independent reporting from Africa, Latin America, Asia and beyond.",
+      },
+      {
+        icon: Search,
+        title: "Investigations first",
+        text: "Early alerts when our reporters publish major probes.",
+      },
+      {
+        icon: CheckCircle2,
+        title: "Always free",
+        text: "No paywall on breaking news — the newsletter is our reader relationship.",
+      },
+    ];
 
-const STEPS = [
-  { num: "01", title: "Pick your editions", text: "Daily briefing, weekly digest, or regional feeds." },
-  { num: "02", title: "Confirm your email", text: "One click to verify — no account required." },
-  { num: "03", title: "Read every morning", text: "Independent journalism, straight to your inbox." },
-];
+const STEPS = multiEdition
+  ? [
+      {
+        num: "01",
+        title: "Pick your editions",
+        text: "Daily briefing, weekly digest, or regional feeds.",
+      },
+      { num: "02", title: "Confirm your email", text: "One click to verify — no account required." },
+      { num: "03", title: "Read every morning", text: "Independent journalism, straight to your inbox." },
+    ]
+  : [
+      { num: "01", title: "Enter your email", text: "One field — no account required." },
+      { num: "02", title: "Confirm your subscription", text: "You're on the list in seconds." },
+      { num: "03", title: "Read every morning", text: "Independent journalism, straight to your inbox." },
+    ];
 
 const TOPIC_ICONS: Record<string, typeof Sun> = {
   general: Sun,
@@ -81,8 +126,9 @@ export default function NewsletterPage() {
             <span> Global South</span>
           </h1>
           <p className="newsletter-page-lead">
-            Choose your editions and receive independent journalism in your inbox —
-            daily briefings, weekly digests, and regional coverage tailored to you.
+            {multiEdition
+              ? "Choose your editions and receive independent journalism in your inbox — daily briefings, weekly digests, and regional coverage tailored to you."
+              : "Receive our daily briefing in your inbox — independent journalism from across the Global South, curated by our newsroom."}
           </p>
           <div className="newsletter-page-stats">
             {STATS.map((stat) => (
@@ -100,10 +146,12 @@ export default function NewsletterPage() {
           <div className="newsletter-page-card-head">
             <h2 id="newsletter-signup-heading">Subscribe</h2>
             <p className="newsletter-page-card-sub">
-              Pick one or more editions below. Update your preferences anytime.
+              {multiEdition
+                ? "Pick one or more editions below. Update your preferences anytime."
+                : "Enter your email address to receive our newsletter. Unsubscribe anytime."}
             </p>
           </div>
-          <NewsletterSignupForm variant="page" showTopics />
+          <NewsletterSignupForm variant="page" showTopics={multiEdition} />
         </section>
 
         <aside className="newsletter-page-aside">
@@ -125,25 +173,27 @@ export default function NewsletterPage() {
             })}
           </ul>
 
-          <div className="newsletter-page-editions">
-            <h3>Available editions</h3>
-            <ul className="newsletter-page-editions-grid">
-              {NEWSLETTER_TOPICS.map((topic) => {
-                const Icon = TOPIC_ICONS[topic.id] ?? Mail;
-                return (
-                  <li key={topic.id} className={`newsletter-edition-chip newsletter-edition-chip--${topic.id}`}>
-                    <span className="newsletter-edition-chip-icon" aria-hidden>
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <div>
-                      <strong>{topic.label}</strong>
-                      <span>{topic.description}</span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          {multiEdition && (
+            <div className="newsletter-page-editions">
+              <h3>Available editions</h3>
+              <ul className="newsletter-page-editions-grid">
+                {NEWSLETTER_TOPICS.map((topic) => {
+                  const Icon = TOPIC_ICONS[topic.id] ?? Mail;
+                  return (
+                    <li key={topic.id} className={`newsletter-edition-chip newsletter-edition-chip--${topic.id}`}>
+                      <span className="newsletter-edition-chip-icon" aria-hidden>
+                        <Icon className="w-3.5 h-3.5" />
+                      </span>
+                      <div>
+                        <strong>{topic.label}</strong>
+                        <span>{topic.description}</span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           <div className="newsletter-page-aside-cta">
             <p>Want to support our newsroom directly?</p>
