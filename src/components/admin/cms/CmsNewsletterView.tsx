@@ -7,6 +7,10 @@ import { CmsActionIcons } from "@/components/admin/cms/CmsIcons";
 import { readApiError, toastNetworkError } from "@/lib/api-toast";
 import { toast } from "@/lib/toast";
 import { useSiteBranding } from "@/components/SiteBranding";
+import {
+  formatNewsletterDefaultSubject,
+  resolveNewsletterEmailHeaderTitle,
+} from "@/lib/newsletter-email-branding";
 
 interface CampaignRow {
   _id: string;
@@ -31,7 +35,7 @@ interface CmsNewsletterViewProps {
 }
 
 export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps) {
-  const { siteName } = useSiteBranding();
+  const { siteName, siteLogo } = useSiteBranding();
   const [stats, setStats] = useState({
     totalActive: initialTotalActive,
     monthlyNew: 0,
@@ -42,7 +46,8 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
   });
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [mailConfigured, setMailConfigured] = useState(true);
-  const [subject, setSubject] = useState(`Today's essentials — ${siteName}`);
+  const [subject, setSubject] = useState("");
+  const [emailHeaderTitle, setEmailHeaderTitle] = useState(siteName);
   const [listTarget, setListTarget] = useState("all");
   const [scheduledAt, setScheduledAt] = useState("");
   const [body, setBody] = useState(
@@ -55,8 +60,9 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     Promise.all([
       fetch("/api/admin/newsletter/stats"),
       fetch("/api/admin/newsletter/campaigns"),
+      fetch("/api/admin/settings"),
     ])
-      .then(async ([statsRes, campaignsRes]) => {
+      .then(async ([statsRes, campaignsRes, settingsRes]) => {
         if (!statsRes.ok) {
           toast.error(await readApiError(statsRes, "Unable to load statistics"));
         } else {
@@ -79,9 +85,24 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           setCampaigns(campaignsData.campaigns ?? []);
           setMailConfigured(campaignsData.mailConfigured !== false);
         }
+        if (settingsRes.ok) {
+          const settingsData = await settingsRes.json();
+          const resolvedName = settingsData.siteName ?? siteName;
+          const defaultSubject = formatNewsletterDefaultSubject(
+            settingsData.newsletterDefaultSubject ?? "Today's essentials — {siteName}",
+            resolvedName
+          );
+          setSubject((current) => current || defaultSubject);
+          setEmailHeaderTitle(
+            resolveNewsletterEmailHeaderTitle({
+              newsletterEmailHeaderTitle: settingsData.newsletterEmailHeaderTitle ?? "",
+              siteName: resolvedName,
+            })
+          );
+        }
       })
       .catch(() => toastNetworkError());
-  }, []);
+  }, [siteName]);
 
   useEffect(() => {
     load();
@@ -379,7 +400,11 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
 
           <div className="nlprev">
             <div className="nlph">
-              <div className="nlplogo">{siteName}</div>
+              <div className="nlph-brand">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={siteLogo} alt="" className="nlprev-logo" />
+                <div className="nlplogo">{emailHeaderTitle}</div>
+              </div>
               <div className="nlph-meta">Live preview</div>
             </div>
             <div className="nlpbody">
@@ -430,6 +455,10 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 />
+                <p className="cms-field-hint">
+                  Objet par défaut configurable dans{" "}
+                  <Link href="/admin/seo">SEO settings → Newsletter &amp; contact</Link>.
+                </p>
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="nl-body">

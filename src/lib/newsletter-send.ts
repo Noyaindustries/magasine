@@ -1,10 +1,14 @@
 import { connectDB } from "@/lib/mongodb";
 import {
-  getNewsletterFromName,
   isNewsletterMailConfigured,
   sendNewsletterMail,
 } from "@/lib/newsletter-mail";
+import {
+  resolveNewsletterEmailHeaderTitle,
+  resolveNewsletterEmailLogoUrl,
+} from "@/lib/newsletter-email-branding";
 import { createNewsletterUnsubscribeUrl } from "@/lib/newsletter-unsubscribe";
+import { getSiteUrl } from "@/lib/site";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import { Newsletter } from "@/models/Newsletter";
 import { NewsletterCampaign, type INewsletterCampaign } from "@/models/NewsletterCampaign";
@@ -32,10 +36,30 @@ export function buildNewsletterEmailContent(options: {
   subject: string;
   body: string;
   siteName: string;
+  headerTitle: string;
+  logoUrl: string;
   unsubscribeUrl: string;
 }): { text: string; html: string } {
-  const footer = `\n\n— ${options.siteName}\nUnsubscribe: ${options.unsubscribeUrl}`;
+  const footer = `\n\n— ${options.headerTitle}\nUnsubscribe: ${options.unsubscribeUrl}`;
   const text = `${options.body}${footer}`;
+
+  const siteUrl = getSiteUrl();
+  const headerHtml = `
+            <tr>
+              <td style="padding:28px 32px 16px;border-bottom:3px solid #c41e3a;text-align:center;">
+                <a href="${escapeHtml(siteUrl)}" style="text-decoration:none;">
+                  <img
+                    src="${escapeHtml(options.logoUrl)}"
+                    alt="${escapeHtml(options.siteName)}"
+                    width="200"
+                    style="display:block;max-width:200px;width:100%;height:auto;margin:0 auto 14px;border:0;"
+                  />
+                </a>
+                <div style="font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#c41e3a;font-weight:700;">
+                  ${escapeHtml(options.headerTitle)}
+                </div>
+              </td>
+            </tr>`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -44,11 +68,7 @@ export function buildNewsletterEmailContent(options: {
       <tr>
         <td align="center">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #e5e1d8;">
-            <tr>
-              <td style="padding:28px 32px 12px;border-bottom:3px solid #c41e3a;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#c41e3a;font-weight:700;">
-                ${escapeHtml(options.siteName)}
-              </td>
-            </tr>
+            ${headerHtml}
             <tr>
               <td style="padding:28px 32px 8px;font-size:24px;line-height:1.25;font-weight:700;">
                 ${escapeHtml(options.subject)}
@@ -96,12 +116,16 @@ async function sendToRecipient(options: {
   subject: string;
   body: string;
   siteName: string;
+  headerTitle: string;
+  logoUrl: string;
 }): Promise<boolean> {
   const unsubscribeUrl = createNewsletterUnsubscribeUrl(options.email);
   const content = buildNewsletterEmailContent({
     subject: options.subject,
     body: options.body,
     siteName: options.siteName,
+    headerTitle: options.headerTitle,
+    logoUrl: options.logoUrl,
     unsubscribeUrl,
   });
 
@@ -123,6 +147,8 @@ export async function sendWelcomeNewsletterEmail(email: string): Promise<void> {
   if (!isNewsletterMailConfigured()) return;
 
   const settings = await getPublicSiteSettings();
+  const headerTitle = resolveNewsletterEmailHeaderTitle(settings);
+  const logoUrl = resolveNewsletterEmailLogoUrl(settings);
   const subject = `Welcome to ${settings.siteName}`;
   const body = `Thank you for subscribing.\n\nYou'll receive our editorial selections directly in your inbox.`;
 
@@ -131,6 +157,8 @@ export async function sendWelcomeNewsletterEmail(email: string): Promise<void> {
     subject,
     body,
     siteName: settings.siteName,
+    headerTitle,
+    logoUrl,
   });
 }
 
@@ -148,6 +176,8 @@ export async function deliverNewsletterCampaign(
   }
 
   const settings = await getPublicSiteSettings();
+  const headerTitle = resolveNewsletterEmailHeaderTitle(settings);
+  const logoUrl = resolveNewsletterEmailLogoUrl(settings);
   const recipients = await getSubscriberEmailsForList(campaign.listTarget);
   let delivered = 0;
   let failed = 0;
@@ -161,6 +191,8 @@ export async function deliverNewsletterCampaign(
           subject: campaign.subject,
           body: campaign.body,
           siteName: settings.siteName,
+          headerTitle,
+          logoUrl,
         })
       )
     );

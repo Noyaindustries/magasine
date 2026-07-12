@@ -140,3 +140,9 @@ export const DEFAULT_NEWSLETTER_COPY = {
     "Investigation alerts — always free",
   ],
 };
+
+/** En-tête et objet par défaut des e-mails newsletter (campagnes SMTP). */
+export const DEFAULT_NEWSLETTER_EMAIL = {
+  headerTitle: "",
+  defaultSubject: "Today's essentials — {siteName}",
+};

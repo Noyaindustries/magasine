@@ -57,6 +57,8 @@ export interface ISiteSettings {
   newsletterTitleEm: string;
   newsletterDescription: string;
   newsletterBenefits: string[];
+  newsletterEmailHeaderTitle: string;
+  newsletterDefaultSubject: string;
   mastheadVolume: string;
   mastheadCities: string;
   mastheadBadge: string;
@@ -112,6 +114,14 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
         "Regional editions you choose",
         "Investigation alerts — always free",
       ],
+    },
+    newsletterEmailHeaderTitle: {
+      type: String,
+      default: "",
+    },
+    newsletterDefaultSubject: {
+      type: String,
+      default: "Today's essentials — {siteName}",
     },
     mastheadVolume: { type: String, default: "Vol. XII · N° 1847" },
     mastheadCities: { type: String, default: "Abidjan · Dakar · Nairobi" },

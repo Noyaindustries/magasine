@@ -25,6 +25,8 @@ interface SeoSettingsForm {
   canonicalUrl: string;
   newsletterTitle: string;
   newsletterDescription: string;
+  newsletterEmailHeaderTitle: string;
+  newsletterDefaultSubject: string;
   mailchimpConnected: boolean;
   brevoConnected: boolean;
   typographyPreset: TypographyPresetId;
@@ -59,6 +61,9 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
           canonicalUrl: data.canonicalUrl ?? getSiteUrl(),
           newsletterTitle: data.newsletterTitle ?? "",
           newsletterDescription: data.newsletterDescription ?? "",
+          newsletterEmailHeaderTitle: data.newsletterEmailHeaderTitle ?? "",
+          newsletterDefaultSubject:
+            data.newsletterDefaultSubject ?? "Today's essentials — {siteName}",
           mailchimpConnected: data.mailchimpConnected ?? false,
           brevoConnected: data.brevoConnected ?? false,
           typographyPreset: getTypographyPreset(data.typographyPreset).id,
@@ -284,6 +289,42 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
                   value={form.newsletterDescription}
                   onChange={(e) => setForm({ ...form, newsletterDescription: e.target.value })}
                 />
+              </div>
+              <div className="field">
+                <label className="lbl" htmlFor="seo-nl-email-header">
+                  Email header title
+                </label>
+                <input
+                  id="seo-nl-email-header"
+                  className="input"
+                  value={form.newsletterEmailHeaderTitle}
+                  onChange={(e) =>
+                    setForm({ ...form, newsletterEmailHeaderTitle: e.target.value })
+                  }
+                  placeholder={form.siteName || "Site name"}
+                />
+                <p className="cms-field-hint">
+                  Titre sous le logo dans les e-mails. Laissez vide pour utiliser le nom du site. Le
+                  logo est celui défini dans « Logo &amp; favicon ».
+                </p>
+              </div>
+              <div className="field">
+                <label className="lbl" htmlFor="seo-nl-default-subject">
+                  Default email subject
+                </label>
+                <input
+                  id="seo-nl-default-subject"
+                  className="input"
+                  value={form.newsletterDefaultSubject}
+                  onChange={(e) =>
+                    setForm({ ...form, newsletterDefaultSubject: e.target.value })
+                  }
+                  placeholder="Today's essentials — {siteName}"
+                />
+                <p className="cms-field-hint">
+                  Objet prérempli lors de la composition d&apos;une campagne. Utilisez{" "}
+                  <code>{"{siteName}"}</code> pour insérer le nom du site.
+                </p>
               </div>
             </div>
           </div>

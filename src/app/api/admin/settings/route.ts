@@ -39,6 +39,8 @@ const updateSchema = z.object({
   newsletterTitleEm: z.string().optional(),
   newsletterDescription: z.string().optional(),
   newsletterBenefits: z.array(z.string()).optional(),
+  newsletterEmailHeaderTitle: z.string().optional(),
+  newsletterDefaultSubject: z.string().optional(),
   mastheadVolume: z.string().optional(),
   mastheadCities: z.string().optional(),
   mastheadBadge: z.string().optional(),

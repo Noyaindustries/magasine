@@ -6,6 +6,7 @@ import {
   DEFAULT_HOME_SECTIONS,
   DEFAULT_MASTHEAD_BADGE,
   DEFAULT_NEWSLETTER_COPY,
+  DEFAULT_NEWSLETTER_EMAIL,
   DEFAULT_PULSE_STATS,
   DEFAULT_TRUST_PARTNERS,
   DEFAULT_TRUST_STRIP_LABEL,
@@ -46,6 +47,8 @@ export interface PublicSiteSettings {
   newsletterTitleEm: string;
   newsletterDescription: string;
   newsletterBenefits: string[];
+  newsletterEmailHeaderTitle: string;
+  newsletterDefaultSubject: string;
   mastheadVolume: string;
   mastheadCities: string;
   mastheadBadge: string;
@@ -105,6 +108,10 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     newsletterBenefits: doc.newsletterBenefits?.length
       ? doc.newsletterBenefits
       : DEFAULT_NEWSLETTER_COPY.benefits,
+    newsletterEmailHeaderTitle:
+      doc.newsletterEmailHeaderTitle ?? DEFAULT_NEWSLETTER_EMAIL.headerTitle,
+    newsletterDefaultSubject:
+      doc.newsletterDefaultSubject ?? DEFAULT_NEWSLETTER_EMAIL.defaultSubject,
     mastheadVolume: doc.mastheadVolume ?? "Vol. XII · N° 1847",
     mastheadCities: doc.mastheadCities ?? "Abidjan · Dakar · Nairobi",
     mastheadBadge: doc.mastheadBadge ?? DEFAULT_MASTHEAD_BADGE,
@@ -151,6 +158,8 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       newsletterTitleEm: DEFAULT_NEWSLETTER_COPY.titleEm,
       newsletterDescription: DEFAULT_NEWSLETTER_COPY.description,
       newsletterBenefits: [],
+      newsletterEmailHeaderTitle: DEFAULT_NEWSLETTER_EMAIL.headerTitle,
+      newsletterDefaultSubject: DEFAULT_NEWSLETTER_EMAIL.defaultSubject,
       mastheadVolume: "Vol. XII · N° 1847",
       mastheadCities: "Abidjan · Dakar · Nairobi",
       mastheadBadge: DEFAULT_MASTHEAD_BADGE,
@@ -226,6 +235,8 @@ function applySettingsPatch(
     "newsletterTitleEm",
     "newsletterDescription",
     "newsletterBenefits",
+    "newsletterEmailHeaderTitle",
+    "newsletterDefaultSubject",
     "mastheadVolume",
     "mastheadCities",
     "mastheadBadge",
