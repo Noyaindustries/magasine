@@ -1730,6 +1730,87 @@ body:has(.cms-shell) {
   margin-bottom: 14px;
 }
 
+.cms-shell .cms-image-layout-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--bg2);
+}
+
+.cms-shell .cms-image-layout-bar--active {
+  background: var(--red-a);
+}
+
+.cms-shell .cms-image-layout-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--t2);
+  margin-right: 4px;
+}
+
+.cms-shell .cms-image-layout-btn {
+  padding: 4px 10px;
+  border-radius: var(--r4);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--t1);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cms-shell .cms-image-layout-btn.on {
+  border-color: var(--cms-red);
+  color: var(--cms-red);
+  background: #fff;
+}
+
+.cms-shell .cms-image-layout-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cms-shell .cms-image-layout-hint {
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.cms-shell .cms-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r6);
+}
+
+.cms-shell .cms-prose img.art-img-block,
+.cms-shell .cms-prose img:not([class*="art-img-"]) {
+  display: block;
+  width: 100%;
+  margin: 12px 0;
+}
+
+.cms-shell .cms-prose img.art-img-float-left {
+  float: left;
+  width: min(44%, 280px);
+  margin: 0.2em 12px 10px 0;
+}
+
+.cms-shell .cms-prose img.art-img-float-right {
+  float: right;
+  width: min(44%, 280px);
+  margin: 0.2em 0 10px 12px;
+}
+
+.cms-shell .cms-prose::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 .cms-shell .cms-prose p.is-editor-empty:first-child::before {
   color: var(--t3);
   content: attr(data-placeholder);

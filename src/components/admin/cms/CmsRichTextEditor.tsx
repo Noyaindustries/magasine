@@ -3,13 +3,19 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
+import { ArticleImage } from "@/lib/tiptap/article-image-extension";
+import {
+  ARTICLE_IMAGE_LAYOUTS,
+  ARTICLE_IMAGE_LAYOUT_LABELS,
+  isArticleImageLayout,
+  type ArticleImageLayout,
+} from "@/lib/article-image-layout";
 import {
   AlignCenter,
   AlignLeft,
@@ -36,6 +42,7 @@ export function CmsRichTextEditor({
 }: CmsRichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const imageInputId = "cms-rt-image-input";
+  const [, setSelectionTick] = useState(0);
 
   const editor = useEditor({
     extensions: [
@@ -43,7 +50,7 @@ export function CmsRichTextEditor({
         link: false,
       }),
       Link.configure({ openOnClick: false }),
-      Image.configure({ inline: false }),
+      ArticleImage.configure({ inline: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
     ],
@@ -61,14 +68,31 @@ export function CmsRichTextEditor({
 
   useEffect(() => {
     if (!editor) return;
+    const bump = () => setSelectionTick((value) => value + 1);
+    editor.on("selectionUpdate", bump);
+    editor.on("transaction", bump);
+    return () => {
+      editor.off("selectionUpdate", bump);
+      editor.off("transaction", bump);
+    };
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
     const current = editor.getHTML();
     if (value !== current && value !== "<p></p>") {
       editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [editor, value]);
 
-  const toolBtn = (label: React.ReactNode, action: () => void, active?: boolean) => (
-    <button type="button" className={cn("etb2", active && "on")} onClick={action}>
+  const toolBtn = (label: React.ReactNode, action: () => void, active?: boolean, disabled?: boolean) => (
+    <button
+      type="button"
+      className={cn("etb2", active && "on")}
+      onClick={action}
+      disabled={disabled}
+      aria-disabled={disabled}
+    >
       {label}
     </button>
   );
@@ -81,6 +105,14 @@ export function CmsRichTextEditor({
       </div>
     );
   }
+
+  const imageActive = editor.isActive("image");
+  const rawLayout = editor.getAttributes("image").layout;
+  const imageLayout: ArticleImageLayout = isArticleImageLayout(rawLayout) ? rawLayout : "block";
+
+  const setImageLayout = (layout: ArticleImageLayout) => {
+    editor.chain().focus().setImageLayout(layout).run();
+  };
 
   return (
     <div className="cms-editor-wrap">
@@ -179,6 +211,33 @@ export function CmsRichTextEditor({
           editor.isActive({ textAlign: "right" })
         )}
       </div>
+      <div className={cn("cms-image-layout-bar", imageActive && "cms-image-layout-bar--active")}>
+        <span className="cms-image-layout-label">Illustration</span>
+        {ARTICLE_IMAGE_LAYOUTS.map((layout) => (
+          <button
+            key={layout}
+            type="button"
+            className={cn(
+              "cms-image-layout-btn",
+              imageActive && imageLayout === layout && "on"
+            )}
+            disabled={!imageActive}
+            title={
+              layout === "float-left"
+                ? "Image à gauche, texte à droite"
+                : layout === "float-right"
+                  ? "Image à droite, texte à gauche"
+                  : "Image pleine largeur"
+            }
+            onClick={() => setImageLayout(layout)}
+          >
+            {ARTICLE_IMAGE_LAYOUT_LABELS[layout]}
+          </button>
+        ))}
+        {!imageActive && (
+          <span className="cms-image-layout-hint">Sélectionnez une image dans le texte.</span>
+        )}
+      </div>
       <div className="ebody">
         <EditorContent editor={editor} />
       </div>
@@ -194,8 +253,12 @@ export function CmsRichTextEditor({
           void (async () => {
             try {
               const { url } = await uploadAdminMedia(file, file.name);
-              editor.chain().focus().setImage({ src: url, alt: file.name }).run();
-              toast.success("Image inserted from local server.");
+              editor
+                .chain()
+                .focus()
+                .setImage({ src: url, alt: file.name, layout: "block" })
+                .run();
+              toast.success("Image insérée.");
             } catch (error) {
               toast.error(error instanceof Error ? error.message : "Upload failed.");
             } finally {

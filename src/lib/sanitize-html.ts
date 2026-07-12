@@ -1,4 +1,10 @@
 import sanitizeHtml from "sanitize-html";
+import {
+  ARTICLE_IMAGE_LAYOUT_CLASSES,
+  articleImageClassToLayout,
+  articleImageLayoutToClass,
+  isArticleImageLayout,
+} from "@/lib/article-image-layout";
 
 const ALLOWED_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   "img",
@@ -12,7 +18,9 @@ const ALLOWED_TAGS = sanitizeHtml.defaults.allowedTags.concat([
 const ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions["allowedAttributes"] = {
   ...sanitizeHtml.defaults.allowedAttributes,
   a: ["href", "title", "target", "rel"],
-  img: ["src", "alt", "width", "height"],
+  img: ["src", "alt", "width", "height", "class", "data-image-layout"],
+  figure: ["class", "data-image-layout"],
+  figcaption: [],
   iframe: [
     "src",
     "width",
@@ -38,6 +46,21 @@ function isAllowedIframeSrc(src: string): boolean {
   );
 }
 
+function normalizeImageLayoutTag(
+  _tagName: "img" | "figure",
+  attribs: Record<string, string>
+): Record<string, string> {
+  const next = { ...attribs };
+  const fromData = next["data-image-layout"];
+  const layout = isArticleImageLayout(fromData)
+    ? fromData
+    : articleImageClassToLayout(next.class);
+
+  next["data-image-layout"] = layout;
+  next.class = articleImageLayoutToClass(layout);
+  return next;
+}
+
 /**
  * Sanitise le HTML riche des articles (contenu CMS / TipTap).
  * Utilise sanitize-html (compatible serverless, sans jsdom).
@@ -49,6 +72,10 @@ export function sanitizeArticleHtml(html: string): string {
     return sanitizeHtml(html, {
       allowedTags: ALLOWED_TAGS,
       allowedAttributes: ALLOWED_ATTRIBUTES,
+      allowedClasses: {
+        img: [...ARTICLE_IMAGE_LAYOUT_CLASSES],
+        figure: [...ARTICLE_IMAGE_LAYOUT_CLASSES],
+      },
       allowedSchemes: ["http", "https", "mailto", "tel"],
       allowedSchemesByTag: {
         img: ["http", "https"],
@@ -57,6 +84,14 @@ export function sanitizeArticleHtml(html: string): string {
       transformTags: {
         a: sanitizeHtml.simpleTransform("a", {
           rel: "noopener noreferrer",
+        }),
+        img: (_tagName, attribs) => ({
+          tagName: "img",
+          attribs: normalizeImageLayoutTag("img", attribs),
+        }),
+        figure: (_tagName, attribs) => ({
+          tagName: "figure",
+          attribs: normalizeImageLayoutTag("figure", attribs),
         }),
       },
       exclusiveFilter(frame) {
