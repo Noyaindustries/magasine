@@ -19,6 +19,7 @@ import type { ReviewQueueItem } from "@/lib/admin-review";
 import { resolveFeaturedImage } from "@/lib/images";
 import { formatDate } from "@/lib/utils";
 import { RelativeTime } from "@/components/admin/cms/RelativeTime";
+import { formatAuthorNames } from "@/lib/format-authors";
 import { toast } from "@/lib/toast";
 
 interface ReviewQueueManagerProps {
@@ -41,7 +42,7 @@ function ReviewQueueCard({
   busyId: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const authorName = item.authors[0]?.name ?? "Editorial";
+  const authorName = formatAuthorNames(item.authors);
   const accent = item.category.color ?? "#1a3896";
   const busy = busyId === item._id;
   const imageSrc = resolveFeaturedImage(item.featuredImage);

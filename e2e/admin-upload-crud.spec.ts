@@ -95,4 +95,40 @@ test.describe("Admin — articles (API)", () => {
     expect(deleteRes.ok()).toBeTruthy();
     expect((await page.request.get(`/api/admin/articles/${created._id}`)).status()).toBe(404);
   });
+
+  test("co-signature avec plusieurs auteurs", async ({ page }) => {
+    const stamp = Date.now();
+    const { categoryId, authorId } = await fetchMetaIds(page);
+
+    const secondAuthorRes = await page.request.post("/api/admin/authors", {
+      data: { name: `E2E co-auteur ${stamp}` },
+    });
+    expect(secondAuthorRes.status(), await secondAuthorRes.text()).toBe(201);
+    const secondAuthor = (await secondAuthorRes.json()) as { _id: string };
+
+    const createRes = await page.request.post("/api/admin/articles", {
+      data: {
+        title: `E2E co-signature ${stamp}`,
+        excerpt: "Résumé co-signature E2E",
+        content: "<p>Article co-signé E2E.</p>",
+        featuredImage:
+          "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=630&fit=crop",
+        categoryId,
+        authorIds: [authorId, secondAuthor._id],
+        status: "draft",
+        slug: `e2e-co-signature-${stamp}`,
+      },
+    });
+    expect(createRes.status(), await createRes.text()).toBe(201);
+    const created = (await createRes.json()) as { _id: string };
+
+    const getRes = await page.request.get(`/api/admin/articles/${created._id}`);
+    expect(getRes.ok()).toBeTruthy();
+    const article = (await getRes.json()) as { authorIds: string[]; authorId: string };
+    expect(article.authorIds).toEqual([authorId, secondAuthor._id]);
+    expect(article.authorId).toBe(authorId);
+
+    await page.request.delete(`/api/admin/articles/${created._id}`);
+    await page.request.delete(`/api/admin/authors/${secondAuthor._id}`);
+  });
 });

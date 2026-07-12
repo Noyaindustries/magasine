@@ -58,7 +58,7 @@ interface ArticleEditorForm {
   featuredImageCaption: string;
   categoryId: string;
   regionCategoryIds: string[];
-  authorId: string;
+  authorIds: string[];
   tags: string[];
   publishMode: PublishMode;
   scheduledAt: string;
@@ -84,7 +84,7 @@ const EMPTY_FORM: ArticleEditorForm = {
   featuredImageCaption: "",
   categoryId: "",
   regionCategoryIds: [],
-  authorId: "",
+  authorIds: [],
   tags: [],
   publishMode: "draft",
   scheduledAt: "",
@@ -317,13 +317,17 @@ export function CmsArticleEditor({
       setAuthors((prev) =>
         [...prev, created].sort((a, b) => a.name.localeCompare(b.name))
       );
-      patchForm({ authorId: created._id });
+      patchForm({
+        authorIds: form.authorIds.includes(created._id)
+          ? form.authorIds
+          : [...form.authorIds, created._id],
+      });
       toast.success("Auteur créé");
     } catch {
       toast.dismiss(toastId);
       toast.error("Échec de la création");
     }
-  }, [patchForm]);
+  }, [form.authorIds, patchForm]);
 
   useEffect(() => {
     if (mode !== "edit" || !articleId) return;
@@ -341,7 +345,12 @@ export function CmsArticleEditor({
           featuredImageCaption: article.featuredImageCaption ?? "",
           categoryId: article.categoryId ?? "",
           regionCategoryIds: article.regionCategoryIds ?? [],
-          authorId: article.authorId ?? "",
+          authorIds:
+            Array.isArray(article.authorIds) && article.authorIds.length > 0
+              ? article.authorIds
+              : article.authorId
+                ? [article.authorId]
+                : [],
           tags: article.tags ?? [],
           publishMode: mapStatusToPublishMode(article.status ?? "draft"),
           scheduledAt: article.scheduledAt
@@ -415,7 +424,7 @@ export function CmsArticleEditor({
         featuredImageCaption: form.featuredImageCaption.trim() || undefined,
         categoryId: form.categoryId,
         regionCategoryIds: form.regionCategoryIds,
-        authorId: form.authorId,
+        authorIds: form.authorIds,
         tags: form.tags,
         status: publishModeToStatus(publishMode),
         scheduledAt:
@@ -445,9 +454,9 @@ export function CmsArticleEditor({
 
   const saveArticle = useCallback(
     async (options?: { redirectAfter?: boolean; publishMode?: PublishMode; silent?: boolean }) => {
-      if (!form.title.trim() || !form.authorId) {
+      if (!form.title.trim() || form.authorIds.length === 0) {
         if (!options?.silent) {
-          toast.error("Title and author are required.");
+          toast.error("Le titre et au moins un auteur sont requis.");
         }
         return false;
       }
@@ -528,7 +537,7 @@ export function CmsArticleEditor({
         setLoading(false);
       }
     },
-    [articleId, buildPayload, categories, form.authorId, form.categoryId, form.regionCategoryIds, form.title, mode, patchForm, router]
+    [articleId, buildPayload, categories, form.authorIds, form.categoryId, form.regionCategoryIds, form.title, mode, patchForm, router]
   );
 
   useEffect(() => {
@@ -949,21 +958,33 @@ export function CmsArticleEditor({
                 </div>
               </div>
               <div className="field">
-                <label className="lbl">Author(s)</label>
-                <select
-                  className="input sel"
-                  aria-label="Author"
-                  value={form.authorId}
-                  onChange={(e) => patchForm({ authorId: e.target.value })}
-                  required
-                >
-                  <option value="">Choose…</option>
-                  {authors.map((a) => (
-                    <option key={a._id} value={a._id}>
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="lbl">Auteur(s)</label>
+                <div className="cms-author-picker" role="group" aria-label="Auteurs">
+                  {authors.map((author) => {
+                    const checked = form.authorIds.includes(author._id);
+                    return (
+                      <label key={author._id} className="cms-author-option">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            patchForm({
+                              authorIds: checked
+                                ? form.authorIds.filter((id) => id !== author._id)
+                                : [...form.authorIds, author._id],
+                            });
+                          }}
+                        />
+                        <span>{author.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {form.authorIds.length === 0 && (
+                  <p className="cms-field-hint cms-field-hint--warn">
+                    Sélectionnez au moins un auteur (co-signature possible).
+                  </p>
+                )}
                 <button
                   type="button"
                   className="cms-quick-add"

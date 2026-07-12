@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
+import { formatAuthorNames } from "@/lib/format-authors";
 import { Article } from "@/models/Article";
 import { User } from "@/models/User";
 import { Comment } from "@/models/Comment";
@@ -126,6 +127,20 @@ function daysAgo(n: number) {
 
 function formatDayLabel(date: Date) {
   return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+}
+
+function populatedAuthorNames(authors: unknown): string | undefined {
+  if (!Array.isArray(authors) || authors.length === 0) return undefined;
+  const entries = authors
+    .map((author) => {
+      if (author && typeof author === "object" && "name" in author && typeof author.name === "string") {
+        return { name: author.name };
+      }
+      return null;
+    })
+    .filter((entry): entry is { name: string } => entry !== null);
+  if (entries.length === 0) return undefined;
+  return formatAuthorNames(entries);
 }
 
 function firstAuthorName(authors: unknown): string | undefined {
@@ -527,7 +542,6 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     })),
     pendingArticles: pendingQueueRaw.map((a) => {
       const authors = a.authors as { name?: string }[] | undefined;
-      const firstAuthor = Array.isArray(authors) ? authors[0]?.name : undefined;
       const categoryDoc = a.category as { name?: string; color?: string } | null;
       return {
         _id: String(a._id),
@@ -535,7 +549,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         status: a.status,
         category: categoryDoc?.name ?? "—",
         categoryColor: categoryDoc?.color ?? "#6b6b6b",
-        authorName: firstAuthor ?? "—",
+        authorName: populatedAuthorNames(authors) ?? "—",
         readingTime: a.readingTime ?? 1,
         updatedAt: a.updatedAt ? new Date(a.updatedAt).toISOString() : now.toISOString(),
         scheduledAt: a.scheduledAt ? new Date(a.scheduledAt).toISOString() : undefined,

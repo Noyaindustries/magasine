@@ -19,6 +19,7 @@ import {
 } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 import { invalidatePublishedArticleCountCache } from "@/lib/data";
+import { normalizeAuthorIds } from "@/lib/format-authors";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -35,6 +36,7 @@ const updateSchema = z.object({
   featuredImageCaption: z.string().optional(),
   categoryId: z.string().optional(),
   regionCategoryIds: z.array(z.string()).optional(),
+  authorIds: z.array(z.string().min(1)).min(1).optional(),
   authorId: z.string().optional(),
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]).optional(),
@@ -93,7 +95,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     featuredImageCaption: article.featuredImageCaption ?? "",
     categoryId: String(article.category),
     regionCategoryIds,
-    authorId: String(article.authors[0]),
+    authorIds: article.authors.map((id) => String(id)),
+    authorId: article.authors[0] ? String(article.authors[0]) : "",
     tags: article.tags,
     status: article.status,
     scheduledAt: article.scheduledAt ? new Date(article.scheduledAt).toISOString() : undefined,
@@ -147,11 +150,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     data.regionCategoryIds ??
     article.secondaryCategories.map((categoryId: mongoose.Types.ObjectId) => String(categoryId));
 
+  const resolvedAuthorIds =
+    data.authorIds !== undefined || data.authorId !== undefined
+      ? normalizeAuthorIds(data.authorIds, data.authorId)
+      : article.authors.map((id) => String(id));
+
+  if (!resolvedAuthorIds || resolvedAuthorIds.length === 0) {
+    return NextResponse.json({ error: "At least one author is required" }, { status: 400 });
+  }
+
   const assignment = await assignArticleCategories({
     currentPrimaryId: article.category,
     categoryId: data.categoryId,
     regionCategoryIds: regionIds,
-    authorId: data.authorId ?? (article.authors[0] ? String(article.authors[0]) : undefined),
+    authorId: resolvedAuthorIds[0],
   });
 
   if ("error" in assignment) {
@@ -178,7 +190,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   if (data.featuredImageCaption !== undefined) {
     article.featuredImageCaption = data.featuredImageCaption;
   }
-  if (data.authorId) article.authors = [data.authorId as never];
+  if (data.authorIds !== undefined || data.authorId !== undefined) {
+    article.authors = resolvedAuthorIds as never;
+  }
   if (data.tags) article.tags = data.tags;
   if (data.seoTitle !== undefined) article.seoTitle = data.seoTitle;
   if (data.seoDescription !== undefined) article.seoDescription = data.seoDescription;

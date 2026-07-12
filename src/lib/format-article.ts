@@ -1,6 +1,7 @@
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import type { ArticleListItem } from "@/types";
+import { formatAuthorNames } from "@/lib/format-authors";
 import { toSafeVideoEmbedUrl, isSafeVideoFileUrl } from "@/lib/video-url";
 
 export function authorInitials(name: string): string {
@@ -36,8 +37,10 @@ export function formatArticleListDate(iso?: string): string {
 export function formatArticleAuthorName(
   article: Pick<ArticleListItem, "authors">
 ): string {
-  return article.authors[0]?.name ?? "Editorial";
+  return formatAuthorNames(article.authors);
 }
+
+export { formatAuthorNames } from "@/lib/format-authors";
 
 export function formatAuthorAndDate(author: string | undefined, iso?: string): string {
   return `${author?.trim() || "Editorial"} · ${formatArticleListDate(iso)}`;

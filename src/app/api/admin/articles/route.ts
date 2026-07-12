@@ -13,6 +13,7 @@ import { IMG } from "@/lib/img";
 import { assignArticleCategories } from "@/lib/article-category-assignment";
 import { getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
+import { resolveAuthorIdsFromInput } from "@/lib/admin-article-authors";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -29,7 +30,8 @@ const schema = z.object({
   featuredImageCaption: z.string().optional(),
   categoryId: z.string(),
   regionCategoryIds: z.array(z.string()).optional().default([]),
-  authorId: z.string(),
+  authorIds: z.array(z.string().min(1)).min(1).optional(),
+  authorId: z.string().min(1).optional(),
   tags: z.array(z.string()).optional(),
   status: z.enum(["draft", "review", "scheduled", "published", "archived"]),
   scheduledAt: z.string().optional(),
@@ -65,6 +67,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
+    let authorIds: string[];
+    try {
+      authorIds = resolveAuthorIdsFromInput(parsed.data);
+    } catch {
+      return NextResponse.json({ error: "At least one author is required" }, { status: 400 });
+    }
+
     await connectDB();
 
     const newsCategory = await Category.findOne({ slug: "news", isActive: true }).select("_id").lean();
@@ -79,7 +88,7 @@ export async function POST(request: NextRequest) {
       currentPrimaryId: newsCategory._id,
       categoryId: parsed.data.categoryId,
       regionCategoryIds: parsed.data.regionCategoryIds ?? [],
-      authorId: parsed.data.authorId,
+      authorId: authorIds[0],
     });
 
     if ("error" in assignment) {
@@ -120,7 +129,7 @@ export async function POST(request: NextRequest) {
       featuredImageCaption: parsed.data.featuredImageCaption,
       category: assignment.primaryId,
       secondaryCategories: assignment.secondaryCategoryIds,
-      authors: [parsed.data.authorId],
+      authors: authorIds,
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,
       publishedAt: parsed.data.status === "published" ? new Date() : undefined,

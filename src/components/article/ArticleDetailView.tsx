@@ -42,7 +42,7 @@ export function ArticleDetailView({
   adRight,
   adBelow,
 }: ArticleDetailViewProps) {
-  const author = article.authors[0];
+  const authors = article.authors.filter((entry) => entry?.name?.trim());
   const badge = articleBadge(article);
   const heroImage = resolveFeaturedImage(article.featuredImage);
   const accentColor = article.category.color ?? "#1a3896";
@@ -107,28 +107,38 @@ export function ArticleDetailView({
                 {article.subtitle && <p className="art-subtitle">{article.subtitle}</p>}
 
                 <div className="art-byline">
-                  {author ? (
-                    <Link href={`/author/${author.slug}`} className="art-author-card">
-                      {author.avatar ? (
-                        <Image
-                          src={author.avatar}
-                          alt={author.name}
-                          width={52}
-                          height={52}
-                          className="art-author-avatar"
-                        />
-                      ) : (
-                        <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
-                          {authorInitials(author.name)}
-                        </span>
-                      )}
-                      <span>
-                        <span className="art-author-name">{author.name}</span>
-                        {author.bio && (
-                          <span className="art-author-role">{author.bio.split("—")[0]?.trim()}</span>
-                        )}
-                      </span>
-                    </Link>
+                  {authors.length > 0 ? (
+                    <div className="art-byline-authors">
+                      {authors.map((entry) => (
+                        <Link
+                          key={entry._id}
+                          href={`/author/${entry.slug}`}
+                          className="art-author-card"
+                        >
+                          {entry.avatar ? (
+                            <Image
+                              src={entry.avatar}
+                              alt={entry.name}
+                              width={52}
+                              height={52}
+                              className="art-author-avatar"
+                            />
+                          ) : (
+                            <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
+                              {authorInitials(entry.name)}
+                            </span>
+                          )}
+                          <span>
+                            <span className="art-author-name">{entry.name}</span>
+                            {entry.bio && (
+                              <span className="art-author-role">
+                                {entry.bio.split("—")[0]?.trim()}
+                              </span>
+                            )}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   ) : (
                     <span />
                   )}
@@ -180,33 +190,41 @@ export function ArticleDetailView({
 
             {(article.isPremium || article.isEditorsChoice) && <NewsletterPrompt />}
 
-            {author && (
-              <aside className="art-author-box">
-                <div className="art-author-box-header">
-                  {author.avatar ? (
-                    <Image
-                      src={author.avatar}
-                      alt=""
-                      width={56}
-                      height={56}
-                      className="art-author-avatar"
-                      aria-hidden
-                    />
-                  ) : (
-                    <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
-                      {authorInitials(author.name)}
-                    </span>
-                  )}
-                  <div>
-                    <span className="art-author-box-kicker">About the author</span>
-                    <h3>{author.name}</h3>
-                  </div>
+            {authors.length > 0 && (
+              <aside className="art-author-box art-author-box--multi">
+                <span className="art-author-box-kicker">
+                  {authors.length > 1 ? "About the authors" : "About the author"}
+                </span>
+                <div className="art-author-box-list">
+                  {authors.map((entry) => (
+                    <div key={entry._id} className="art-author-box-item">
+                      <div className="art-author-box-header">
+                        {entry.avatar ? (
+                          <Image
+                            src={entry.avatar}
+                            alt=""
+                            width={56}
+                            height={56}
+                            className="art-author-avatar"
+                            aria-hidden
+                          />
+                        ) : (
+                          <span className="art-author-avatar art-author-avatar--fallback" aria-hidden>
+                            {authorInitials(entry.name)}
+                          </span>
+                        )}
+                        <div>
+                          <h3>{entry.name}</h3>
+                        </div>
+                      </div>
+                      {entry.bio ? <p>{entry.bio}</p> : null}
+                      <Link href={`/author/${entry.slug}`} className="art-author-box-link">
+                        View all articles
+                        <ArrowRight className="w-4 h-4" aria-hidden />
+                      </Link>
+                    </div>
+                  ))}
                 </div>
-                {author.bio ? <p>{author.bio}</p> : null}
-                <Link href={`/author/${author.slug}`} className="art-author-box-link">
-                  View all articles
-                  <ArrowRight className="w-4 h-4" aria-hidden />
-                </Link>
               </aside>
             )}
 

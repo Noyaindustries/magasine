@@ -352,6 +352,35 @@
   border-top: 1px solid var(--rule);
 }
 
+.art-byline-authors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  min-width: 0;
+}
+
+.art-author-box--multi .art-author-box-kicker {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.art-author-box-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.art-author-box-item {
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+}
+
+.art-author-box-item:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
 .art-author-card {
   display: flex;
   align-items: center;

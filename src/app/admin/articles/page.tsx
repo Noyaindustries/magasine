@@ -13,6 +13,7 @@ import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import { getDemoArticleFilter } from "@/lib/demo-articles";
 import { getArticleAdminStats } from "@/lib/article-admin-stats";
 import { tagExistingDemoArticles } from "@/lib/seed-import";
+import { formatAuthorNames } from "@/lib/format-authors";
 
 interface PageProps {
   searchParams: Promise<{
@@ -125,7 +126,9 @@ export default async function AdminArticlesPage({ searchParams }: PageProps) {
       title: article.title,
       status: article.status as ArticleStatus,
       categoryName: (article.category as { name?: string } | null)?.name ?? "—",
-      authorName: authorsList?.[0]?.name ?? "—",
+      authorName: formatAuthorNames(
+        (authorsList ?? []).map((author) => ({ name: author.name ?? "" }))
+      ),
       views: article.views ?? 0,
       readingTime: article.readingTime ?? 0,
       updatedAt: article.updatedAt

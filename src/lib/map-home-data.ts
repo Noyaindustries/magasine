@@ -35,6 +35,7 @@ import {
 } from "@/lib/format-article";
 import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 import { buildHomeRubriqueSlugs, resolveRubriqueTitle } from "@/lib/public-nav";
+import { formatAuthorNames } from "@/lib/format-authors";
 
 type HomeDataSource = Awaited<ReturnType<typeof import("@/lib/data").getHomePageData>>;
 
@@ -102,14 +103,13 @@ function articlePath(slug: string): string {
 }
 
 function toHomeCard(a: ArticleListItem): HomeCard {
-  const author = a.authors[0];
   return {
     slug: articlePath(a.slug),
     title: a.title,
     cat: a.category.name,
     meta: formatArticleListDate(a.publishedAt),
     image: a.featuredImage,
-    author: author?.name ?? "Editorial",
+    author: formatAuthorNames(a.authors),
     time: formatArticleListDate(a.publishedAt),
     excerpt: a.excerpt,
     badge: articleBadge(a),
