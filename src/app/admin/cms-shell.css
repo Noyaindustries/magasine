@@ -1882,6 +1882,60 @@ body:has(.cms-shell) {
   font-style: italic;
 }
 
+.cms-shell .cms-prose .art-column-row {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 10px;
+  border: 1px dashed color-mix(in srgb, var(--cms-red) 35%, var(--line));
+  border-radius: var(--r6);
+  background: color-mix(in srgb, var(--bg2) 80%, transparent);
+}
+
+.cms-shell .cms-prose .art-column-row--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cms-shell .cms-prose .art-column-row--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cms-shell .cms-prose .art-column {
+  min-height: 48px;
+  padding: 6px 8px;
+  border-radius: var(--r4);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.cms-shell .cms-prose .art-column > :first-child {
+  margin-top: 0;
+}
+
+.cms-shell .cms-prose .art-column > :last-child {
+  margin-bottom: 0;
+}
+
+.cms-shell .cms-prose .art-column img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--r4);
+}
+
+.cms-shell .cms-column-row-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--bg2);
+}
+
+.cms-shell .cms-column-row-bar--active {
+  background: color-mix(in srgb, var(--cms-red) 6%, var(--bg2));
+}
+
 .cms-shell .cms-inline-gallery-bar {
   display: flex;
   flex-wrap: wrap;

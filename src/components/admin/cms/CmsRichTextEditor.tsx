@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
 import { ArticleImage } from "@/lib/tiptap/article-image-extension";
+import { ArticleColumn } from "@/lib/tiptap/article-column-extension";
+import { ArticleColumnRow } from "@/lib/tiptap/article-column-row-extension";
 import { ArticleInlineGallery } from "@/lib/tiptap/article-inline-gallery-extension";
 import {
   INLINE_GALLERY_MIN_ITEMS,
@@ -26,6 +28,8 @@ import {
   AlignCenter,
   AlignLeft,
   AlignRight,
+  Columns2,
+  Columns3,
   ImageIcon,
   LayoutGrid,
   Link2,
@@ -59,6 +63,8 @@ export function CmsRichTextEditor({
         link: false,
       }),
       Link.configure({ openOnClick: false }),
+      ArticleColumn,
+      ArticleColumnRow,
       ArticleImage.configure({ inline: false }),
       ArticleInlineGallery,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
@@ -118,6 +124,8 @@ export function CmsRichTextEditor({
 
   const imageActive = editor.isActive("image");
   const galleryActive = editor.isActive("articleInlineGallery");
+  const columnRowActive = editor.isActive("articleColumnRow");
+  const columnActive = editor.isActive("articleColumn");
   const rawLayout = editor.getAttributes("image").layout;
   const imageLayout: ArticleImageLayout = isArticleImageLayout(rawLayout) ? rawLayout : "block";
   const galleryItems = normalizeInlineGalleryItems(
@@ -239,6 +247,18 @@ export function CmsRichTextEditor({
           false
         )}
         {toolBtn(
+          <Columns2 size={14} className="cms-icon" aria-hidden />,
+          () => editor.chain().focus().insertColumnRow(2).run(),
+          columnRowActive && editor.getAttributes("articleColumnRow").columnCount === 2,
+          false
+        )}
+        {toolBtn(
+          <Columns3 size={14} className="cms-icon" aria-hidden />,
+          () => editor.chain().focus().insertColumnRow(3).run(),
+          columnRowActive && editor.getAttributes("articleColumnRow").columnCount === 3,
+          false
+        )}
+        {toolBtn(
           <Video size={14} className="cms-icon" aria-hidden />,
           () => {
             const url = window.prompt("Video URL (YouTube, Vimeo…)");
@@ -312,6 +332,22 @@ export function CmsRichTextEditor({
             }}
           />
         </label>
+      </div>
+      <div
+        className={cn("cms-column-row-bar", (columnRowActive || columnActive) && "cms-column-row-bar--active")}
+      >
+        <span className="cms-image-layout-label">Colonnes</span>
+        {columnRowActive || columnActive ? (
+          <span className="cms-image-layout-hint">
+            Cliquez dans une colonne pour y saisir du texte ou insérer une illustration via le bouton
+            image.
+          </span>
+        ) : (
+          <span className="cms-image-layout-hint">
+            Insérez une ligne à 2 ou 3 colonnes (texte et images par colonne). Sur mobile, les colonnes
+            s&apos;empilent.
+          </span>
+        )}
       </div>
       <div className={cn("cms-inline-gallery-bar", galleryActive && "cms-inline-gallery-bar--active")}>
         <span className="cms-image-layout-label">Galerie inline</span>

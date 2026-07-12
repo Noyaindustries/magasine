@@ -11,6 +11,12 @@ import {
   normalizeInlineGalleryItems,
   type InlineGalleryItem,
 } from "@/lib/article-inline-gallery";
+import {
+  COLUMN_CLASS,
+  COLUMN_ROW_CLASS,
+  columnRowCountClass,
+  type ColumnRowCount,
+} from "@/lib/article-column-row";
 
 const ALLOWED_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   "img",
@@ -39,6 +45,7 @@ const ALLOWED_ATTRIBUTES: sanitizeHtml.IOptions["allowedAttributes"] = {
   ],
   td: ["colspan", "rowspan"],
   th: ["colspan", "rowspan"],
+  div: ["class", "data-column-count"],
 };
 
 const SAFE_URL_PATTERN =
@@ -81,7 +88,13 @@ export function sanitizeArticleHtml(html: string): string {
       allowedClasses: {
         img: [...ARTICLE_IMAGE_LAYOUT_CLASSES],
         figure: [...ARTICLE_IMAGE_LAYOUT_CLASSES, INLINE_GALLERY_ITEM_CLASS],
-        div: [INLINE_GALLERY_CLASS],
+        div: [
+          INLINE_GALLERY_CLASS,
+          COLUMN_ROW_CLASS,
+          "art-column-row--2",
+          "art-column-row--3",
+          COLUMN_CLASS,
+        ],
       },
       allowedSchemes: ["http", "https", "mailto", "tel"],
       allowedSchemesByTag: {
@@ -118,13 +131,24 @@ export function sanitizeArticleHtml(html: string): string {
               : normalizeImageLayoutTag("figure", attribs),
         }),
         div: (_tagName, attribs) => {
-          if (!attribs.class?.includes(INLINE_GALLERY_CLASS)) {
-            return { tagName: "div", attribs };
+          const cls = attribs.class ?? "";
+          if (cls.includes(INLINE_GALLERY_CLASS)) {
+            return { tagName: "div", attribs: { class: INLINE_GALLERY_CLASS } };
           }
-          return {
-            tagName: "div",
-            attribs: { class: INLINE_GALLERY_CLASS },
-          };
+          if (cls.includes(COLUMN_ROW_CLASS)) {
+            const count: ColumnRowCount = cls.includes("art-column-row--3") ? 3 : 2;
+            return {
+              tagName: "div",
+              attribs: {
+                class: `${COLUMN_ROW_CLASS} ${columnRowCountClass(count)}`,
+                "data-column-count": String(count),
+              },
+            };
+          }
+          if (cls.includes(COLUMN_CLASS)) {
+            return { tagName: "div", attribs: { class: COLUMN_CLASS } };
+          }
+          return { tagName: "div", attribs };
         },
       },
       exclusiveFilter(frame) {

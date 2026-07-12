@@ -260,4 +260,38 @@ test.describe("Admin — articles (API)", () => {
 
     await page.request.delete(`/api/admin/articles/${created._id}`);
   });
+
+  test("conserve un bloc colonnes dans le contenu HTML", async ({ page }) => {
+    const stamp = Date.now();
+    const { categoryId, authorId } = await fetchMetaIds(page);
+    const imageUrl =
+      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop";
+    const content = `<p>Avant les colonnes.</p><div class="art-column-row art-column-row--2" data-column-count="2"><div class="art-column"><p>Colonne gauche ${stamp}</p></div><div class="art-column"><p>Colonne droite</p><img src="${imageUrl}" alt="Illustration colonne" class="art-img-block" data-image-layout="block" /></div></div><p>Après les colonnes.</p>`;
+
+    const createRes = await page.request.post("/api/admin/articles", {
+      data: {
+        title: `E2E column row ${stamp}`,
+        excerpt: "Résumé colonnes E2E",
+        content,
+        featuredImage:
+          "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=630&fit=crop",
+        categoryId,
+        authorId,
+        status: "draft",
+        slug: `e2e-column-row-${stamp}`,
+      },
+    });
+    expect(createRes.status(), await createRes.text()).toBe(201);
+    const created = (await createRes.json()) as { _id: string };
+
+    const getRes = await page.request.get(`/api/admin/articles/${created._id}`);
+    expect(getRes.ok()).toBeTruthy();
+    const article = (await getRes.json()) as { content: string };
+    expect(article.content).toContain("art-column-row");
+    expect(article.content).toContain("art-column-row--2");
+    expect(article.content).toContain("art-column");
+    expect(article.content).toContain(`Colonne gauche ${stamp}`);
+
+    await page.request.delete(`/api/admin/articles/${created._id}`);
+  });
 });
