@@ -237,6 +237,19 @@ export function CmsRichTextEditor({
         {!imageActive && (
           <span className="cms-image-layout-hint">Sélectionnez une image dans le texte.</span>
         )}
+        <label className="cms-image-caption-field">
+          <span className="cms-image-layout-label">Légende</span>
+          <input
+            type="text"
+            className="input cms-image-caption-input"
+            value={(editor.getAttributes("image").caption as string | null) ?? ""}
+            disabled={!imageActive}
+            placeholder="Texte sous l'illustration (facultatif)"
+            onChange={(event) => {
+              editor.chain().focus().setImageCaption(event.target.value).run();
+            }}
+          />
+        </label>
       </div>
       <div className="ebody">
         <EditorContent editor={editor} />

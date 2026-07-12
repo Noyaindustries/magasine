@@ -1805,6 +1805,52 @@ body:has(.cms-shell) {
   margin: 0.2em 0 10px 12px;
 }
 
+.cms-shell .cms-prose figure.art-img-block,
+.cms-shell .cms-prose figure.art-img-float-left,
+.cms-shell .cms-prose figure.art-img-float-right {
+  margin: 12px 0;
+}
+
+.cms-shell .cms-prose figure.art-img-float-left {
+  float: left;
+  width: min(44%, 280px);
+  margin: 0.2em 12px 10px 0;
+}
+
+.cms-shell .cms-prose figure.art-img-float-right {
+  float: right;
+  width: min(44%, 280px);
+  margin: 0.2em 0 10px 12px;
+}
+
+.cms-shell .cms-prose figure img {
+  width: 100%;
+  margin: 0;
+}
+
+.cms-shell .cms-prose figure figcaption {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--t2);
+  font-style: italic;
+}
+
+.cms-shell .cms-image-caption-field {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 8px;
+  min-width: min(100%, 280px);
+}
+
+.cms-shell .cms-image-caption-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
 .cms-shell .cms-prose::after {
   content: "";
   display: table;

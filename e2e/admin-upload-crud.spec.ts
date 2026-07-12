@@ -193,4 +193,36 @@ test.describe("Admin — articles (API)", () => {
 
     await page.request.delete(`/api/admin/articles/${created._id}`);
   });
+
+  test("conserve la légende d'une illustration dans le contenu HTML", async ({ page }) => {
+    const stamp = Date.now();
+    const { categoryId, authorId } = await fetchMetaIds(page);
+    const imageUrl =
+      "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=600&fit=crop";
+    const content = `<figure class="art-img-float-left" data-image-layout="float-left"><img src="${imageUrl}" alt="Illustration E2E" /><figcaption>Légende E2E ${stamp}</figcaption></figure><p>Texte autour de l'illustration.</p>`;
+
+    const createRes = await page.request.post("/api/admin/articles", {
+      data: {
+        title: `E2E caption ${stamp}`,
+        excerpt: "Résumé légende E2E",
+        content,
+        featuredImage:
+          "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=630&fit=crop",
+        categoryId,
+        authorId,
+        status: "draft",
+        slug: `e2e-caption-${stamp}`,
+      },
+    });
+    expect(createRes.status(), await createRes.text()).toBe(201);
+    const created = (await createRes.json()) as { _id: string };
+
+    const getRes = await page.request.get(`/api/admin/articles/${created._id}`);
+    expect(getRes.ok()).toBeTruthy();
+    const article = (await getRes.json()) as { content: string };
+    expect(article.content).toContain("<figcaption>");
+    expect(article.content).toContain(`Légende E2E ${stamp}`);
+
+    await page.request.delete(`/api/admin/articles/${created._id}`);
+  });
 });
