@@ -14,6 +14,12 @@ interface BrandLogoProps {
   onNavigate?: () => void;
 }
 
+function logoDestinationLabel(href: string): string {
+  if (href === "/") return "Home";
+  if (href.startsWith("/admin")) return "Dashboard";
+  return "Home";
+}
+
 export function BrandLogo({
   variant = "header",
   className,
@@ -54,7 +60,7 @@ export function BrandLogo({
     <Link
       href={href}
       className={logoClassName}
-      aria-label={`${siteName} — ${href === "/" ? "Home" : "Tableau de bord"}`}
+      aria-label={`${siteName} — ${logoDestinationLabel(href)}`}
       onClick={onNavigate}
     >
       {content}

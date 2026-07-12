@@ -11,7 +11,7 @@ export function roleCanAuthor(role: UserRole): boolean {
 }
 
 async function generateUniqueAuthorSlug(name: string): Promise<string> {
-  const base = slugify(name, { lower: true, strict: true }) || "auteur";
+  const base = slugify(name, { lower: true, strict: true }) || "author";
   let slug = base;
   let suffix = 1;
   while (await Author.exists({ slug })) {
