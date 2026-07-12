@@ -70,6 +70,10 @@ body:has(.cms-shell) {
 
 .cms-shell button {
   cursor: pointer;
+}
+
+/* Unstyled CMS controls only — do not strip .adm-btn / .admin-btn variants */
+.cms-shell button:not(.adm-btn):not(.admin-btn):not(.btn) {
   border: none;
   background: none;
 }

@@ -877,3 +877,32 @@
     animation: none;
   }
 }
+
+/* CMS shell button reset must not override premium admin buttons (higher specificity). */
+.cms-shell .adm-btn--danger {
+  color: #fff;
+  background: linear-gradient(135deg, #c62828, #8b1a1a);
+  border: none;
+}
+
+.cms-shell .adm-btn--danger:hover {
+  filter: brightness(1.05);
+}
+
+.cms-shell .adm-btn--primary {
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #e8d48a 0%, #c9a227 100%);
+  border: none;
+}
+
+.cms-shell .adm-btn--secondary {
+  color: #fff;
+  background: rgba(26, 56, 150, 0.9);
+  border: none;
+}
+
+.cms-shell .adm-btn--ghost {
+  color: var(--charcoal, #1a1a1a);
+  background: #fff;
+  border: 1px solid var(--border, #e5e2dd);
+}
