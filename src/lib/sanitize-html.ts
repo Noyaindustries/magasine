@@ -5,6 +5,12 @@ import {
   articleImageLayoutToClass,
   isArticleImageLayout,
 } from "@/lib/article-image-layout";
+import {
+  INLINE_GALLERY_CLASS,
+  INLINE_GALLERY_ITEM_CLASS,
+  normalizeInlineGalleryItems,
+  type InlineGalleryItem,
+} from "@/lib/article-inline-gallery";
 
 const ALLOWED_TAGS = sanitizeHtml.defaults.allowedTags.concat([
   "img",
@@ -74,7 +80,8 @@ export function sanitizeArticleHtml(html: string): string {
       allowedAttributes: ALLOWED_ATTRIBUTES,
       allowedClasses: {
         img: [...ARTICLE_IMAGE_LAYOUT_CLASSES],
-        figure: [...ARTICLE_IMAGE_LAYOUT_CLASSES],
+        figure: [...ARTICLE_IMAGE_LAYOUT_CLASSES, INLINE_GALLERY_ITEM_CLASS],
+        div: [INLINE_GALLERY_CLASS],
       },
       allowedSchemes: ["http", "https", "mailto", "tel"],
       allowedSchemesByTag: {
@@ -85,14 +92,40 @@ export function sanitizeArticleHtml(html: string): string {
         a: sanitizeHtml.simpleTransform("a", {
           rel: "noopener noreferrer",
         }),
-        img: (_tagName, attribs) => ({
-          tagName: "img",
-          attribs: normalizeImageLayoutTag("img", attribs),
-        }),
+        img: (_tagName, attribs) => {
+          const hasLayout =
+            attribs["data-image-layout"] ||
+            attribs.class?.includes("art-img-float-left") ||
+            attribs.class?.includes("art-img-float-right") ||
+            attribs.class?.includes("art-img-block");
+          if (!hasLayout) {
+            const minimal: Record<string, string> = { src: attribs.src ?? "" };
+            if (attribs.alt) minimal.alt = attribs.alt;
+            if (attribs.width) minimal.width = attribs.width;
+            if (attribs.height) minimal.height = attribs.height;
+            return { tagName: "img", attribs: minimal };
+          }
+          return {
+            tagName: "img",
+            attribs: normalizeImageLayoutTag("img", attribs),
+          };
+        },
         figure: (_tagName, attribs) => ({
           tagName: "figure",
-          attribs: normalizeImageLayoutTag("figure", attribs),
+          attribs:
+            attribs.class?.includes(INLINE_GALLERY_ITEM_CLASS)
+              ? { class: INLINE_GALLERY_ITEM_CLASS }
+              : normalizeImageLayoutTag("figure", attribs),
         }),
+        div: (_tagName, attribs) => {
+          if (!attribs.class?.includes(INLINE_GALLERY_CLASS)) {
+            return { tagName: "div", attribs };
+          }
+          return {
+            tagName: "div",
+            attribs: { class: INLINE_GALLERY_CLASS },
+          };
+        },
       },
       exclusiveFilter(frame) {
         if (frame.tag === "iframe") {

@@ -10,6 +10,12 @@ import { cn } from "@/lib/utils";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
 import { ArticleImage } from "@/lib/tiptap/article-image-extension";
+import { ArticleInlineGallery } from "@/lib/tiptap/article-inline-gallery-extension";
+import {
+  INLINE_GALLERY_MIN_ITEMS,
+  normalizeInlineGalleryItems,
+  type InlineGalleryItem,
+} from "@/lib/article-inline-gallery";
 import {
   ARTICLE_IMAGE_LAYOUTS,
   ARTICLE_IMAGE_LAYOUT_LABELS,
@@ -21,6 +27,7 @@ import {
   AlignLeft,
   AlignRight,
   ImageIcon,
+  LayoutGrid,
   Link2,
   List,
   ListOrdered,
@@ -41,7 +48,9 @@ export function CmsRichTextEditor({
   placeholder = "Continue writing your article here…",
 }: CmsRichTextEditorProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const imageInputId = "cms-rt-image-input";
+  const galleryInputId = "cms-rt-gallery-input";
   const [, setSelectionTick] = useState(0);
 
   const editor = useEditor({
@@ -51,6 +60,7 @@ export function CmsRichTextEditor({
       }),
       Link.configure({ openOnClick: false }),
       ArticleImage.configure({ inline: false }),
+      ArticleInlineGallery,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({ placeholder }),
     ],
@@ -107,11 +117,57 @@ export function CmsRichTextEditor({
   }
 
   const imageActive = editor.isActive("image");
+  const galleryActive = editor.isActive("articleInlineGallery");
   const rawLayout = editor.getAttributes("image").layout;
   const imageLayout: ArticleImageLayout = isArticleImageLayout(rawLayout) ? rawLayout : "block";
+  const galleryItems = normalizeInlineGalleryItems(
+    editor.getAttributes("articleInlineGallery").items as InlineGalleryItem[]
+  );
 
   const setImageLayout = (layout: ArticleImageLayout) => {
     editor.chain().focus().setImageLayout(layout).run();
+  };
+
+  const updateGalleryItems = (items: InlineGalleryItem[]) => {
+    const normalized = normalizeInlineGalleryItems(items);
+    if (normalized.length < INLINE_GALLERY_MIN_ITEMS) {
+      editor.chain().focus().deleteSelection().run();
+      return;
+    }
+    editor.chain().focus().updateInlineGallery(normalized).run();
+  };
+
+  const patchGalleryItem = (index: number, patch: Partial<InlineGalleryItem>) => {
+    updateGalleryItems(
+      galleryItems.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item))
+    );
+  };
+
+  const removeGalleryItem = (index: number) => {
+    updateGalleryItems(galleryItems.filter((_, itemIndex) => itemIndex !== index));
+  };
+
+  const appendGalleryImages = async (files: FileList | File[]) => {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+    try {
+      const uploads = await Promise.all(
+        list.map(async (file) => {
+          const { url } = await uploadAdminMedia(file, file.name);
+          return { url, alt: file.name } satisfies InlineGalleryItem;
+        })
+      );
+      if (galleryActive) {
+        updateGalleryItems([...galleryItems, ...uploads]);
+      } else if (uploads.length >= INLINE_GALLERY_MIN_ITEMS) {
+        editor.chain().focus().insertInlineGallery(uploads).run();
+        toast.success("Galerie insérée.");
+      } else {
+        toast.error(`Sélectionnez au moins ${INLINE_GALLERY_MIN_ITEMS} images pour une galerie.`);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Échec de l'upload.");
+    }
   };
 
   return (
@@ -175,6 +231,12 @@ export function CmsRichTextEditor({
           <ImageIcon size={14} className="cms-icon" aria-hidden />,
           () => document.getElementById(imageInputId)?.click(),
           editor.isActive("image")
+        )}
+        {toolBtn(
+          <LayoutGrid size={14} className="cms-icon" aria-hidden />,
+          () => document.getElementById(galleryInputId)?.click(),
+          galleryActive,
+          false
         )}
         {toolBtn(
           <Video size={14} className="cms-icon" aria-hidden />,
@@ -251,6 +313,48 @@ export function CmsRichTextEditor({
           />
         </label>
       </div>
+      <div className={cn("cms-inline-gallery-bar", galleryActive && "cms-inline-gallery-bar--active")}>
+        <span className="cms-image-layout-label">Galerie inline</span>
+        {galleryActive ? (
+          <>
+            <div className="cms-inline-gallery-items">
+              {galleryItems.map((item, index) => (
+                <div key={`${item.url}-${index}`} className="cms-inline-gallery-edit-item">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={item.url} alt="" className="cms-inline-gallery-edit-thumb" />
+                  <input
+                    type="text"
+                    className="input cms-inline-gallery-edit-caption"
+                    value={item.caption ?? ""}
+                    placeholder="Légende"
+                    onChange={(event) => patchGalleryItem(index, { caption: event.target.value })}
+                  />
+                  <button
+                    type="button"
+                    className="cms-inline-gallery-remove"
+                    onClick={() => removeGalleryItem(index)}
+                    title="Retirer l'image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="cms-quick-add"
+              onClick={() => galleryInputRef.current?.click()}
+            >
+              + Ajouter une image
+            </button>
+          </>
+        ) : (
+          <span className="cms-image-layout-hint">
+            Cliquez sur « Galerie » pour insérer 2 images ou plus, ou sélectionnez une galerie
+            existante.
+          </span>
+        )}
+      </div>
       <div className="ebody">
         <EditorContent editor={editor} />
       </div>
@@ -278,6 +382,21 @@ export function CmsRichTextEditor({
               if (imageInputRef.current) imageInputRef.current.value = "";
             }
           })();
+        }}
+      />
+      <input
+        id={galleryInputId}
+        ref={galleryInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        multiple
+        className="cms-hidden-input"
+        onChange={(event) => {
+          const files = event.target.files;
+          if (!files || !editor) return;
+          void appendGalleryImages(files).finally(() => {
+            if (galleryInputRef.current) galleryInputRef.current.value = "";
+          });
         }}
       />
     </div>
