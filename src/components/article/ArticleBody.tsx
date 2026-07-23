@@ -16,7 +16,10 @@ export function ArticleBody({ article, truncated = false }: ArticleBodyProps) {
   const isPodcast = article.contentType === "podcast";
   const isGalleryType = article.contentType === "gallery";
   const heroImage = resolveFeaturedImage(article.featuredImage);
-  const galleryItems = article.gallery?.filter((item) => item.url) ?? [];
+  // End-of-article gallery is disabled for normal articles; gallery items only
+  // render for contentType === "gallery" (photo feature, shown above the body).
+  const galleryItems =
+    isGalleryType ? (article.gallery?.filter((item) => item.url) ?? []) : [];
 
   const galleryBlock =
     galleryItems.length > 0 ? (
@@ -100,8 +103,6 @@ export function ArticleBody({ article, truncated = false }: ArticleBodyProps) {
           })(),
         }}
       />
-
-      {!isGalleryType && galleryBlock}
     </div>
   );
 }

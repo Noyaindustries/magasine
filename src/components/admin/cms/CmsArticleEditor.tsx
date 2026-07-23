@@ -591,11 +591,15 @@ export function CmsArticleEditor({
       layout: "block",
     });
     if (inserted) {
-      toast.success("Image inserted into the article body.");
+      // Keep it only in the body — avoid repeating at the end of the article.
+      patchForm({
+        gallery: form.gallery.filter((g) => g.url !== item.url),
+      });
+      toast.success("Image moved into the article body.");
     } else {
       toast.error("Unable to insert image into body.");
     }
-  }, []);
+  }, [form.gallery, patchForm]);
 
   const uploadVideo = async (file: File) => {
     if (!file.type.startsWith("video/")) {
@@ -1178,9 +1182,9 @@ export function CmsArticleEditor({
             </div>
             <div className="card-body">
               <p className="cms-field-hint cms-gallery-intro">
-                Supplementary images shown on the article page (gallery at the end, or at the top for
-                a photo feature). Use "Insert into body" to place an image in the text at the
-                cursor position.
+                For photo features (content type Gallery), these images appear at the top of the
+                page. For normal articles they are not shown at the end — use &quot;Insert into
+                body&quot; to place them in the text.
               </p>
               <CmsArticleGalleryEditor
                 items={form.gallery}
