@@ -35,7 +35,7 @@ import {
   isValidVideoSourceUrl,
 } from "@/lib/article-content-types";
 import { getVideoThumbnailUrl } from "@/lib/video-url";
-import { isRegionCategoryRecord } from "@/lib/region-category-slugs";
+import { getCanonicalRegionSlug, isRegionCategoryRecord } from "@/lib/region-category-slugs";
 import { toDatetimeLocalValue } from "@/lib/admin-article-dates";
 
 interface Category {
@@ -193,13 +193,23 @@ export function CmsArticleEditor({
     }
     return topics;
   }, [categories, form.categoryId]);
-  const regionCategories = useMemo(
-    () =>
-      categories
-        .filter((category) => isRegionCategoryRecord(category))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [categories]
-  );
+  const regionCategories = useMemo(() => {
+    const byCanonical = new Map<string, (typeof categories)[number]>();
+    for (const category of categories) {
+      if (!isRegionCategoryRecord(category)) continue;
+      const canonical = getCanonicalRegionSlug(category.slug, category.name) ?? category._id;
+      const existing = byCanonical.get(canonical);
+      if (!existing) {
+        byCanonical.set(canonical, category);
+        continue;
+      }
+      // Prefer the category already selected on the article when duplicates exist.
+      if (form.regionCategoryIds.includes(category._id)) {
+        byCanonical.set(canonical, category);
+      }
+    }
+    return [...byCanonical.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories, form.regionCategoryIds]);
   const selectedCategory = categories.find((category) => category._id === form.categoryId);
   const selectedCategoryIsRegion = selectedCategory
     ? isRegionCategoryRecord(selectedCategory)
@@ -918,8 +928,8 @@ export function CmsArticleEditor({
                   Section <span className="req">*</span>
                 </label>
                 <p className="cms-field-hint">
-                  Editorial theme (News, Politics, Culture…). Regions such as Latin America are
-                  selected in the section below, not here.
+                  Editorial theme (News, Politics, Culture…). Countries / regions such as Latin
+                  America are selected in the section below, not here.
                 </p>
                 <select
                   className="input sel"
@@ -955,26 +965,35 @@ export function CmsArticleEditor({
                 </button>
               </div>
               <div className="field">
-                <label className="lbl">Region / countries covered</label>
+                <label className="lbl">
+                  Country / region <span className="req">*</span>
+                </label>
                 <p className="cms-field-hint">
-                  Check one or more regions to show the article on pages like /category/africa,
-                  /category/latin-america, etc.
+                  Select the country or region covered so the article appears on pages like
+                  /category/africa, /category/latin-america, etc.
                 </p>
-                <div className="cms-region-grid">
-                  {regionCategories.map((region) => {
-                    const checked = form.regionCategoryIds.includes(region._id);
-                    return (
-                      <label key={region._id} className="cms-region-option">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleRegionCategory(region._id)}
-                        />
-                        <span>{region.name}</span>
-                      </label>
-                    );
-                  })}
-                </div>
+                {regionCategories.length > 0 ? (
+                  <div className="cms-region-grid">
+                    {regionCategories.map((region) => {
+                      const checked = form.regionCategoryIds.includes(region._id);
+                      return (
+                        <label key={region._id} className="cms-region-option">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleRegionCategory(region._id)}
+                          />
+                          <span>{region.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="cms-field-hint" style={{ color: "var(--cms-red)" }}>
+                    No countries / regions available. Check the Categories admin (Africa, Latin
+                    America, South Asia, West Asia).
+                  </p>
+                )}
               </div>
               <div className="field">
                 <label className="lbl">Tags</label>

@@ -13,6 +13,8 @@ export interface ArticleListRow {
   title: string;
   status: ArticleStatus;
   categoryName: string;
+  /** Régions / pays couverts (catégories région). */
+  regionNames: string[];
   authorName: string;
   views: number;
   readingTime: number;
@@ -46,10 +48,12 @@ interface CmsArticlesViewProps {
   status?: ArticleStatus;
   query?: string;
   category?: string;
+  region?: string;
   author?: string;
   page: number;
   totalPages: number;
   categories: string[];
+  regions: string[];
   authors: string[];
   demoCount: number;
   virtualDemoCount: number;
@@ -62,6 +66,7 @@ function buildArticlesHref(params: {
   status?: ArticleStatus;
   q?: string;
   category?: string;
+  region?: string;
   author?: string;
   page?: number;
   demo?: boolean;
@@ -70,6 +75,7 @@ function buildArticlesHref(params: {
   if (params.status) sp.set("status", params.status);
   if (params.q?.trim()) sp.set("q", params.q.trim());
   if (params.category) sp.set("category", params.category);
+  if (params.region) sp.set("region", params.region);
   if (params.author) sp.set("author", params.author);
   if (params.demo) sp.set("demo", "1");
   if (params.page && params.page > 1) sp.set("page", String(params.page));
@@ -83,10 +89,12 @@ export function CmsArticlesView({
   status,
   query,
   category,
+  region,
   author,
   page,
   totalPages,
   categories,
+  regions,
   authors,
   demoCount,
   virtualDemoCount,
@@ -95,7 +103,14 @@ export function CmsArticlesView({
   stats,
 }: CmsArticlesViewProps) {
   const activeCount = status ? counts[status] : counts.all;
-  const paginationBase = buildArticlesHref({ status, q: query, category, author, demo: demoOnly });
+  const paginationBase = buildArticlesHref({
+    status,
+    q: query,
+    category,
+    region,
+    author,
+    demo: demoOnly,
+  });
 
   return (
     <CmsPage>
@@ -134,14 +149,17 @@ export function CmsArticlesView({
           <span className="tab on">Tests ({demoCount.toLocaleString("en-US")})</span>
         ) : (
           <Link
-            href={buildArticlesHref({ status, q: query, category, author, demo: true })}
+            href={buildArticlesHref({ status, q: query, category, region, author, demo: true })}
             className="tab"
           >
             Tests ({demoCount.toLocaleString("en-US")})
           </Link>
         )}
         {demoOnly && (
-          <Link href={buildArticlesHref({ status, q: query, category, author })} className="tab">
+          <Link
+            href={buildArticlesHref({ status, q: query, category, region, author })}
+            className="tab"
+          >
             ← All articles
           </Link>
         )}
@@ -150,6 +168,7 @@ export function CmsArticlesView({
             status: tab.id,
             q: query,
             category,
+            region,
             author,
             demo: demoOnly,
           });
@@ -175,16 +194,24 @@ export function CmsArticlesView({
         </div>
         <select className="fsel" name="category" defaultValue={category ?? ""}>
           <option value="">All categories</option>
-          {categories.map((name) => (
-            <option key={name} value={name}>
+          {categories.map((name, index) => (
+            <option key={`category-${name}-${index}`} value={name}>
+              {name}
+            </option>
+          ))}
+        </select>
+        <select className="fsel" name="region" defaultValue={region ?? ""}>
+          <option value="">All countries / regions</option>
+          {regions.map((name, index) => (
+            <option key={`region-${name}-${index}`} value={name}>
               {name}
             </option>
           ))}
         </select>
         <select className="fsel" name="author" defaultValue={author ?? ""}>
           <option value="">All authors</option>
-          {authors.map((name) => (
-            <option key={name} value={name}>
+          {authors.map((name, index) => (
+            <option key={`author-${name}-${index}`} value={name}>
               {name}
             </option>
           ))}

@@ -150,6 +150,7 @@ export function CmsArticlesTable({
                 <th>Title</th>
                 <th>Author</th>
                 <th>Category</th>
+                <th>Country / region</th>
                 <th>Status</th>
                 <th>Views</th>
                 <th>Date</th>
@@ -159,7 +160,7 @@ export function CmsArticlesTable({
             <tbody>
               {articles.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="cms-empty-cell">
+                  <td colSpan={9} className="cms-empty-cell">
                     No articles match your filters.
                   </td>
                 </tr>
@@ -222,6 +223,15 @@ export function CmsArticlesTable({
                     </td>
                     <td>
                       <span style={{ fontSize: "11.5px", color }}>{article.categoryName}</span>
+                    </td>
+                    <td>
+                      {article.regionNames.length > 0 ? (
+                        <span style={{ fontSize: "11.5px" }}>
+                          {article.regionNames.join(", ")}
+                        </span>
+                      ) : (
+                        <span className="tc-muted">—</span>
+                      )}
                     </td>
                     <td>
                       <CmsStatusBadge status={article.status} scheduledAt={article.scheduledAt} />
