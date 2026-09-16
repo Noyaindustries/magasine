@@ -1,8 +1,8 @@
 export const NEWSLETTER_TOPICS = [
   {
     id: "general",
-    label: "Daily briefing",
-    description: "The essential headlines every morning from across the Global South.",
+    label: "Newsletter",
+    description: "Independent journalism from the Global South, curated by our newsroom.",
   },
   {
     id: "weekly",
@@ -43,15 +43,23 @@ export const NEWSLETTER_TOPICS = [
 
 export type NewsletterTopicId = (typeof NEWSLETTER_TOPICS)[number]["id"];
 
-/** Une seule édition pour l'instant — repasser à `true` pour réactiver le choix multi-éditions. */
+/** Une seule newsletter pour l'instant — repasser à `true` pour réactiver multi-éditions. */
 export const NEWSLETTER_MULTI_EDITION_ENABLED = false;
 
 export const PRIMARY_NEWSLETTER_TOPIC_ID: NewsletterTopicId = "general";
 
-export const DEFAULT_NEWSLETTER_TOPICS: NewsletterTopicId[] = ["general", "weekly"];
+export const DEFAULT_NEWSLETTER_TOPICS: NewsletterTopicId[] = [PRIMARY_NEWSLETTER_TOPIC_ID];
 
 export function isNewsletterMultiEditionEnabled(): boolean {
   return NEWSLETTER_MULTI_EDITION_ENABLED;
+}
+
+/** Topics exposed in public/admin UIs (single newsletter when multi-edition is off). */
+export function getSelectableNewsletterTopics() {
+  if (!NEWSLETTER_MULTI_EDITION_ENABLED) {
+    return NEWSLETTER_TOPICS.filter((topic) => topic.id === PRIMARY_NEWSLETTER_TOPIC_ID);
+  }
+  return [...NEWSLETTER_TOPICS];
 }
 
 export function getNewsletterSignupPreferences(
@@ -72,7 +80,7 @@ export function getNewsletterSignupPreferences(
 }
 
 export const DEFAULT_NEWSLETTER_BENEFITS = [
-  "Daily briefing every morning",
+  "Free newsletter in your inbox",
   isNewsletterMultiEditionEnabled()
     ? "Regional editions you choose"
     : "Independent journalism from the Global South",

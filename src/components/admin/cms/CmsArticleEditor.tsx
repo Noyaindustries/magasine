@@ -37,6 +37,8 @@ import {
 import { getVideoThumbnailUrl } from "@/lib/video-url";
 import { getCanonicalRegionSlug, isRegionCategoryRecord } from "@/lib/region-category-slugs";
 import { toDatetimeLocalValue } from "@/lib/admin-article-dates";
+import { CmsRelatedArticlesPicker } from "@/components/admin/cms/CmsRelatedArticlesPicker";
+import type { RelatedArticleOption } from "@/lib/related-articles-shared";
 
 interface Category {
   _id: string;
@@ -168,6 +170,7 @@ export function CmsArticleEditor({
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [autoSaveAgeSec, setAutoSaveAgeSec] = useState(0);
   const [pushNotify, setPushNotify] = useState(false);
+  const [relatedArticles, setRelatedArticles] = useState<RelatedArticleOption[]>([]);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const coverFileRef = useRef<HTMLInputElement>(null);
@@ -389,6 +392,9 @@ export function CmsArticleEditor({
           videoUrl: article.videoUrl ?? "",
         });
         setPushNotify(article.sendPushOnPublish ?? false);
+        setRelatedArticles(
+          Array.isArray(article.relatedArticles) ? article.relatedArticles : []
+        );
         setSlugTouched(true);
         setLastSavedAt(Date.now());
         dirtyRef.current = false;
@@ -467,9 +473,10 @@ export function CmsArticleEditor({
           })),
         contentType: form.contentType,
         videoUrl: form.videoUrl.trim() || undefined,
+        relatedArticleIds: relatedArticles.map((item) => item._id),
       };
     },
-    [form, pushNotify]
+    [form, pushNotify, relatedArticles]
   );
 
   const saveArticle = useCallback(
@@ -1061,6 +1068,19 @@ export function CmsArticleEditor({
                   + New author
                 </button>
               </div>
+              <CmsRelatedArticlesPicker
+                value={relatedArticles}
+                excludeId={articleId}
+                hint={
+                  form.isFeatured
+                    ? "For homepage-featured articles, these Related stories also fill the homepage Related Stories block (after save)."
+                    : undefined
+                }
+                onChange={(next) => {
+                  dirtyRef.current = true;
+                  setRelatedArticles(next);
+                }}
+              />
             </div>
           </div>
 

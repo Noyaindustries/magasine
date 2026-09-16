@@ -156,6 +156,9 @@ export function CmsAboutPageView() {
                 value={form.lead}
                 onChange={(e) => setForm({ ...form, lead: e.target.value })}
               />
+              <p className="cms-field-hint">
+                Press Enter for a line break — it will show on the public page.
+              </p>
             </Field>
           </div>
         </div>
@@ -182,6 +185,9 @@ export function CmsAboutPageView() {
                   value={paragraph}
                   onChange={(e) => updateParagraph(index, e.target.value)}
                 />
+                <p className="cms-field-hint">
+                  Enter = line break on the site. For a new block, use “+ Add paragraph”.
+                </p>
               </Field>
             ))}
             <button

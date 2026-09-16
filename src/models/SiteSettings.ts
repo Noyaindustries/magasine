@@ -1,4 +1,5 @@
 import mongoose, { Schema, type Model } from "mongoose";
+import { connectDB } from "@/lib/mongodb";
 import type { HomeSectionId } from "@/lib/homepage-sections";
 import { getSiteUrl } from "@/lib/site";
 
@@ -73,6 +74,8 @@ export interface ISiteSettings {
   brevoConnected: boolean;
   typographyPreset: string;
   adZones: AdZoneDoc[];
+  /** Manual curation for homepage Related Stories block (max 6, ordered). */
+  homeRelatedArticles: mongoose.Types.ObjectId[];
   aboutPage?: unknown;
   updatedAt: Date;
 }
@@ -110,8 +113,8 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     newsletterBenefits: {
       type: [String],
       default: [
-        "Daily briefing every morning",
-        "Regional editions you choose",
+        "Free newsletter in your inbox",
+        "Independent journalism from the Global South",
         "Investigation alerts — always free",
       ],
     },
@@ -167,6 +170,10 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       ],
       default: [],
     },
+    homeRelatedArticles: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Article" }],
+      default: [],
+    },
   },
   { timestamps: { createdAt: false, updatedAt: true } }
 );
@@ -182,4 +189,16 @@ export async function getOrCreateSiteSettings() {
     settings = created.toObject();
   }
   return settings;
+}
+
+/** Read curated homepage Related Stories IDs directly from MongoDB (avoids stale Mongoose schema cache). */
+export async function getHomeRelatedArticleIds(): Promise<mongoose.Types.ObjectId[]> {
+  await connectDB();
+  const doc = await SiteSettings.collection.findOne(
+    {},
+    { projection: { homeRelatedArticles: 1 } }
+  );
+  const raw = doc?.homeRelatedArticles;
+  if (!Array.isArray(raw)) return [];
+  return raw.map((id) => new mongoose.Types.ObjectId(String(id)));
 }

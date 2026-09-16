@@ -14,6 +14,7 @@ export interface IArticle {
   category: mongoose.Types.ObjectId;
   secondaryCategories: mongoose.Types.ObjectId[];
   authors: mongoose.Types.ObjectId[];
+  relatedArticles: mongoose.Types.ObjectId[];
   tags: string[];
   status: ArticleStatus;
   publishedAt?: Date;
@@ -53,6 +54,7 @@ const ArticleSchema = new Schema<IArticle>(
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     secondaryCategories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
     authors: [{ type: Schema.Types.ObjectId, ref: "Author", required: true }],
+    relatedArticles: [{ type: Schema.Types.ObjectId, ref: "Article" }],
     tags: [{ type: String }],
     status: {
       type: String,

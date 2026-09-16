@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { isRetiredCategorySlug } from "@/lib/retired-categories";

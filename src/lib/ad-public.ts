@@ -1,4 +1,4 @@
-import { loadAdZones } from "@/lib/ad-zones-storage";
+﻿import { loadAdZones } from "@/lib/ad-zones-storage";
 import type { AdSlotId, PublicAd } from "@/lib/ad-slots";
 
 export {
@@ -10,9 +10,9 @@ export {
 export type { AdSlotId, PublicAd } from "@/lib/ad-slots";
 
 /**
- * Retourne la première publicité active dotée d'une image pour l'emplacement
- * demandé, ou null. Best-effort : ne jette jamais (le rendu du site ne doit pas
- * dépendre du succès de cette lecture).
+ * Retourne la premi├¿re publicit├® active dot├®e d'une image pour l'emplacement
+ * demand├®, ou null. Best-effort : ne jette jamais (le rendu du site ne doit pas
+ * d├®pendre du succ├¿s de cette lecture).
  */
 export async function getActiveAdBySlot(slot: AdSlotId): Promise<PublicAd | null> {
   try {

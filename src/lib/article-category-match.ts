@@ -1,4 +1,4 @@
-import type { ArticleListItem } from "@/types";
+﻿import type { ArticleListItem } from "@/types";
 import { resolveCategorySlug } from "@/lib/category-slugs";
 
 type CategoryMatchable = {
@@ -6,7 +6,7 @@ type CategoryMatchable = {
   regions?: ArticleListItem["regions"];
 };
 
-/** Article rattaché à une catégorie (rubrique principale ou région secondaire). */
+/** Article rattach├® ├á une cat├®gorie (rubrique principale ou r├®gion secondaire). */
 export function articleMatchesCategorySlug(
   article: CategoryMatchable,
   categorySlug: string
@@ -23,7 +23,7 @@ export function filterArticlesByCategorySlug<T extends CategoryMatchable>(
   return articles.filter((article) => articleMatchesCategorySlug(article, categorySlug));
 }
 
-/** Filtre MongoDB : rubrique principale OU catégorie secondaire (région, etc.). */
+/** Filtre MongoDB : rubrique principale OU cat├®gorie secondaire (r├®gion, etc.). */
 export function mongoCategoryMatchFilter(
   categoryId: unknown
 ): Record<string, unknown> {

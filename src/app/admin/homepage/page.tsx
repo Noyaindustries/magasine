@@ -12,7 +12,7 @@ export default async function AdminHomepagePage() {
     redirect("/admin");
   }
 
-  const { settings, sections, alertCount } = await getHomepageAdminOverview();
+  const { settings, sections, homeRelatedArticles, alertCount } = await getHomepageAdminOverview();
 
   return (
     <>
@@ -24,6 +24,7 @@ export default async function AdminHomepagePage() {
         <HomepageManager
           initialSettings={settings}
           initialSections={sections}
+          initialHomeRelatedArticles={homeRelatedArticles}
           alertCount={alertCount}
         />
       </div>

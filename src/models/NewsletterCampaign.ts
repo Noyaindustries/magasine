@@ -9,6 +9,7 @@ export interface INewsletterCampaign {
   subject: string;
   body: string;
   listTarget: string;
+  recipientEmails: string[];
   status: NewsletterCampaignStatus;
   scheduledAt?: Date;
   sentAt?: Date;
@@ -26,6 +27,7 @@ const NewsletterCampaignSchema = new Schema<INewsletterCampaign>(
     subject: { type: String, required: true },
     body: { type: String, required: true },
     listTarget: { type: String, default: "all" },
+    recipientEmails: { type: [String], default: [] },
     status: {
       type: String,
       enum: ["draft", "scheduled", "sending", "sent"],

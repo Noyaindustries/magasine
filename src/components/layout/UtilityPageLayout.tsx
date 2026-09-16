@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { MultilineText } from "@/components/ui/MultilineText";
 
 interface UtilityPageLayoutProps {
   eyebrow: string;
@@ -30,7 +31,7 @@ export function UtilityPageLayout({
             {eyebrow}
           </span>
           <h1 className="utility-title">{title}</h1>
-          {lead && <p className="utility-lead">{lead}</p>}
+          {lead && <MultilineText className="utility-lead">{lead}</MultilineText>}
           {actions && actions.length > 0 && (
             <div className="utility-hero-actions">
               {actions.map((action) =>

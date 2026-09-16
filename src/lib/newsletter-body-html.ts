@@ -1,4 +1,4 @@
-import sanitizeHtml from "sanitize-html";
+﻿import sanitizeHtml from "sanitize-html";
 import { escapeHtml } from "@/lib/sanitize-html";
 import { toAbsoluteSiteAssetUrl } from "@/lib/newsletter-email-branding";
 
@@ -85,6 +85,20 @@ function resolveEmailAssetUrl(src: string): string {
   return toAbsoluteSiteAssetUrl(trimmed);
 }
 
+/** Resolve `<a href>` for email HTML (mailto/tel, absolute http(s), site paths, bare domains). */
+function resolveEmailLinkUrl(href: string): string {
+  const trimmed = href.trim();
+  if (!trimmed) return trimmed;
+  if (/^(mailto:|tel:)/i.test(trimmed)) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/")) return toAbsoluteSiteAssetUrl(trimmed);
+  // Bare domain / path without scheme — do not prefix with the site origin.
+  if (/^[a-z0-9.-]+\.[a-z]{2,}([/:?#].*)?$/i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+  return toAbsoluteSiteAssetUrl(trimmed);
+}
+
 function withInlineStyles(
   tagName: string,
   attribs: Record<string, string>
@@ -114,7 +128,7 @@ function withInlineStyles(
       break;
     case "a":
       next.style = "color:#c41e3a;text-decoration:underline;";
-      if (next.href) next.href = resolveEmailAssetUrl(next.href);
+      if (next.href) next.href = resolveEmailLinkUrl(next.href);
       break;
     case "img": {
       if (next.src) next.src = resolveEmailAssetUrl(next.src);

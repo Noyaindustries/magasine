@@ -1,8 +1,8 @@
-import { connectDB } from "@/lib/mongodb";
+﻿import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { getCategorySlugAliases, resolveCategorySlug } from "@/lib/category-slugs";
 
-/** IDs de catégories actives ou non, pour tous les slugs alias d'une rubrique. */
+/** IDs de cat├®gories actives ou non, pour tous les slugs alias d'une rubrique. */
 export async function findCategoryIdsForCanonicalSlug(slug: string) {
   await connectDB();
   const canonical = resolveCategorySlug(slug);
@@ -10,7 +10,7 @@ export async function findCategoryIdsForCanonicalSlug(slug: string) {
   return Category.distinct("_id", { slug: { $in: aliases } });
 }
 
-/** Catégorie préférée pour l'affichage public (active + slug canonique en priorité). */
+/** Cat├®gorie pr├®f├®r├®e pour l'affichage public (active + slug canonique en priorit├®). */
 export async function findPreferredCategoryForCanonicalSlug(slug: string) {
   await connectDB();
   const canonical = resolveCategorySlug(slug);

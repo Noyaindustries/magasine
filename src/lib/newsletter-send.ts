@@ -1,7 +1,9 @@
 import { connectDB } from "@/lib/mongodb";
 import {
   isNewsletterMailConfigured,
+  NewsletterSmtpAuthError,
   sendNewsletterMail,
+  verifyNewsletterMailConnection,
 } from "@/lib/newsletter-mail";
 import {
   resolveNewsletterEmailHeaderTitle,
@@ -13,12 +15,30 @@ import {
   newsletterBodyToPlainText,
 } from "@/lib/newsletter-body-html";
 import { createNewsletterUnsubscribeUrl } from "@/lib/newsletter-unsubscribe";
+import { escapeMongoRegex } from "@/lib/mongo-regex";
+import {
+  MAX_SELECTED_NEWSLETTER_RECIPIENTS,
+  SELECTED_LIST_TARGET,
+  uniqueNewsletterEmails,
+} from "@/lib/newsletter-recipients";
 import { getSiteUrl } from "@/lib/site";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import { Newsletter } from "@/models/Newsletter";
 import { NewsletterCampaign, type INewsletterCampaign } from "@/models/NewsletterCampaign";
 
-const SEND_BATCH_SIZE = 10;
+const SEND_BATCH_SIZE = resolveSendBatchSize();
+
+/** Recipients processed per SMTP wave (default 500 for large campaigns). */
+export function getNewsletterSendBatchSize(): number {
+  return SEND_BATCH_SIZE;
+}
+
+/** Parallel SMTP sends per wave. Default 500; override with NEWSLETTER_SEND_BATCH_SIZE. */
+function resolveSendBatchSize(): number {
+  const raw = Number(process.env.NEWSLETTER_SEND_BATCH_SIZE ?? "500");
+  if (!Number.isFinite(raw)) return 500;
+  return Math.min(500, Math.max(1, Math.floor(raw)));
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -126,6 +146,53 @@ export async function getSubscriberEmailsForList(listTarget: string): Promise<st
   return subscribers.map((row) => row.email.toLowerCase().trim());
 }
 
+export async function resolveSelectedRecipientEmails(
+  emails: string[]
+): Promise<{ emails: string[] } | { error: string }> {
+  const unique = uniqueNewsletterEmails(emails);
+  if (unique.length === 0) {
+    return { error: "Select at least one subscriber." };
+  }
+  if (unique.length > MAX_SELECTED_NEWSLETTER_RECIPIENTS) {
+    return {
+      error: `Select at most ${MAX_SELECTED_NEWSLETTER_RECIPIENTS} subscribers.`,
+    };
+  }
+
+  await connectDB();
+  const found = await Newsletter.find({
+    isActive: true,
+    $or: unique.map((email) => ({
+      email: new RegExp(`^${escapeMongoRegex(email)}$`, "i"),
+    })),
+  })
+    .select("email")
+    .lean();
+  const foundSet = new Set(found.map((row) => row.email.toLowerCase().trim()));
+  const missing = unique.filter((email) => !foundSet.has(email));
+  if (missing.length > 0) {
+    return {
+      error: `Not an active subscriber: ${missing.slice(0, 3).join(", ")}${
+        missing.length > 3 ? "…" : ""
+      }`,
+    };
+  }
+
+  return { emails: unique };
+}
+
+export async function getCampaignRecipientEmails(
+  campaign: Pick<INewsletterCampaign, "listTarget" | "recipientEmails">
+): Promise<string[]> {
+  if (
+    campaign.listTarget === SELECTED_LIST_TARGET ||
+    (campaign.recipientEmails?.length ?? 0) > 0
+  ) {
+    return uniqueNewsletterEmails(campaign.recipientEmails ?? []);
+  }
+  return getSubscriberEmailsForList(campaign.listTarget);
+}
+
 async function sendToRecipient(options: {
   email: string;
   subject: string;
@@ -153,6 +220,9 @@ async function sendToRecipient(options: {
     });
     return true;
   } catch (error) {
+    if (error instanceof NewsletterSmtpAuthError) {
+      throw error;
+    }
     console.error("[newsletter] send failed", options.email, error);
     return false;
   }
@@ -184,37 +254,67 @@ export interface NewsletterSendResult {
 }
 
 export async function deliverNewsletterCampaign(
-  campaign: Pick<INewsletterCampaign, "_id" | "subject" | "body" | "listTarget">
+  campaign: Pick<INewsletterCampaign, "_id" | "subject" | "body" | "listTarget" | "recipientEmails">
 ): Promise<NewsletterSendResult> {
   if (!isNewsletterMailConfigured()) {
     throw new Error("Newsletter SMTP is not configured.");
   }
 
+  // Fail fast on bad credentials instead of retrying auth for every subscriber.
+  await verifyNewsletterMailConnection();
+
   const settings = await getPublicSiteSettings();
   const headerTitle = resolveNewsletterEmailHeaderTitle(settings);
   const logoUrl = resolveNewsletterEmailLogoUrl(settings);
-  const recipients = await getSubscriberEmailsForList(campaign.listTarget);
+  const recipients = await getCampaignRecipientEmails(campaign);
   let delivered = 0;
   let failed = 0;
+  const waveSize = SEND_BATCH_SIZE;
+  const totalWaves = Math.ceil(recipients.length / waveSize) || 0;
 
-  for (let index = 0; index < recipients.length; index += SEND_BATCH_SIZE) {
-    const batch = recipients.slice(index, index + SEND_BATCH_SIZE);
-    const results = await Promise.all(
-      batch.map((email) =>
-        sendToRecipient({
-          email,
-          subject: campaign.subject,
-          body: campaign.body,
-          siteName: settings.siteName,
-          headerTitle,
-          logoUrl,
-        })
-      )
+  console.log(
+    `[newsletter] starting delivery: ${recipients.length} recipient(s), ${totalWaves} wave(s) of up to ${waveSize}`
+  );
+
+  for (let index = 0; index < recipients.length; index += waveSize) {
+    const batch = recipients.slice(index, index + waveSize);
+    const waveNumber = Math.floor(index / waveSize) + 1;
+    console.log(
+      `[newsletter] wave ${waveNumber}/${totalWaves}: sending ${batch.length} email(s)`
     );
+    try {
+      const results = await Promise.all(
+        batch.map((email) =>
+          sendToRecipient({
+            email,
+            subject: campaign.subject,
+            body: campaign.body,
+            siteName: settings.siteName,
+            headerTitle,
+            logoUrl,
+          })
+        )
+      );
 
-    for (const ok of results) {
-      if (ok) delivered += 1;
-      else failed += 1;
+      let waveDelivered = 0;
+      let waveFailed = 0;
+      for (const ok of results) {
+        if (ok) {
+          delivered += 1;
+          waveDelivered += 1;
+        } else {
+          failed += 1;
+          waveFailed += 1;
+        }
+      }
+      console.log(
+        `[newsletter] wave ${waveNumber}/${totalWaves} done: ${waveDelivered} ok, ${waveFailed} failed (total ${delivered}/${recipients.length})`
+      );
+    } catch (error) {
+      if (error instanceof NewsletterSmtpAuthError) {
+        throw error;
+      }
+      throw error;
     }
   }
 
@@ -251,6 +351,17 @@ export async function sendNewsletterCampaignById(campaignId: string): Promise<Ne
 
   try {
     const result = await deliverNewsletterCampaign(campaign);
+
+    if (result.delivered === 0) {
+      campaign.status = "draft";
+      await campaign.save();
+      throw new Error(
+        result.attempted === 0
+          ? "No active subscribers to send to."
+          : `All ${result.attempted} delivery attempt(s) failed. Check SMTP_HOST / SMTP_USER / SMTP_PASS and server logs ([newsletter] send failed).`
+      );
+    }
+
     const now = new Date();
 
     campaign.status = "sent";

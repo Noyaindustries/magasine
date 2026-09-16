@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { Author } from "@/models/Author";
@@ -59,10 +59,10 @@ async function findArticlesByRegionalAuthors(
 }
 
 /**
- * Liste les articles publiés d'une rubrique par slug.
+ * Liste les articles publi├®s d'une rubrique par slug.
  * 1) filtre par ObjectId (rapide)
- * 2) repli par jointure sur le slug des catégories (références obsolètes)
- * 3) repli par correspondant régional (auteur → région)
+ * 2) repli par jointure sur le slug des cat├®gories (r├®f├®rences obsol├¿tes)
+ * 3) repli par correspondant r├®gional (auteur ÔåÆ r├®gion)
  */
 export async function findPublishedArticlesForCategorySlug(
   resolvedSlug: string,

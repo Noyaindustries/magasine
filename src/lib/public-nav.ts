@@ -1,4 +1,4 @@
-import {
+﻿import {
   ALL_NEWS_LINK,
   FOOTER_FORMAT_LINKS,
   NEWS_MENU_NAV,
@@ -66,7 +66,7 @@ function topicCategoriesFromDb(categories: DbNavCategory[]): DbNavCategory[] {
   return categories.filter((category) => !isRegionCategorySlug(category.slug));
 }
 
-/** Toutes les rubriques thématiques actives (admin), ordre menu puis alphabétique. */
+/** Toutes les rubriques th├®matiques actives (admin), ordre menu puis alphab├®tique. */
 export function buildTopicCategories(categories: DbNavCategory[]): DbNavCategory[] {
   const map = bySlugMap(categories);
   const primarySlugs = PRIMARY_NAV.map((item) => item.href.replace("/category/", ""));

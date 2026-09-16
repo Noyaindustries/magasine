@@ -17,7 +17,7 @@ export function NewsletterPrompt() {
         <p>
           {multiEdition
             ? "Get our free morning briefing and regional editions delivered to your inbox. All our journalism stays free — the newsletter is how we stay close to readers."
-            : "Get our free daily briefing delivered to your inbox. All our journalism stays free — the newsletter is how we stay close to readers."}
+            : "Get our free newsletter delivered to your inbox. All our journalism stays free — the newsletter is how we stay close to readers."}
         </p>
         <NewsletterSignupForm variant="inline" showTopics={false} />
         {multiEdition && (

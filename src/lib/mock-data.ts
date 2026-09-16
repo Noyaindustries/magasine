@@ -236,12 +236,14 @@ export function getMockHomePageData() {
     topStories: by((a) => !!a.isTopStory),
     editorsChoice: by((a) => !!a.isEditorsChoice).slice(0, 3),
     latestUpdates: published.slice(0, 6),
+    homeRelatedStories: [],
+    homeRelatedStoryIds: [] as string[],
     featuredVideos: published.filter((a) => a.contentType === "video").slice(0, 4),
     featuredPodcasts: published.filter((a) => a.contentType === "podcast").slice(0, 4),
     featuredGalleries: published.filter((a) => a.contentType === "gallery").slice(0, 4),
     nationalNews: published.filter((a) => a.category.slug === "news").slice(0, 6),
     featureNews: published.filter((a) => a.category.slug === "feature").slice(0, 4),
-    opinion: published.filter((a) => a.category.slug === "opinion").slice(0, 3),
+    opinion: published.filter((a) => a.category.slug === "opinion").slice(0, 6),
     investigations: published.filter((a) => a.category.slug === "investigations").slice(0, 3),
     specialReports: published
       .filter((a) => a.category.slug === "special-reports")

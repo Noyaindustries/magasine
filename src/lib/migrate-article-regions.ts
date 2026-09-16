@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { Article } from "@/models/Article";
 import { Author } from "@/models/Author";
@@ -52,7 +52,7 @@ async function upsertSeedCategory(definition: (typeof SEED_CATEGORIES)[number]):
   return false;
 }
 
-/** Crée ou réactive les rubriques thématiques (News, Politique, etc.) si elles manquent. */
+/** Cr├®e ou r├®active les rubriques th├®matiques (News, Politique, etc.) si elles manquent. */
 export async function ensureTopicCategoriesExist(): Promise<number> {
   await connectDB();
   let updated = 0;
@@ -65,7 +65,7 @@ export async function ensureTopicCategoriesExist(): Promise<number> {
   return updated;
 }
 
-/** Crée ou réactive les 4 catégories région si elles manquent en base. */
+/** Cr├®e ou r├®active les 4 cat├®gories r├®gion si elles manquent en base. */
 export async function ensureRegionCategoriesExist(): Promise<number> {
   await connectDB();
   let updated = 0;
@@ -80,7 +80,7 @@ export async function ensureRegionCategoriesExist(): Promise<number> {
 
 const seedCategoryBySlug = new Map(SEED_CATEGORIES.map((definition) => [definition.slug, definition]));
 
-/** Crée ou réactive une catégorie connue (seed) par slug — ex. culture, explainer. */
+/** Cr├®e ou r├®active une cat├®gorie connue (seed) par slug ÔÇö ex. culture, explainer. */
 export async function ensureCategoryExistsBySlug(slug: string): Promise<boolean> {
   const definition = seedCategoryBySlug.get(slug);
   if (!definition) return false;
@@ -98,7 +98,7 @@ async function ensureRegionCategoriesActive(): Promise<number> {
 }
 
 /**
- * Répare les références de catégorie (inactive / obsolète) et synchronise les régions.
+ * R├®pare les r├®f├®rences de cat├®gorie (inactive / obsol├¿te) et synchronise les r├®gions.
  */
 export async function repairPublishedArticleCategoryReferences(): Promise<number> {
   await connectDB();
@@ -179,54 +179,17 @@ export async function repairPublishedArticleCategoryReferences(): Promise<number
 }
 
 /**
- * Retire Africa des secondaryCategories quand c'était la seule région
- * sur une rubrique thématique (assignation automatique par migration).
+ * Ancienne migration one-shot : retirait Africa des secondaryCategories quand
+ * c'était la seule région. Ne plus l'exécuter — elle effaçait aussi les choix
+ * manuels (rubrique thématique + région Africa cochée dans l'éditeur).
  */
 export async function removeAutoAssignedAfricaRegions(): Promise<number> {
-  await connectDB();
-  const africaCategory = await Category.findOne({ slug: "africa" }).select("_id").lean();
-  if (!africaCategory) return 0;
-
-  const africaId = africaCategory._id;
-  let updated = 0;
-
-  const articles = await Article.find({ secondaryCategories: africaId })
-    .select("category secondaryCategories")
-    .lean();
-
-  for (const article of articles) {
-    const primary = await Category.findById(article.category).select("slug").lean();
-    if (!primary || isRegionCategorySlug(primary.slug)) {
-      continue;
-    }
-
-    const secondaryIds = article.secondaryCategories ?? [];
-    const secondaryCats = await Category.find({ _id: { $in: secondaryIds } })
-      .select("slug")
-      .lean();
-    const regionSlugs = secondaryCats
-      .map((category) => category.slug)
-      .filter((slug) => isRegionCategorySlug(slug));
-
-    if (regionSlugs.length === 1 && regionSlugs[0] === "africa") {
-      await Article.updateOne(
-        { _id: article._id },
-        { $pull: { secondaryCategories: africaId } }
-      );
-      updated += 1;
-    }
-  }
-
-  if (updated > 0) {
-    revalidateCategoryPage("africa");
-  }
-
-  return updated;
+  return 0;
 }
 
 /**
- * Copie la région principale vers secondaryCategories pour les articles publiés
- * encore classés avec l'ancien modèle (catégorie = Afrique, West Asia, etc.).
+ * Copie la r├®gion principale vers secondaryCategories pour les articles publi├®s
+ * encore class├®s avec l'ancien mod├¿le (cat├®gorie = Afrique, West Asia, etc.).
  */
 export async function migrateArticleRegionLinks(): Promise<number> {
   await connectDB();
@@ -286,7 +249,7 @@ export async function removeAutoAssignedAfricaRegionsOnce(): Promise<void> {
   }
 }
 
-/** Ré-attribue les régions aux correspondants régionaux (sans défaut Africa). */
+/** R├®-attribue les r├®gions aux correspondants r├®gionaux (sans d├®faut Africa). */
 export async function repairAuthorRegionLinksOnce(): Promise<void> {
   if (authorRegionRepairDone) return;
   authorRegionRepairDone = true;

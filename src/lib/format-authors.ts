@@ -1,6 +1,6 @@
-import type { AuthorInfo } from "@/types";
+﻿import type { AuthorInfo } from "@/types";
 
-/** Join author display names — e.g. "Alice & Bob", "Alice, Bob & Charlie". */
+/** Join author display names ÔÇö e.g. "Alice & Bob", "Alice, Bob & Charlie". */
 export function formatAuthorNames(
   authors: ReadonlyArray<Pick<AuthorInfo, "name">>
 ): string {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ComponentType } from "react";
+import { useMemo, useRef, useState, useCallback, useEffect, type ComponentType } from "react";
 import Link from "next/link";
 import {
   LayoutGrid,
@@ -21,6 +21,9 @@ import {
 import type { HomepageSectionStatus } from "@/lib/homepage-admin";
 import type { PublicSiteSettings, TrustPartner } from "@/lib/site-settings";
 import type { HomeSectionId } from "@/lib/homepage-sections";
+import type { RelatedArticleOption } from "@/lib/related-articles-shared";
+import { MAX_HOME_RELATED_ARTICLES } from "@/lib/related-articles-shared";
+import { CmsRelatedArticlesPicker } from "@/components/admin/cms/CmsRelatedArticlesPicker";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { HomepageAdSlots } from "@/components/admin/HomepageAdSlots";
 import { toast } from "@/lib/toast";
@@ -28,10 +31,15 @@ import { toast } from "@/lib/toast";
 interface HomepageManagerProps {
   initialSettings: PublicSiteSettings;
   initialSections: HomepageSectionStatus[];
+  initialHomeRelatedArticles: RelatedArticleOption[];
   alertCount: number;
 }
 
-type HpgTab = "sections" | "ads" | "masthead" | "trust" | "closing";
+type HomepageSavePatch = Partial<PublicSiteSettings> & {
+  homeRelatedArticleIds?: string[];
+};
+
+type HpgTab = "sections" | "related" | "ads" | "masthead" | "trust" | "closing";
 
 const SECTION_ICONS: Record<HomeSectionId, ComponentType<{ className?: string }>> = {
   intro: Newspaper,
@@ -48,6 +56,7 @@ const SECTION_ICONS: Record<HomeSectionId, ComponentType<{ className?: string }>
 
 const NAV_ITEMS: { id: HpgTab; label: string; icon: ComponentType<{ className?: string }> }[] = [
   { id: "sections", label: "Layout", icon: LayoutGrid },
+  { id: "related", label: "Related Stories", icon: Newspaper },
   { id: "ads", label: "Ad images", icon: Megaphone },
   { id: "masthead", label: "Masthead & pulse", icon: Newspaper },
   { id: "trust", label: "Trust strip", icon: Star },
@@ -90,10 +99,17 @@ function HpgToggle({
 export function HomepageManager({
   initialSettings,
   initialSections,
+  initialHomeRelatedArticles,
   alertCount,
 }: HomepageManagerProps) {
   const [settings, setSettings] = useState(initialSettings);
   const [sections, setSections] = useState(initialSections);
+  const [homeRelatedArticles, setHomeRelatedArticles] = useState(initialHomeRelatedArticles);
+  const [relatedDirty, setRelatedDirty] = useState(false);
+  const savedRelatedKeyRef = useRef(
+    initialHomeRelatedArticles.map((article) => article._id).join("|")
+  );
+  const relatedSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<HpgTab>("sections");
   const partnerLogoInputRef = useRef<HTMLInputElement>(null);
@@ -110,22 +126,29 @@ export function HomepageManager({
     [sections]
   );
 
-  const save = async (patch: Partial<PublicSiteSettings>) => {
+  const save = async (patch: HomepageSavePatch, options?: { quiet?: boolean }) => {
     setSaving(true);
-    const toastId = toast.loading("Saving changes…");
+    const toastId = options?.quiet ? null : toast.loading("Saving changes…");
     try {
       const res = await fetch("/api/admin/homepage", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       });
-      const data = await res.json();
+      const data = (await res.json()) as PublicSiteSettings & {
+        homeRelatedArticles?: RelatedArticleOption[];
+      };
       if (!res.ok) {
-        toast.dismiss(toastId);
-        toast.error(data.error ?? "Failed to save");
-        return;
+        if (toastId) toast.dismiss(toastId);
+        toast.error((data as { error?: string }).error ?? "Failed to save");
+        return false;
       }
       setSettings(data);
+      if (data.homeRelatedArticles !== undefined) {
+        setHomeRelatedArticles(data.homeRelatedArticles);
+        savedRelatedKeyRef.current = data.homeRelatedArticles.map((article) => article._id).join("|");
+        setRelatedDirty(false);
+      }
       if (patch.homeSections) {
         setSections((prev) =>
           prev.map((s) => ({
@@ -134,15 +157,52 @@ export function HomepageManager({
           }))
         );
       }
-      toast.dismiss(toastId);
-      toast.success("Homepage updated");
+      if (toastId) {
+        toast.dismiss(toastId);
+        toast.success("Homepage updated");
+      }
+      return true;
     } catch {
-      toast.dismiss(toastId);
+      if (toastId) toast.dismiss(toastId);
       toast.error("Network error — please try again.");
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  const saveHomeRelated = useCallback(
+    async (next: RelatedArticleOption[], options?: { quiet?: boolean }) => {
+      return save({ homeRelatedArticleIds: next.map((item) => item._id) }, options);
+    },
+    [save]
+  );
+
+  const handleRelatedChange = useCallback(
+    (next: RelatedArticleOption[]) => {
+      setHomeRelatedArticles(next);
+      const nextKey = next.map((article) => article._id).join("|");
+      const isDirty = nextKey !== savedRelatedKeyRef.current;
+      setRelatedDirty(isDirty);
+      if (!isDirty) return;
+
+      if (relatedSaveTimerRef.current) {
+        clearTimeout(relatedSaveTimerRef.current);
+      }
+      relatedSaveTimerRef.current = setTimeout(() => {
+        void saveHomeRelated(next, { quiet: true });
+      }, 800);
+    },
+    [saveHomeRelated]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (relatedSaveTimerRef.current) {
+        clearTimeout(relatedSaveTimerRef.current);
+      }
+    };
+  }, []);
 
   const toggleSection = (id: HomeSectionId, enabled: boolean) => {
     const homeSections = { ...settings.homeSections, [id]: enabled };
@@ -354,6 +414,48 @@ export function HomepageManager({
                     </article>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* —— Related Stories —— */}
+          {activeTab === "related" && (
+            <div className="hpg-panel-card">
+              <div className="hpg-panel-head">
+                <div>
+                  <h3 className="hpg-panel-title">Related Stories (homepage hero)</h3>
+                  <p className="hpg-panel-desc">
+                    Choose up to 6 articles for the Related Stories block under the main hero
+                    image. Leave empty to show the latest published articles automatically.
+                  </p>
+                </div>
+              </div>
+
+              <CmsRelatedArticlesPicker
+                value={homeRelatedArticles}
+                maxItems={MAX_HOME_RELATED_ARTICLES}
+                label="Homepage related stories"
+                hint={`Pick up to ${MAX_HOME_RELATED_ARTICLES} published articles for the homepage Related Stories block. Unpublished picks are ignored on the live site. Selection saves automatically.`}
+                onChange={handleRelatedChange}
+              />
+
+              <div className="hpg-save-bar">
+                <p className="hpg-save-hint">
+                  {relatedDirty
+                    ? "Saving your selection…"
+                    : saving
+                      ? "Saving…"
+                      : "Selection saved. Only published articles appear on the homepage."}
+                </p>
+                <button
+                  type="button"
+                  className="hpg-btn-gold"
+                  disabled={saving}
+                  onClick={() => void saveHomeRelated(homeRelatedArticles)}
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Save Related Stories now
+                </button>
               </div>
             </div>
           )}

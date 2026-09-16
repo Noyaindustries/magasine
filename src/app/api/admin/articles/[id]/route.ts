@@ -17,10 +17,15 @@ import {
   getAllRegionSlugsForArticle,
   mergeRegionCategoryIdsForArticle,
 } from "@/lib/region-categories";
-import { revalidateArticleContent } from "@/lib/revalidate-public";
+import { revalidateArticleContent, revalidateSiteShell } from "@/lib/revalidate-public";
+import { syncHomeRelatedArticles } from "@/lib/home-related-stories";
 import { invalidatePublishedArticleCountCache } from "@/lib/data";
 import { normalizeAuthorIds } from "@/lib/format-authors";
 import { resolvePublishedAtForSave } from "@/lib/admin-article-dates";
+import {
+  loadRelatedArticleOptions,
+  resolveRelatedArticleIds,
+} from "@/lib/related-articles";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -37,6 +42,7 @@ const updateSchema = z.object({
   featuredImageCaption: z.string().optional(),
   categoryId: z.string().optional(),
   regionCategoryIds: z.array(z.string()).optional(),
+  relatedArticleIds: z.array(z.string()).optional(),
   authorIds: z.array(z.string().min(1)).min(1).optional(),
   authorId: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -86,6 +92,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     article.category,
     (secondaryCategories ?? []).map((category) => String(category._id))
   );
+  const relatedArticles = await loadRelatedArticleOptions(article.relatedArticles);
 
   return NextResponse.json({
     _id: String(article._id),
@@ -97,6 +104,8 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     featuredImageCaption: article.featuredImageCaption ?? "",
     categoryId: String(article.category),
     regionCategoryIds,
+    relatedArticleIds: relatedArticles.map((item) => item._id),
+    relatedArticles,
     authorIds: article.authors.map((id) => String(id)),
     authorId: article.authors[0] ? String(article.authors[0]) : "",
     tags: article.tags,
@@ -175,6 +184,20 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
   article.category = assignment.primaryId;
   article.secondaryCategories = assignment.secondaryCategoryIds as never;
+
+  if (data.relatedArticleIds !== undefined) {
+    const relatedResolved = await resolveRelatedArticleIds(data.relatedArticleIds, {
+      excludeId: id,
+    });
+    if ("error" in relatedResolved) {
+      return NextResponse.json({ error: relatedResolved.error }, { status: 400 });
+    }
+    article.relatedArticles = relatedResolved.ids as never;
+
+    if (article.isFeatured && relatedResolved.ids.length > 0) {
+      await syncHomeRelatedArticles(relatedResolved.ids);
+    }
+  }
 
   if (data.title) article.title = data.title;
   if (data.slug) {
@@ -255,6 +278,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }),
     previousRegionSlugs,
   });
+  if (data.relatedArticleIds !== undefined && article.isFeatured) {
+    revalidateSiteShell();
+  }
   invalidatePublishedArticleCountCache();
   return NextResponse.json({ _id: String(article._id), slug: article.slug, version: article.version });
 }

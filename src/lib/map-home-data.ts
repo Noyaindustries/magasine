@@ -33,6 +33,7 @@ import {
   formatReadingTime,
   splitHeroTitle,
 } from "@/lib/format-article";
+import { HERO_MINI_GRID_TOTAL } from "@/lib/hero-mini-grid";
 import { filterArticlesByRetiredCategories } from "@/lib/retired-categories";
 import { buildHomeRubriqueSlugs, resolveRubriqueTitle } from "@/lib/public-nav";
 import { formatAuthorNames } from "@/lib/format-authors";
@@ -180,11 +181,28 @@ function buildHeroSlides(source: HomeDataSource): HeroSlide[] {
 }
 
 function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCard[] {
+  const hasManualCuration = (source.homeRelatedStoryIds?.length ?? 0) > 0;
+  const manualPool = filterArticlesByRetiredCategories(source.homeRelatedStories ?? []).filter(
+    (a) => !heroSlugs.has(a.slug)
+  );
+
+  if (hasManualCuration || manualPool.length > 0) {
+    const cards: typeof manualPool = [...manualPool];
+    if (cards.length < 6) {
+      const usedSlugs = new Set([...heroSlugs, ...cards.map((a) => a.slug)]);
+      const autoFill = filterArticlesByRetiredCategories(source.latestUpdates).filter(
+        (a) => !usedSlugs.has(a.slug)
+      );
+      cards.push(...autoFill.slice(0, HERO_MINI_GRID_TOTAL - cards.length));
+    }
+    return cards.slice(0, HERO_MINI_GRID_TOTAL).map(toHomeCard);
+  }
+
   const pool = filterArticlesByRetiredCategories(source.latestUpdates).filter(
     (a) => !heroSlugs.has(a.slug)
   );
   if (pool.length >= 4 || !shouldUseDemoFallbacks(source)) {
-    return pool.slice(0, 6).map(toHomeCard);
+    return pool.slice(0, HERO_MINI_GRID_TOTAL).map(toHomeCard);
   }
   return HERO_MINI_CARDS.map((c) => ({
     slug: c.slug,
@@ -329,7 +347,7 @@ function buildVideos(source: HomeDataSource): HomeVideo[] {
 
 function buildOpinions(source: HomeDataSource): HomeOpinion[] {
   if (source.opinion.length > 0) {
-    return source.opinion.slice(0, 6).map((a, i) => {
+    return source.opinion.slice(0, HERO_MINI_GRID_TOTAL).map((a, i) => {
       const author = a.authors[0];
       return {
         accent: i === 0,

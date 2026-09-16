@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "Newsletter",
   description: multiEdition
     ? "Subscribe to Global South Watch newsletters — daily briefings and regional editions for Africa, Latin America, South Asia and West Asia."
-    : "Subscribe to the Global South Watch newsletter — a free daily briefing of independent journalism from the Global South.",
+    : "Subscribe to the Global South Watch newsletter — free independent journalism from the Global South.",
 };
 
 const STATS = multiEdition
@@ -34,7 +34,7 @@ const STATS = multiEdition
     ]
   : [
       { value: "145k+", label: "Morning readers" },
-      { value: "Daily", label: "Editorial briefing" },
+      { value: "1", label: "Newsletter" },
       { value: "Free", label: "Independent journalism" },
     ];
 
@@ -122,13 +122,22 @@ export default function NewsletterPage() {
             Stay informed
           </span>
           <h1 className="newsletter-page-title">
-            Newsletters from the
-            <span> Global South</span>
+            {multiEdition ? (
+              <>
+                Newsletters from the
+                <span> Global South</span>
+              </>
+            ) : (
+              <>
+                The Global South Watch
+                <span> newsletter</span>
+              </>
+            )}
           </h1>
           <p className="newsletter-page-lead">
             {multiEdition
               ? "Choose your editions and receive independent journalism in your inbox — daily briefings, weekly digests, and regional coverage tailored to you."
-              : "Receive our daily briefing in your inbox — independent journalism from across the Global South, curated by our newsroom."}
+              : "One free newsletter — independent journalism from across the Global South, curated by our newsroom."}
           </p>
           <div className="newsletter-page-stats">
             {STATS.map((stat) => (

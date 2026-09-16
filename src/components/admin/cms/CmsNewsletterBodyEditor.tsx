@@ -13,6 +13,7 @@ import {
   isNewsletterBodyHtml,
   plainTextToNewsletterEditorHtml,
 } from "@/lib/newsletter-body-html";
+import { applyEditorLink } from "@/lib/editor-link";
 import {
   ImageIcon,
   Link2,
@@ -199,9 +200,14 @@ export function CmsNewsletterBodyEditor({
           {toolBtn(
             <Link2 size={14} className="cms-icon" aria-hidden />,
             () => {
-              const url = window.prompt("Link URL");
+              const url = window.prompt("Link URL (https://…)");
               if (!url) return;
-              editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+              const ok = applyEditorLink(editor, url);
+              if (!ok) {
+                toast.error("Invalid URL. Use https://… or mailto:…");
+                return;
+              }
+              toast.success("Link inserted.");
             },
             editor.isActive("link")
           )}
@@ -227,8 +233,8 @@ export function CmsNewsletterBodyEditor({
         </div>
         <EditorContent editor={editor} className="ebody" />
         <p className="cms-field-hint cms-newsletter-editor-hint">
-          Use <strong>Image</strong> to upload an illustration, or <strong>Media</strong> to pick one
-          from the library.
+          Select text then click the link icon, or click the icon with an empty selection to insert a
+          URL. Use <strong>Image</strong> / <strong>Media</strong> for illustrations.
         </p>
       </div>
 

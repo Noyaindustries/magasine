@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { HomeOpinion } from "@/types/home";
 import { SectionImage } from "@/components/site-chrome/SectionImage";
+import { HERO_MINI_GRID_COLS, HERO_MINI_GRID_TOTAL, splitHeroMiniGridRows } from "@/lib/hero-mini-grid";
 
 interface HeroOpinionSectionProps {
   opinions: HomeOpinion[];
@@ -24,7 +25,7 @@ function OpinionRow({ opinions, rowOffset }: { opinions: HomeOpinion[]; rowOffse
               <SectionImage
                 src={op.image}
                 alt={headline}
-                sizes="(max-width: 768px) 33vw, 200px"
+                sizes="(max-width: 768px) 96px, 128px"
               />
             </div>
             <div className="mini-card-h-body">
@@ -42,8 +43,7 @@ function OpinionRow({ opinions, rowOffset }: { opinions: HomeOpinion[]; rowOffse
 export function HeroOpinionSection({ opinions }: HeroOpinionSectionProps) {
   if (opinions.length === 0) return null;
 
-  const visible = opinions.slice(0, 6);
-  const rows = [visible.slice(0, 3), visible.slice(3, 6)].filter((row) => row.length > 0);
+  const rows = splitHeroMiniGridRows(opinions.slice(0, HERO_MINI_GRID_TOTAL));
 
   return (
     <div className="hero-sub-section hero-opinion-section">
@@ -55,7 +55,7 @@ export function HeroOpinionSection({ opinions }: HeroOpinionSectionProps) {
       </div>
       <div className="hero-sub-articles-rows">
         {rows.map((row, rowIndex) => (
-          <OpinionRow key={rowIndex} opinions={row} rowOffset={rowIndex * 3} />
+          <OpinionRow key={rowIndex} opinions={row} rowOffset={rowIndex * HERO_MINI_GRID_COLS} />
         ))}
       </div>
     </div>

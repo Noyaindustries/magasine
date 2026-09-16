@@ -1,4 +1,4 @@
-import { REGION_SLUGS } from "@/lib/sections";
+﻿import { REGION_SLUGS } from "@/lib/sections";
 import { SEED_CATEGORIES } from "@/lib/seed-data";
 
 const regionSlugSet = new Set<string>(REGION_SLUGS);
@@ -9,7 +9,7 @@ const regionSeedBySlug = new Map(
   )
 );
 
-/** Anciens slugs ou variantes → slug région canonique. */
+/** Anciens slugs ou variantes ÔåÆ slug r├®gion canonique. */
 const REGION_SLUG_ALIASES: Record<string, string> = {
   "amerique-latine": "latin-america",
   "amrique-latine": "latin-america",
@@ -20,7 +20,7 @@ const REGION_SLUG_ALIASES: Record<string, string> = {
   "asia-de-l-oeste": "west-asia",
 };
 
-/** Client-safe helper — no database imports. */
+/** Client-safe helper ÔÇö no database imports. */
 export function isRegionCategorySlug(slug: string | undefined | null): boolean {
   if (!slug) return false;
   return regionSlugSet.has(slug) || Boolean(REGION_SLUG_ALIASES[slug.toLowerCase()]);
@@ -51,7 +51,7 @@ export function getCanonicalRegionSlug(
   return null;
 }
 
-/** Détecte une région (Afrique, Amérique latine, etc.) même si le slug en base est atypique. */
+/** D├®tecte une r├®gion (Afrique, Am├®rique latine, etc.) m├¬me si le slug en base est atypique. */
 export function isRegionCategoryRecord(category: {
   slug: string;
   name?: string;

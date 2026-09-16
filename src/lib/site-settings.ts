@@ -1,4 +1,5 @@
 import { cache } from "react";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { getOrCreateSiteSettings, SiteSettings, type ISiteSettings } from "@/models/SiteSettings";
 import {
@@ -174,6 +175,7 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       brevoConnected: false,
       typographyPreset: DEFAULT_TYPOGRAPHY_PRESET,
       adZones: [],
+      homeRelatedArticles: [],
       updatedAt: new Date(),
     });
   }
@@ -198,15 +200,30 @@ export type HomepageSettingsInput = Pick<
   | "newsletterTitle"
   | "newsletterTitleEm"
   | "newsletterDescription"
->;
+> & {
+  homeRelatedArticles?: mongoose.Types.ObjectId[];
+};
 
-export async function updateSiteSettings(patch: UpdateSiteSettingsInput) {
+export async function updateSiteSettings(
+  patch: UpdateSiteSettingsInput & Pick<HomepageSettingsInput, "homeRelatedArticles">
+) {
   await connectDB();
   const existing = await getOrCreateSiteSettings();
   const doc = await SiteSettings.findById(existing._id);
   if (!doc) throw new Error("Settings not found");
 
-  applySettingsPatch(doc, patch);
+  const { homeRelatedArticles, ...rest } = patch;
+  applySettingsPatch(doc, rest);
+
+  if (homeRelatedArticles !== undefined) {
+    // Bypass stale Mongoose model cache in dev (hot reload) so new schema fields persist.
+    await SiteSettings.collection.updateOne(
+      { _id: doc._id },
+      { $set: { homeRelatedArticles, updatedAt: new Date() } }
+    );
+    doc.homeRelatedArticles = homeRelatedArticles;
+  }
+
   await doc.save();
   return mapSiteSettings(doc.toObject());
 }
@@ -217,7 +234,7 @@ export async function updateHomepageSettings(patch: HomepageSettingsInput) {
 
 function applySettingsPatch(
   doc: ISiteSettings,
-  patch: UpdateSiteSettingsInput
+  patch: UpdateSiteSettingsInput & Pick<HomepageSettingsInput, "homeRelatedArticles">
 ) {
   const assignable: (keyof PublicSiteSettings)[] = [
     "siteName",

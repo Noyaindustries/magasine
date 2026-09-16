@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import { cn } from "@/lib/utils";
 import { uploadAdminMedia } from "@/lib/admin-upload";
 import { toast } from "@/lib/toast";
+import { applyEditorLink } from "@/lib/editor-link";
 import { ArticleImage } from "@/lib/tiptap/article-image-extension";
 import { ArticleColumn } from "@/lib/tiptap/article-column-extension";
 import { ArticleColumnRow } from "@/lib/tiptap/article-column-row-extension";
@@ -270,9 +271,14 @@ export function CmsRichTextEditor({
         {toolBtn(
           <Link2 size={14} className="cms-icon" aria-hidden />,
           () => {
-            const url = window.prompt("Link URL");
+            const url = window.prompt("Link URL (https://…)");
             if (!url) return;
-            editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+            const ok = applyEditorLink(editor, url);
+            if (!ok) {
+              toast.error("Invalid URL. Use https://… or mailto:…");
+              return;
+            }
+            toast.success("Link inserted.");
           },
           editor.isActive("link")
         )}

@@ -4,6 +4,9 @@ import { Article } from "@/models/Article";
 import { Alert } from "@/models/Alert";
 import { Category } from "@/models/Category";
 import { getPublicSiteSettings } from "@/lib/site-settings";
+import { getHomeRelatedArticleIds } from "@/models/SiteSettings";
+import { loadRelatedArticleOptions } from "@/lib/related-articles";
+import type { RelatedArticleOption } from "@/lib/related-articles-shared";
 import { HOME_SECTIONS, type HomeSectionId } from "@/lib/homepage-sections";
 
 export interface HomepageSlotArticle {
@@ -28,12 +31,14 @@ export interface HomepageSectionStatus {
 export async function getHomepageAdminOverview(): Promise<{
   settings: Awaited<ReturnType<typeof getPublicSiteSettings>>;
   sections: HomepageSectionStatus[];
+  homeRelatedArticles: RelatedArticleOption[];
   alertCount: number;
   categoryCount: number;
 }> {
   const settings = await getPublicSiteSettings();
 
   await connectDB();
+  const homeRelatedArticles = await loadRelatedArticleOptions(await getHomeRelatedArticleIds());
 
   const published = { status: "published" as const };
 
@@ -56,7 +61,7 @@ export async function getHomepageAdminOverview(): Promise<{
     Article.find({ ...published, isEditorsChoice: true }).select("title slug status category").populate("category", "name").sort({ publishedAt: -1 }).limit(5).lean(),
     Article.find(published).select("title slug status category").populate("category", "name").sort({ publishedAt: -1 }).limit(5).lean(),
     Article.find({ ...published, contentType: "video" }).select("title slug status category").populate("category", "name").sort({ publishedAt: -1 }).limit(4).lean(),
-    Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "opinion" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(3).lean(),
+    Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "opinion" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(6).lean(),
     Article.find(published).select("title slug status category").populate({ path: "category", match: { slug: "culture" }, select: "name slug" }).sort({ publishedAt: -1 }).limit(4).lean(),
     Alert.countDocuments({ isActive: true }),
     Category.find({ isActive: true }).select("slug").lean(),
@@ -114,6 +119,7 @@ export async function getHomepageAdminOverview(): Promise<{
   return {
     settings,
     sections,
+    homeRelatedArticles,
     alertCount: alerts,
     categoryCount: filterRetiredCategories(
       categories.map((c) => ({ slug: c.slug as string }))

@@ -15,6 +15,10 @@ import { getAllRegionSlugsForArticle } from "@/lib/region-categories";
 import { revalidateArticleContent } from "@/lib/revalidate-public";
 import { resolveAuthorIdsFromInput } from "@/lib/admin-article-authors";
 import { resolvePublishedAtForSave } from "@/lib/admin-article-dates";
+import { resolveRelatedArticleIds } from "@/lib/related-articles";
+import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
+import type { ArticleStatus } from "@/types";
+import { canManageArticles } from "@/lib/permissions";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -31,6 +35,7 @@ const schema = z.object({
   featuredImageCaption: z.string().optional(),
   categoryId: z.string(),
   regionCategoryIds: z.array(z.string()).optional().default([]),
+  relatedArticleIds: z.array(z.string()).optional().default([]),
   authorIds: z.array(z.string().min(1)).min(1).optional(),
   authorId: z.string().min(1).optional(),
   tags: z.array(z.string()).optional(),
@@ -55,6 +60,56 @@ const schema = z.object({
     .optional()
     .refine((value) => !value || isValidVideoSourceUrl(value), "Invalid video URL"),
 });
+
+const SEARCH_STATUSES: ArticleStatus[] = [
+  "published",
+  "draft",
+  "review",
+  "scheduled",
+  "archived",
+];
+
+export async function GET(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user || !canManageArticles(session.user.role)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const { searchParams } = request.nextUrl;
+  const q = searchParams.get("q")?.trim() ?? "";
+  const exclude = searchParams.get("exclude")?.trim();
+  const statusParam = searchParams.get("status");
+  const limit = Math.min(20, Math.max(1, Number(searchParams.get("limit")) || 8));
+
+  await connectDB();
+
+  const filter: Record<string, unknown> = {};
+  if (statusParam && SEARCH_STATUSES.includes(statusParam as ArticleStatus)) {
+    filter.status = statusParam;
+  }
+  if (exclude) {
+    filter._id = { $ne: exclude };
+  }
+  const termRegex = buildCaseInsensitiveRegex(q);
+  if (termRegex) {
+    filter.$or = [{ title: termRegex }, { excerpt: termRegex }, { slug: termRegex }];
+  }
+
+  const articles = await Article.find(filter)
+    .select("title slug status")
+    .sort({ updatedAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return NextResponse.json({
+    articles: articles.map((article) => ({
+      _id: String(article._id),
+      title: article.title,
+      slug: article.slug,
+      status: article.status,
+    })),
+  });
+}
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -102,6 +157,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Category not found" }, { status: 400 });
     }
 
+    const relatedResolved = await resolveRelatedArticleIds(
+      parsed.data.relatedArticleIds ?? []
+    );
+    if ("error" in relatedResolved) {
+      return NextResponse.json({ error: relatedResolved.error }, { status: 400 });
+    }
+
     const slug = parsed.data.slug
       ? slugify(parsed.data.slug, { lower: true, strict: true })
       : slugify(parsed.data.title, { lower: true, strict: true });
@@ -111,8 +173,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "An article with this slug already exists" }, { status: 409 });
     }
 
-    // Couverture facultative : pour une vidéo on tente d'utiliser la miniature YouTube,
-    // sinon on retombe sur une image éditoriale par défaut (le champ est requis en base).
     let featuredImage = parsed.data.featuredImage?.trim() || "";
     if (!featuredImage && parsed.data.contentType === "video" && parsed.data.videoUrl) {
       featuredImage = getVideoThumbnailUrl(parsed.data.videoUrl) ?? "";
@@ -140,6 +200,7 @@ export async function POST(request: NextRequest) {
       category: assignment.primaryId,
       secondaryCategories: assignment.secondaryCategoryIds,
       authors: authorIds,
+      relatedArticles: relatedResolved.ids,
       tags: parsed.data.tags ?? [],
       status: parsed.data.status,
       publishedAt: parsed.data.status === "published" ? publishedAt : undefined,

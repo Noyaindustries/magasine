@@ -17,12 +17,20 @@ import {
   sanitizeNewsletterBodyHtml,
 } from "@/lib/newsletter-body-html";
 import { CmsNewsletterBodyEditor } from "@/components/admin/cms/CmsNewsletterBodyEditor";
+import { CmsNewsletterRecipientsPicker } from "@/components/admin/cms/CmsNewsletterRecipientsPicker";
+import {
+  DEFAULT_NEWSLETTER_SEND_LIMIT,
+  MAX_SELECTED_NEWSLETTER_RECIPIENTS,
+  SELECTED_LIST_TARGET,
+  clampNewsletterSendLimit,
+} from "@/lib/newsletter-recipients";
 
 interface CampaignRow {
   _id: string;
   title: string;
   subtitle: string;
   status: string;
+  listTarget?: string;
   recipientCount: number;
   openCount: number;
   clickCount: number;
@@ -49,12 +57,15 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     clickRate: 0,
     unsubscribes: 0,
     lists: [] as ListRow[],
+    multiEdition: false,
   });
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [mailConfigured, setMailConfigured] = useState(true);
   const [subject, setSubject] = useState("");
   const [emailHeaderTitle, setEmailHeaderTitle] = useState(siteName);
-  const [listTarget, setListTarget] = useState("all");
+  const [listTarget, setListTarget] = useState(SELECTED_LIST_TARGET);
+  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [recipientLimit, setRecipientLimit] = useState(DEFAULT_NEWSLETTER_SEND_LIMIT);
   const [scheduledAt, setScheduledAt] = useState("");
   const [body, setBody] = useState(
     plainTextToNewsletterEditorHtml(
@@ -62,7 +73,9 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     )
   );
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     Promise.all([
@@ -83,6 +96,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
               clickRate: statsData.clickRate ?? 0,
               unsubscribes: statsData.unsubscribes ?? 0,
               lists: statsData.lists ?? [],
+              multiEdition: statsData.multiEdition === true,
             });
           }
         }
@@ -116,14 +130,36 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     load();
   }, [load]);
 
+  const listAvailableCount =
+    listTarget === SELECTED_LIST_TARGET
+      ? selectedEmails.length
+      : listTarget === "all"
+        ? stats.totalActive
+        : (stats.lists.find((list) => list.name === listTarget)?.count ?? 0);
+
+  const effectiveSendCount = clampNewsletterSendLimit(recipientLimit, listAvailableCount);
+
+  useEffect(() => {
+    if (listAvailableCount <= 0) return;
+    setRecipientLimit((current) => clampNewsletterSendLimit(current, listAvailableCount));
+  }, [listAvailableCount]);
+
   const scheduleCampaign = async () => {
     if (!mailConfigured) {
       toast.error("Configure SMTP_HOST and SMTP_FROM before sending newsletters.");
       return;
     }
+    if (listTarget === SELECTED_LIST_TARGET && selectedEmails.length === 0) {
+      toast.error("Select at least one subscriber.");
+      return;
+    }
+    if (effectiveSendCount < 1) {
+      toast.error("Choose how many subscribers to send to.");
+      return;
+    }
 
     setSaving(true);
-    const toastId = toast.loading(scheduledAt ? "Scheduling campaign…" : "Sending to subscribers…");
+    const toastId = toast.loading(scheduledAt ? "Scheduling campaign…" : "Sending newsletter…");
     try {
       const res = await fetch("/api/admin/newsletter/campaigns", {
         method: "POST",
@@ -133,7 +169,11 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           subject,
           body,
           listTarget,
+          recipientEmails:
+            listTarget === SELECTED_LIST_TARGET ? selectedEmails : undefined,
+          recipientLimit: effectiveSendCount,
           scheduledAt: scheduledAt || undefined,
+          draftId: editingDraftId || undefined,
         }),
       });
       const data = (await res.json()) as {
@@ -141,10 +181,21 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
         message?: string;
         recipientCount?: number;
         failed?: number;
+        _id?: string;
+        status?: string;
       };
       toast.dismiss(toastId);
       if (!res.ok) {
         toast.error(data.error ?? "Failed to send campaign.");
+        if (data.status === "draft" && data._id) {
+          setEditingDraftId(data._id);
+          load();
+        }
+        return;
+      }
+      if ((data.recipientCount ?? 0) === 0 && !scheduledAt) {
+        toast.error(data.message ?? "No emails were delivered.");
+        load();
         return;
       }
       if (data.failed && data.failed > 0) {
@@ -155,6 +206,10 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
       } else {
         toast.success(data.message ?? "Campaign sent to subscribers.");
       }
+      setEditingDraftId(null);
+      if (listTarget === SELECTED_LIST_TARGET) {
+        setSelectedEmails([]);
+      }
       load();
     } catch {
       toast.dismiss(toastId);
@@ -162,6 +217,106 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveDraft = async () => {
+    if (!subject.trim() || !body.trim()) {
+      toast.error("Subject and message body are required to save a draft.");
+      return;
+    }
+
+    setSavingDraft(true);
+    const toastId = toast.loading(editingDraftId ? "Updating draft…" : "Saving draft…");
+    try {
+      const res = await fetch("/api/admin/newsletter/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: subject,
+          subject,
+          body,
+          listTarget,
+          recipientEmails:
+            listTarget === SELECTED_LIST_TARGET ? selectedEmails : undefined,
+          recipientLimit: listAvailableCount > 0 ? effectiveSendCount : undefined,
+          saveAsDraft: true,
+          draftId: editingDraftId || undefined,
+        }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        _id?: string;
+      };
+      toast.dismiss(toastId);
+      if (!res.ok) {
+        toast.error(data.error ?? "Unable to save draft.");
+        return;
+      }
+      if (data._id) setEditingDraftId(data._id);
+      toast.success(data.message ?? "Draft saved.");
+      load();
+    } catch {
+      toast.dismiss(toastId);
+      toastNetworkError();
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const loadCampaignIntoComposer = async (campaign: CampaignRow) => {
+    const toastId = toast.loading("Loading campaign…");
+    try {
+      const res = await fetch(`/api/admin/newsletter/campaigns/${campaign._id}`);
+      const data = (await res.json()) as {
+        error?: string;
+        campaign?: {
+          _id: string;
+          subject: string;
+          body: string;
+          listTarget: string;
+          recipientEmails: string[];
+          status: string;
+        };
+      };
+      toast.dismiss(toastId);
+      if (!res.ok || !data.campaign) {
+        toast.error(data.error ?? "Unable to load campaign.");
+        return;
+      }
+
+      const loaded = data.campaign;
+      setSubject(loaded.subject);
+      setBody(
+        isNewsletterBodyHtml(loaded.body)
+          ? loaded.body
+          : plainTextToNewsletterEditorHtml(loaded.body)
+      );
+      setListTarget(loaded.listTarget || "all");
+      setSelectedEmails(
+        loaded.listTarget === SELECTED_LIST_TARGET
+          ? (loaded.recipientEmails ?? []).map((email) => email.toLowerCase())
+          : []
+      );
+      setScheduledAt("");
+      setEditingDraftId(loaded.status === "draft" ? loaded._id : null);
+
+      toast.success(
+        loaded.status === "draft"
+          ? "Draft loaded — edit, save again, or send."
+          : "Campaign loaded — adjust recipients and send again."
+      );
+
+      document.getElementById("nl-subject")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch {
+      toast.dismiss(toastId);
+      toastNetworkError();
+    }
+  };
+
+  const clearComposerDraft = () => {
+    setEditingDraftId(null);
+    toast.success("Composer cleared from draft mode.");
   };
 
   const exportSubscribers = () => {
@@ -261,7 +416,10 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
         </div>
         <div className="vacts">
           <Link href="/admin/newsletter/subscribers" className="btn btn-out">
-            View subscribers
+            Manage contacts
+          </Link>
+          <Link href="/admin/newsletter/subscribers?add=1" className="btn btn-red">
+            Add contact
           </Link>
           <label className="btn btn-out" style={{ cursor: importing ? "wait" : "pointer" }}>
             {importing ? "Importing…" : "Import Mailchimp CSV"}
@@ -279,6 +437,9 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
           </label>
           <button type="button" className="btn btn-out" onClick={exportSubscribers}>
             Export subscribers
+          </button>
+          <button type="button" className="btn btn-out" disabled={savingDraft || !subject.trim() || !body.trim()} onClick={() => void saveDraft()}>
+            {editingDraftId ? "Update draft" : "Save draft"}
           </button>
           <button type="button" className="btn btn-red" disabled={saving || !mailConfigured} onClick={() => void scheduleCampaign()}>
             {scheduledAt ? "+ Schedule campaign" : "+ Send now"}
@@ -391,6 +552,14 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                         <td className="tbl-actions">
                           <button
                             type="button"
+                            className="btn btn-ghost btn-xs"
+                            title={row.status === "draft" ? "Edit draft" : "Reuse / resend"}
+                            onClick={() => void loadCampaignIntoComposer(row)}
+                          >
+                            {row.status === "draft" ? "Edit" : "Reuse"}
+                          </button>
+                          <button
+                            type="button"
                             className="btn btn-ghost btn-xs btn-icon"
                             title="Delete"
                             onClick={() => void deleteCampaign(row)}
@@ -434,10 +603,12 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
         <div className="cms-newsletter-side">
           <div className="card">
             <div className="card-header">
-              <span className="card-title">List segmentation</span>
+              <span className="card-title">
+                {stats.multiEdition ? "List segmentation" : "Subscribers"}
+              </span>
             </div>
             <div className="card-body cms-list-segment">
-              {stats.lists.map((list) => (
+              {(stats.multiEdition ? stats.lists : stats.lists.slice(0, 1)).map((list) => (
                 <div key={list.name} className="mm">
                   <div className="mml">
                     <div className="mmdot" style={{ background: list.color }} />
@@ -459,6 +630,14 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
               <span className="card-title">Compose campaign</span>
             </div>
             <div className="card-body cms-stack">
+              {editingDraftId ? (
+                <p className="cms-field-hint" style={{ margin: 0 }}>
+                  Editing saved draft.{" "}
+                  <button type="button" className="btn btn-ghost btn-xs" onClick={clearComposerDraft}>
+                    Stop editing draft
+                  </button>
+                </p>
+              ) : null}
               <div className="field">
                 <label className="lbl" htmlFor="nl-subject">
                   Email subject
@@ -483,7 +662,7 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
               </div>
               <div className="field">
                 <label className="lbl" htmlFor="nl-list">
-                  Target list
+                  Recipients
                 </label>
                 <select
                   id="nl-list"
@@ -491,16 +670,62 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                   value={listTarget}
                   onChange={(e) => setListTarget(e.target.value)}
                 >
+                  <option value={SELECTED_LIST_TARGET}>
+                    Choose emails (checkbox list, up to{" "}
+                    {MAX_SELECTED_NEWSLETTER_RECIPIENTS.toLocaleString("en-US")})
+                  </option>
                   <option value="all">
                     All subscribers ({stats.totalActive.toLocaleString("en-US")})
                   </option>
-                  {stats.lists.map((list) => (
-                    <option key={list.name} value={list.name}>
-                      {list.label ?? list.name} ({list.count.toLocaleString("en-US")})
-                    </option>
-                  ))}
+                  {stats.multiEdition
+                    ? stats.lists.map((list) => (
+                        <option key={list.name} value={list.name}>
+                          {list.label ?? list.name} ({list.count.toLocaleString("en-US")})
+                        </option>
+                      ))
+                    : null}
                 </select>
               </div>
+              {listTarget === SELECTED_LIST_TARGET && (
+                <CmsNewsletterRecipientsPicker
+                  value={selectedEmails}
+                  onChange={setSelectedEmails}
+                />
+              )}
+              <div className="field">
+                <label className="lbl" htmlFor="nl-limit">
+                  Number to send
+                </label>
+                <input
+                  id="nl-limit"
+                  className="input"
+                  type="number"
+                  min={1}
+                  max={Math.max(1, Math.min(MAX_SELECTED_NEWSLETTER_RECIPIENTS, listAvailableCount || 1))}
+                  value={recipientLimit}
+                  disabled={listAvailableCount === 0}
+                  onChange={(e) => {
+                    const next = Number(e.target.value);
+                    setRecipientLimit(
+                      clampNewsletterSendLimit(
+                        Number.isFinite(next) ? next : 1,
+                        Math.max(1, listAvailableCount)
+                      )
+                    );
+                  }}
+                />
+                <p className="cms-field-hint">
+                  {listAvailableCount === 0
+                    ? "No subscribers available for this list yet."
+                    : `Will send to ${effectiveSendCount.toLocaleString("en-US")} of ${listAvailableCount.toLocaleString("en-US")} available (max ${MAX_SELECTED_NEWSLETTER_RECIPIENTS.toLocaleString("en-US")}).`}
+                </p>
+              </div>
+              {listTarget === "all" && effectiveSendCount > 50 && (
+                <p className="cms-field-hint cms-field-hint--warn">
+                  Large Gmail sends often fail or get rate-limited. Prefer a smaller number for
+                  tests.
+                </p>
+              )}
               <div className="field">
                 <label className="lbl" htmlFor="nl-schedule">
                   Send date (optional)
@@ -515,8 +740,26 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
               </div>
               <button
                 type="button"
+                className="btn btn-out cms-full-btn"
+                disabled={saving || savingDraft || !subject.trim() || !body.trim()}
+                onClick={() => void saveDraft()}
+              >
+                {savingDraft
+                  ? "Saving draft…"
+                  : editingDraftId
+                    ? "Update draft"
+                    : "Save draft"}
+              </button>
+              <button
+                type="button"
                 className="btn btn-red cms-full-btn"
-                disabled={saving || !mailConfigured}
+                disabled={
+                  saving ||
+                  savingDraft ||
+                  !mailConfigured ||
+                  effectiveSendCount < 1 ||
+                  (listTarget === SELECTED_LIST_TARGET && selectedEmails.length === 0)
+                }
                 onClick={() => void scheduleCampaign()}
               >
                 {saving
@@ -524,8 +767,8 @@ export function CmsNewsletterView({ initialTotalActive }: CmsNewsletterViewProps
                     ? "Scheduling…"
                     : "Sending…"
                   : scheduledAt
-                    ? "Schedule send →"
-                    : "Send to subscribers →"}
+                    ? `Schedule ${effectiveSendCount} send${effectiveSendCount === 1 ? "" : "s"} →`
+                    : `Send to ${effectiveSendCount} subscriber${effectiveSendCount === 1 ? "" : "s"} →`}
               </button>
             </div>
           </div>

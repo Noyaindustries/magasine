@@ -3,7 +3,12 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { connectDB } from "@/lib/mongodb";
 import { Newsletter } from "@/models/Newsletter";
 import { NewsletterCampaign } from "@/models/NewsletterCampaign";
-import { NEWSLETTER_TOPICS } from "@/lib/newsletter-topics";
+import {
+  getSelectableNewsletterTopics,
+  isNewsletterMultiEditionEnabled,
+  NEWSLETTER_TOPICS,
+  PRIMARY_NEWSLETTER_TOPIC_ID,
+} from "@/lib/newsletter-topics";
 
 const LIST_COLORS: Record<string, string> = {
   general: "var(--cms-red)",
@@ -50,22 +55,35 @@ export async function GET() {
   const topicLabel = (id: string) =>
     NEWSLETTER_TOPICS.find((topic) => topic.id === id)?.label ?? id;
 
-  const lists =
-    preferenceAgg.length > 0
-      ? preferenceAgg.map((row) => ({
-          name: row._id,
-          label: topicLabel(row._id),
-          count: row.count,
-          pct: totalActive > 0 ? Math.round((row.count / totalActive) * 100) : 0,
-          color: LIST_COLORS[row._id.toLowerCase()] ?? "var(--t3)",
-        }))
+  const selectable = new Set(getSelectableNewsletterTopics().map((topic) => topic.id));
+
+  const lists = !isNewsletterMultiEditionEnabled()
+    ? [
+        {
+          name: PRIMARY_NEWSLETTER_TOPIC_ID,
+          label: topicLabel(PRIMARY_NEWSLETTER_TOPIC_ID),
+          count: totalActive,
+          pct: 100,
+          color: LIST_COLORS[PRIMARY_NEWSLETTER_TOPIC_ID] ?? "var(--cms-red)",
+        },
+      ]
+    : preferenceAgg.length > 0
+      ? preferenceAgg
+          .filter((row) => selectable.has(row._id as never))
+          .map((row) => ({
+            name: row._id,
+            label: topicLabel(row._id),
+            count: row.count,
+            pct: totalActive > 0 ? Math.round((row.count / totalActive) * 100) : 0,
+            color: LIST_COLORS[row._id.toLowerCase()] ?? "var(--t3)",
+          }))
       : [
           {
-            name: "general",
-            label: topicLabel("general"),
+            name: PRIMARY_NEWSLETTER_TOPIC_ID,
+            label: topicLabel(PRIMARY_NEWSLETTER_TOPIC_ID),
             count: totalActive,
             pct: 100,
-            color: "var(--cms-red)",
+            color: LIST_COLORS[PRIMARY_NEWSLETTER_TOPIC_ID] ?? "var(--cms-red)",
           },
         ];
 
@@ -76,5 +94,6 @@ export async function GET() {
     openRate,
     clickRate,
     lists,
+    multiEdition: isNewsletterMultiEditionEnabled(),
   });
 }

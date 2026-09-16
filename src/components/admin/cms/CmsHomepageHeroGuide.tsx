@@ -16,7 +16,7 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
   const opinionPublished = findCategoryPublished(stats, "opinion");
 
   const relatedTarget = 6;
-  const opinionTarget = 3;
+  const opinionTarget = 6;
   const relatedOk = publishedReal >= relatedTarget;
   const opinionOk = opinionPublished >= opinionTarget;
   const heroOk = featuredCount >= 1;
@@ -64,8 +64,9 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
           <article className="articles-hero-guide-card">
             <h3>Related Stories</h3>
             <p>
-              The <strong>latest published articles</strong> (all sections), up to 6 cards. The main
-              hero article is excluded automatically.
+              Up to <strong>6 articles</strong> in two rows (3 + 3) in the hero Related Stories block.
+              Curate them in <Link href="/admin/homepage">Homepage → Related Stories</Link>, or set them on a{" "}
+              <strong>Homepage feature</strong> article, or leave empty for the latest published articles.
             </p>
             <p className="articles-hero-guide-status">
               {relatedOk ? (
@@ -76,8 +77,8 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
                 </>
               )}
             </p>
-            <Link href="/admin/articles/new" className="articles-hero-guide-link">
-              + Add an article
+            <Link href="/admin/homepage" className="articles-hero-guide-link">
+              Curate Related Stories
             </Link>
           </article>
 
@@ -85,7 +86,7 @@ export function CmsHomepageHeroGuide({ stats }: CmsHomepageHeroGuideProps) {
             <h3>Opinion &amp; Ideas</h3>
             <p>
               <strong>Published</strong> articles whose main section is <strong>Opinion</strong> (not
-              just a region checked alongside).
+              just a region checked alongside). The hero shows up to <strong>6</strong> in two rows (3 + 3).
             </p>
             <p className="articles-hero-guide-status">
               {opinionOk ? (

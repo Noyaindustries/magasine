@@ -415,7 +415,7 @@ export function ReaderSpaceView({
                 <p className="reader-section-sub">
                   {multiEdition
                     ? "Regional editions delivered to your inbox"
-                    : "Daily briefing delivered to your inbox"}
+                    : "Our newsletter delivered to your inbox"}
                 </p>
               </div>
             </div>
@@ -447,7 +447,7 @@ export function ReaderSpaceView({
                 <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.6, margin: "0 0 20px" }}>
                   {multiEdition
                     ? "Get curated briefings on Africa, Latin America, Asia-Pacific, and more — free, independent, and aligned with your interests."
-                    : "Get our free daily briefing — independent journalism from across the Global South."}
+                    : "Get our free newsletter — independent journalism from across the Global South."}
                 </p>
                 {multiEdition && (
                   <div className="reader-topic-chips">

@@ -1,9 +1,9 @@
-import { connectDB } from "@/lib/mongodb";
+﻿import { connectDB } from "@/lib/mongodb";
 import { Author } from "@/models/Author";
 import { Category } from "@/models/Category";
 import { isRegionCategorySlug } from "@/lib/region-category-slugs";
 
-/** Correspondants régionaux → slug de région (aligné sur le seed). */
+/** Correspondants r├®gionaux ÔåÆ slug de r├®gion (align├® sur le seed). */
 export const AUTHOR_DEFAULT_REGION: Record<string, string> = {
   "lucia-mendoza": "latin-america",
   "priya-sharma": "south-asia",

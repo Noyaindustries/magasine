@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { UtilityPageLayout } from "@/components/layout/UtilityPageLayout";
 import { SocialLinks } from "@/components/ui/SocialIcons";
+import { MultilineText } from "@/components/ui/MultilineText";
 import type { AboutPageContent, AboutPillarIcon } from "@/lib/about-page-content";
 
 const PILLAR_ICONS: Record<AboutPillarIcon, LucideIcon> = {
@@ -45,8 +46,8 @@ export function AboutPageView({ content }: AboutPageViewProps) {
       <div className="about-intro-grid">
         <article className="utility-card utility-prose">
           <h2 className="font-serif text-2xl font-bold text-charcoal mb-4">{content.whoWeAreTitle}</h2>
-          {content.whoWeAreParagraphs.map((paragraph) => (
-            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
+          {content.whoWeAreParagraphs.map((paragraph, index) => (
+            <MultilineText key={`who-${index}`}>{paragraph}</MultilineText>
           ))}
         </article>
 
@@ -74,8 +75,8 @@ export function AboutPageView({ content }: AboutPageViewProps) {
       <section id="mission" className="utility-wide-panel about-mission-panel">
         <p className="utility-card-sub">{content.missionSubtitle}</p>
         <h2>{content.missionTitle}</h2>
-        <p className="about-mission-lead">{content.missionLead}</p>
-        <p>{content.missionParagraph}</p>
+        <MultilineText className="about-mission-lead">{content.missionLead}</MultilineText>
+        <MultilineText>{content.missionParagraph}</MultilineText>
 
         <div className="about-pillars">
           {content.missionPillars.map((pillar) => {
@@ -86,7 +87,7 @@ export function AboutPageView({ content }: AboutPageViewProps) {
                   <Icon size={18} />
                 </span>
                 <h3>{pillar.title}</h3>
-                <p>{pillar.text}</p>
+                <MultilineText>{pillar.text}</MultilineText>
               </div>
             );
           })}
@@ -109,7 +110,9 @@ export function AboutPageView({ content }: AboutPageViewProps) {
 
         <section className="utility-card">
           <h2 className="font-serif text-xl font-bold text-charcoal mb-4">{content.howWeWorkTitle}</h2>
-          <p className="text-sm text-muted leading-relaxed mb-4">{content.howWeWorkIntro}</p>
+          <MultilineText className="text-sm text-muted leading-relaxed mb-4">
+            {content.howWeWorkIntro}
+          </MultilineText>
           <ul className="about-list">
             {content.howWeWorkItems.map((item) => (
               <li key={item}>
@@ -142,11 +145,11 @@ export function AboutPageView({ content }: AboutPageViewProps) {
 
       <div className="about-cta-row">
         <div className="utility-cta-band">
-          <p>{content.ctaTeamText}</p>
+          <MultilineText>{content.ctaTeamText}</MultilineText>
           <Link href="/team">Our team</Link>
         </div>
         <div className="utility-cta-band">
-          <p>{content.ctaDonateText}</p>
+          <MultilineText>{content.ctaDonateText}</MultilineText>
           <Link href="/donate">Support us</Link>
         </div>
       </div>
@@ -154,7 +157,7 @@ export function AboutPageView({ content }: AboutPageViewProps) {
       <div className="utility-cta-band">
         <p>
           <Target className="inline w-4 h-4 mr-2 align-text-bottom opacity-70" aria-hidden />
-          {content.ctaNewsletterText}
+          <MultilineText as="span">{content.ctaNewsletterText}</MultilineText>
         </p>
         <Link href="/newsletter">Subscribe</Link>
       </div>

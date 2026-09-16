@@ -17,6 +17,8 @@ import {
 } from "@/lib/mock-data";
 import { resolveAuthorAvatar, resolveFeaturedImage } from "@/lib/images";
 import { getPublicSiteSettings } from "@/lib/site-settings";
+import { getHomeRelatedArticleIds } from "@/models/SiteSettings";
+import { resolveHomeRelatedArticleIdList } from "@/lib/home-related-stories";
 import { filterRetiredCategories, filterArticlesByRetiredCategories, isRetiredCategorySlug } from "@/lib/retired-categories";
 import { repairBrokenArticleImagesOnce } from "@/lib/repair-article-images";
 import { migrateCategorySlugsOnce } from "@/lib/migrate-category-slugs";
@@ -27,7 +29,6 @@ import {
   ensureTopicCategoriesExist,
   ensureCategoryExistsBySlug,
   migrateArticleRegionLinksOnce,
-  removeAutoAssignedAfricaRegionsOnce,
   repairAuthorRegionLinksOnce,
 } from "@/lib/migrate-article-regions";
 import { resolveCategorySlug } from "@/lib/category-slugs";
@@ -204,7 +205,6 @@ async function ensureCategoryMigrations(): Promise<void> {
   await ensureTopicCategoriesExist();
   await ensureRegionCategoriesExist();
   await migrateArticleRegionLinksOnce();
-  await removeAutoAssignedAfricaRegionsOnce();
   await repairAuthorRegionLinksOnce();
 }
 
@@ -272,7 +272,7 @@ export const getHomePageData = cache(async function getHomePageData() {
         docs.filter((d) => (d.category as { slug?: string } | null)?.slug === "news")
       ),
     getArticlesByCategorySlug("feature", 4),
-    getArticlesByCategorySlug("opinion", 3),
+    getArticlesByCategorySlug("opinion", 6),
     getArticlesByCategorySlug("investigations", 3),
     getArticlesByCategorySlug("special-reports", 3),
     Article.aggregate([
@@ -296,6 +296,23 @@ export const getHomePageData = cache(async function getHomePageData() {
     getArticlesByCategorySlug("west-asia", 4),
   ]);
 
+  const manualRelatedIds = await resolveHomeRelatedArticleIdList();
+  let homeRelatedStories: ArticleListItem[] = [];
+  if (manualRelatedIds.length > 0) {
+    const manualDocs = await Article.find({
+      _id: { $in: manualRelatedIds },
+      status: "published",
+    })
+      .select(ARTICLE_LIST_FIELDS)
+      .populate(articlePopulate)
+      .lean();
+    const byId = new Map(manualDocs.map((doc) => [String(doc._id), doc]));
+    homeRelatedStories = manualRelatedIds
+      .map((id) => byId.get(String(id)))
+      .filter((doc): doc is (typeof manualDocs)[number] => Boolean(doc))
+      .map((doc) => serializeArticle(doc as unknown as Record<string, unknown>));
+  }
+
   return {
     breakingAlertsEnabled: siteSettings.breakingAlertEnabled,
     alerts: siteSettings.breakingAlertEnabled
@@ -317,12 +334,14 @@ export const getHomePageData = cache(async function getHomePageData() {
     topStories: mapHomeArticles(topStories, 6),
     editorsChoice: mapHomeArticles(editorsChoice, 5),
     latestUpdates: mapHomeArticles(latestUpdates, 6),
+    homeRelatedStories,
+    homeRelatedStoryIds: manualRelatedIds.map((id) => String(id)),
     featuredVideos: mapHomeArticles(featuredVideos, 4),
     featuredPodcasts: mapHomeArticles(featuredPodcasts, 4),
     featuredGalleries: mapHomeArticles(featuredGalleries, 4),
     nationalNews: mapHomeArticles(nationalNews, 6),
     featureNews: filterHomeArticleList(featureNews, 4),
-    opinion: filterHomeArticleList(opinion, 3),
+    opinion: filterHomeArticleList(opinion, 6),
     investigations: filterHomeArticleList(investigations, 3),
     specialReports: filterHomeArticleList(specialReports, 3),
     popularTags: popularTags.map((t: { _id: string; count: number }) => ({
@@ -543,7 +562,35 @@ export async function getArticleBySlug(slug: string) {
   };
   if (categoryId) relatedFilter.category = categoryId;
 
-  const related = await findArticleList(relatedFilter, 4);
+  const manualRelatedIds = (article.relatedArticles ?? []) as mongoose.Types.ObjectId[];
+  let related: Awaited<ReturnType<typeof findArticleList>> = [];
+
+  if (manualRelatedIds.length > 0) {
+    const manualDocs = await Article.find({
+      _id: { $in: manualRelatedIds },
+      status: "published",
+    })
+      .select(ARTICLE_LIST_FIELDS)
+      .populate(articlePopulate)
+      .lean();
+    const byId = new Map(manualDocs.map((doc) => [String(doc._id), doc]));
+    related = manualRelatedIds
+      .map((id) => byId.get(String(id)))
+      .filter((doc): doc is (typeof manualDocs)[number] => Boolean(doc))
+      .slice(0, 4);
+  }
+
+  if (related.length < 4) {
+    const excludeIds = [article._id, ...related.map((doc) => doc._id)];
+    const autoFill = await findArticleList(
+      {
+        ...relatedFilter,
+        _id: { $nin: excludeIds },
+      },
+      4 - related.length
+    );
+    related = [...related, ...autoFill];
+  }
 
   const prevFilter: Record<string, unknown> = {
     status: "published",
