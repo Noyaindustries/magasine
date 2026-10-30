@@ -253,7 +253,7 @@ export const getHomePageData = cache(async function getHomePageData() {
     findArticleList({ ...baseQuery, isFeatured: true }, 10),
     findArticleList({ ...baseQuery, isTopStory: true }, 10),
     findArticleList({ ...baseQuery, isEditorsChoice: true }, 8),
-    findArticleList(baseQuery, 14),
+    findArticleList(baseQuery, 24),
     findArticleList({ ...baseQuery, contentType: "video" }, 4),
     findArticleList({ ...baseQuery, contentType: "podcast" }, 4),
     findArticleList({ ...baseQuery, contentType: "gallery" }, 4),
@@ -333,7 +333,7 @@ export const getHomePageData = cache(async function getHomePageData() {
     heroArticles: mapHomeArticles(heroArticles, 6),
     topStories: mapHomeArticles(topStories, 6),
     editorsChoice: mapHomeArticles(editorsChoice, 5),
-    latestUpdates: mapHomeArticles(latestUpdates, 6),
+    latestUpdates: mapHomeArticles(latestUpdates, 18),
     homeRelatedStories,
     homeRelatedStoryIds: manualRelatedIds.map((id) => String(id)),
     featuredVideos: mapHomeArticles(featuredVideos, 4),
@@ -527,30 +527,86 @@ export async function getArticlesByCategorySlug(slug: string, limit = 12) {
   return articles.map((a) => serializeArticle(a));
 }
 
-export async function getArticleBySlug(slug: string) {
+export async function getArticleBySlug(
+  slug: string,
+  options?: { allowUnpublished?: boolean }
+) {
+  const allowUnpublished = options?.allowUnpublished === true;
+
   if (!(await hasDbArticles())) {
-    return DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+    const mock = DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+    return mock ? { ...mock, isPreview: false as const } : null;
   }
 
   await connectDB();
-  const article = await Article.findOneAndUpdate(
-    { slug, status: "published" },
-    { $inc: { views: 1 } },
-    { returnDocument: "after" }
-  )
-    .populate(articlePopulate)
-    .populate("secondaryCategories", "name slug color")
-    .lean();
 
-  if (!article) return DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+  type LeanArticle = {
+    _id: mongoose.Types.ObjectId;
+    status?: string;
+    views?: number;
+    category?: unknown;
+    relatedArticles?: mongoose.Types.ObjectId[];
+    publishedAt?: Date;
+    subtitle?: string;
+    content?: string;
+    seoTitle?: string;
+    seoDescription?: string;
+    gallery?: { url: string; caption?: string; credit?: string }[];
+    shareCount?: number;
+    featuredImageCaption?: string;
+    [key: string]: unknown;
+  };
 
-  void recordDailyPageView().catch(() => undefined);
+  let article: LeanArticle | null = null;
+  let isPreview = false;
+
+  if (allowUnpublished) {
+    const anyStatus = (await Article.findOne({ slug })
+      .populate(articlePopulate)
+      .populate("secondaryCategories", "name slug color")
+      .lean()) as LeanArticle | null;
+
+    if (!anyStatus) {
+      const mock = DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+      return mock ? { ...mock, isPreview: false as const } : null;
+    }
+
+    if (anyStatus.status === "published") {
+      await Article.updateOne({ _id: anyStatus._id }, { $inc: { views: 1 } });
+      anyStatus.views = Number(anyStatus.views ?? 0) + 1;
+      void recordDailyPageView().catch(() => undefined);
+      article = anyStatus;
+    } else {
+      isPreview = true;
+      article = anyStatus;
+    }
+  } else {
+    article = (await Article.findOneAndUpdate(
+      { slug, status: "published" },
+      { $inc: { views: 1 } },
+      { returnDocument: "after" }
+    )
+      .populate(articlePopulate)
+      .populate("secondaryCategories", "name slug color")
+      .lean()) as LeanArticle | null;
+
+    if (!article) {
+      const mock = DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+      return mock ? { ...mock, isPreview: false as const } : null;
+    }
+    void recordDailyPageView().catch(() => undefined);
+  }
+
+  if (!article) {
+    const mock = DEMO_CONTENT_ENABLED ? getMockArticleBySlug(slug) : null;
+    return mock ? { ...mock, isPreview: false as const } : null;
+  }
 
   // `category` est peuplé (objet) : on doit filtrer sur son _id, sinon Mongoose
   // tente de caster l'objet entier en ObjectId → CastError → 500.
   // La catégorie peut être absente (article sans catégorie ou catégorie
   // supprimée) : dans ce cas on ne filtre pas dessus pour éviter un crash.
-  const categoryDoc = article.category as unknown as
+  const categoryDoc = article.category as
     | { _id: mongoose.Types.ObjectId; name: string; slug: string }
     | null
     | undefined;
@@ -617,10 +673,11 @@ export async function getArticleBySlug(slug: string) {
   ]);
 
   return {
+    isPreview,
     article: {
       ...serializeArticle(article as unknown as Record<string, unknown>),
       subtitle: article.subtitle,
-      content: article.content,
+      content: article.content ?? "",
       seoTitle: article.seoTitle,
       seoDescription: article.seoDescription,
       gallery: article.gallery?.map((item) => ({
@@ -629,6 +686,7 @@ export async function getArticleBySlug(slug: string) {
       })),
       shareCount: article.shareCount,
       featuredImageCaption: article.featuredImageCaption,
+      status: article.status as import("@/types").ArticleStatus | undefined,
     },
     related: related.map((a) => serializeArticle(a as unknown as Record<string, unknown>)),
     navigation: {

@@ -255,8 +255,8 @@ export function CmsArticlesTable({
                         <Link href={`/admin/articles/${article._id}`} className="btn btn-ghost btn-xs btn-icon" title="Edit">
                           <CmsActionIcons.edit size={14} className="cms-icon" aria-hidden />
                         </Link>
-                        {article.status !== "draft" && article.slug && (
-                          <Link href={`/article/${article.slug}`} className="btn btn-ghost btn-xs btn-icon" title="View" target="_blank">
+                        {article.slug && (
+                          <Link href={`/article/${article.slug}`} className="btn btn-ghost btn-xs btn-icon" title={article.status === "published" ? "View" : "Preview"} target="_blank">
                             <CmsActionIcons.view size={14} className="cms-icon" aria-hidden />
                           </Link>
                         )}

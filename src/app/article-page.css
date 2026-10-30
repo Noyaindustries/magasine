@@ -30,6 +30,59 @@
   border-radius: 0 2px 2px 0;
 }
 
+.art-preview-banner {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  background: #1a1a1a;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.art-preview-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
+.art-preview-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.art-preview-banner-copy strong {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f5c518;
+}
+
+.art-preview-banner-copy span {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.art-preview-banner-link {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  background: #fff;
+  padding: 8px 14px;
+  text-decoration: none;
+}
+
+.art-preview-banner-link:hover {
+  background: #f5c518;
+}
+
 .article-page--premium > .container {
   position: relative;
   z-index: 1;

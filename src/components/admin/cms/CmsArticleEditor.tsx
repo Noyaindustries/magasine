@@ -672,6 +672,41 @@ export function CmsArticleEditor({
     }
   };
 
+  const openPreview = async () => {
+    const slugGuess =
+      previewSlug ??
+      (form.slug.trim()
+        ? slugify(form.slug, { lower: true, strict: true })
+        : form.title.trim()
+          ? slugify(form.title, { lower: true, strict: true })
+          : null);
+
+    if (!slugGuess && mode === "create") {
+      toast.error("Add a title, then save once before previewing.");
+      return;
+    }
+
+    if (dirtyRef.current || mode === "create") {
+      const ok = await saveArticle({ silent: mode === "edit" });
+      if (!ok) return;
+    }
+
+    const slug =
+      previewSlug ??
+      (form.slug.trim()
+        ? slugify(form.slug, { lower: true, strict: true })
+        : form.title.trim()
+          ? slugify(form.title, { lower: true, strict: true })
+          : null);
+
+    if (!slug) {
+      toast.error("Save the article once to generate a preview URL.");
+      return;
+    }
+
+    window.open(`/article/${slug}`, "_blank", "noopener,noreferrer");
+  };
+
   const orbClass =
     seo.score >= 75 ? "orb-ok" : seo.score >= 50 ? "orb-warn" : "orb-low";
 
@@ -685,15 +720,15 @@ export function CmsArticleEditor({
           </div>
         </div>
         <div className="vacts">
-          {previewSlug && (
-            <Link
-              href={`/article/${previewSlug}`}
-              target="_blank"
-              className="btn btn-ghost"
-            >
-              Preview
-            </Link>
-          )}
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={loading}
+            onClick={() => void openPreview()}
+            title="Save latest changes and open the public article layout"
+          >
+            Preview
+          </button>
           <button
             type="button"
             className="btn btn-out"

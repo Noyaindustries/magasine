@@ -60,4 +60,6 @@ export interface ArticleDetail extends ArticleListItem {
   gallery?: { url: string; caption?: string; credit?: string }[];
   shareCount?: number;
   featuredImageCaption?: string;
+  /** Present when loading an unpublished article for editorial preview. */
+  status?: ArticleStatus;
 }

@@ -26,6 +26,7 @@ import {
   loadRelatedArticleOptions,
   resolveRelatedArticleIds,
 } from "@/lib/related-articles";
+import { imageSrcField } from "@/lib/image-src";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -37,8 +38,9 @@ const updateSchema = z.object({
   title: z.string().min(1).optional(),
   subtitle: z.string().optional(),
   excerpt: z.string().min(1).optional(),
-  content: z.string().min(1).optional(),
-  featuredImage: z.string().url().optional(),
+  // Brouillons / autosave : le contenu peut être vide.
+  content: z.string().optional(),
+  featuredImage: imageSrcField,
   featuredImageCaption: z.string().optional(),
   categoryId: z.string().optional(),
   regionCategoryIds: z.array(z.string()).optional(),
@@ -67,6 +69,13 @@ const updateSchema = z.object({
     .optional()
     .refine((value) => !value || isValidVideoSourceUrl(value), "Invalid video URL"),
 });
+
+function zodErrorMessage(error: z.ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "Invalid data";
+  const path = issue.path.filter(Boolean).join(".");
+  return path ? `${path}: ${issue.message}` : issue.message;
+}
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -140,7 +149,10 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   const body = await request.json();
   const parsed = updateSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    return NextResponse.json(
+      { error: zodErrorMessage(parsed.error), details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
   }
 
   await connectDB();
@@ -194,8 +206,15 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
     article.relatedArticles = relatedResolved.ids as never;
 
+    // Homepage Related Stories is curated separately in /admin/homepage.
+    // Only seed it from a featured article when the homepage list is still empty,
+    // so editing "Continue reading" never shrinks the live Related Stories block.
     if (article.isFeatured && relatedResolved.ids.length > 0) {
-      await syncHomeRelatedArticles(relatedResolved.ids);
+      const { getHomeRelatedArticleIds } = await import("@/models/SiteSettings");
+      const existingHomeRelated = await getHomeRelatedArticleIds();
+      if (existingHomeRelated.length === 0) {
+        await syncHomeRelatedArticles(relatedResolved.ids);
+      }
     }
   }
 
@@ -207,12 +226,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
   if (data.subtitle !== undefined) article.subtitle = data.subtitle;
   if (data.excerpt) article.excerpt = data.excerpt;
-  if (data.content) {
+  if (data.content !== undefined) {
     const sanitized = sanitizeArticleHtml(data.content);
     article.content = sanitized;
     article.readingTime = estimateReadingTime(sanitized);
   }
-  if (data.featuredImage) article.featuredImage = data.featuredImage;
+  if (data.featuredImage !== undefined && data.featuredImage !== "") {
+    article.featuredImage = data.featuredImage;
+  }
   if (data.featuredImageCaption !== undefined) {
     article.featuredImageCaption = data.featuredImageCaption;
   }

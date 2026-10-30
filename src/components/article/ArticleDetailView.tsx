@@ -31,6 +31,23 @@ interface ArticleDetailViewProps {
   siteUrl: string;
   adRight?: PublicAd | null;
   adBelow?: PublicAd | null;
+  /** Unpublished article shown to editors before publish. */
+  isPreview?: boolean;
+}
+
+function previewStatusLabel(status?: string): string {
+  switch (status) {
+    case "draft":
+      return "Draft";
+    case "review":
+      return "In review";
+    case "scheduled":
+      return "Scheduled";
+    case "archived":
+      return "Archived";
+    default:
+      return "Unpublished";
+  }
 }
 
 export function ArticleDetailView({
@@ -41,6 +58,7 @@ export function ArticleDetailView({
   siteUrl,
   adRight,
   adBelow,
+  isPreview = false,
 }: ArticleDetailViewProps) {
   const authors = article.authors.filter((entry) => entry?.name?.trim());
   const badge = articleBadge(article);
@@ -56,6 +74,23 @@ export function ArticleDetailView({
   return (
     <article className="article-page article-page--premium" style={style}>
       <PageBackdrop />
+
+      {isPreview ? (
+        <div className="art-preview-banner" role="status">
+          <div className="container art-preview-banner-inner">
+            <div className="art-preview-banner-copy">
+              <strong>Preview</strong>
+              <span>
+                {previewStatusLabel(article.status)} — not visible to the public. Save in the editor,
+                then refresh to see the latest changes.
+              </span>
+            </div>
+            <Link href={`/admin/articles/${article._id}`} className="art-preview-banner-link">
+              Back to editor
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       <header className="art-article-header art-article-header--combined art-reveal">
         <figure className="art-article-header-cover">

@@ -19,6 +19,7 @@ import { resolveRelatedArticleIds } from "@/lib/related-articles";
 import { buildCaseInsensitiveRegex } from "@/lib/mongo-regex";
 import type { ArticleStatus } from "@/types";
 import { canManageArticles } from "@/lib/permissions";
+import { imageSrcField } from "@/lib/image-src";
 
 const galleryItemSchema = z.object({
   url: z.string().min(1),
@@ -30,8 +31,9 @@ const schema = z.object({
   title: z.string().min(1),
   subtitle: z.string().optional(),
   excerpt: z.string().min(1),
-  content: z.string().min(1),
-  featuredImage: z.union([z.string().url(), z.literal("")]).optional(),
+  // Brouillons : le contenu peut être vide (l'éditeur n'exige que titre + auteur).
+  content: z.string(),
+  featuredImage: imageSrcField,
   featuredImageCaption: z.string().optional(),
   categoryId: z.string(),
   regionCategoryIds: z.array(z.string()).optional().default([]),
@@ -60,6 +62,13 @@ const schema = z.object({
     .optional()
     .refine((value) => !value || isValidVideoSourceUrl(value), "Invalid video URL"),
 });
+
+function zodErrorMessage(error: z.ZodError): string {
+  const issue = error.issues[0];
+  if (!issue) return "Invalid data";
+  const path = issue.path.filter(Boolean).join(".");
+  return path ? `${path}: ${issue.message}` : issue.message;
+}
 
 const SEARCH_STATUSES: ArticleStatus[] = [
   "published",
@@ -121,7 +130,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+      return NextResponse.json(
+        { error: zodErrorMessage(parsed.error), details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      );
     }
 
     let authorIds: string[];

@@ -186,21 +186,24 @@ function buildMiniCards(source: HomeDataSource, heroSlugs: Set<string>): HomeCar
     (a) => !heroSlugs.has(a.slug)
   );
 
+  const autofillPool = filterArticlesByRetiredCategories([
+    ...source.latestUpdates,
+    ...source.topStories,
+    ...source.editorsChoice,
+    ...source.heroArticles,
+  ]);
+
   if (hasManualCuration || manualPool.length > 0) {
     const cards: typeof manualPool = [...manualPool];
-    if (cards.length < 6) {
+    if (cards.length < HERO_MINI_GRID_TOTAL) {
       const usedSlugs = new Set([...heroSlugs, ...cards.map((a) => a.slug)]);
-      const autoFill = filterArticlesByRetiredCategories(source.latestUpdates).filter(
-        (a) => !usedSlugs.has(a.slug)
-      );
+      const autoFill = autofillPool.filter((a) => !usedSlugs.has(a.slug));
       cards.push(...autoFill.slice(0, HERO_MINI_GRID_TOTAL - cards.length));
     }
     return cards.slice(0, HERO_MINI_GRID_TOTAL).map(toHomeCard);
   }
 
-  const pool = filterArticlesByRetiredCategories(source.latestUpdates).filter(
-    (a) => !heroSlugs.has(a.slug)
-  );
+  const pool = autofillPool.filter((a) => !heroSlugs.has(a.slug));
   if (pool.length >= 4 || !shouldUseDemoFallbacks(source)) {
     return pool.slice(0, HERO_MINI_GRID_TOTAL).map(toHomeCard);
   }

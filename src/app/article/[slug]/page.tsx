@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getArticleBySlug, getAllArticleSlugs } from "@/lib/data";
 import { getActiveAdBySlot } from "@/lib/ad-public";
 import { auth } from "@/lib/auth";
+import { canManageArticles } from "@/lib/permissions";
 import { ReadingProgress } from "@/components/article/ReadingProgress";
 import { TrackReading } from "@/components/article/TrackReading";
 import { ArticleDetailView } from "@/components/article/ArticleDetailView";
@@ -21,27 +22,39 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const data = await getArticleBySlug(slug);
+  const session = await auth();
+  const allowUnpublished = canManageArticles(session?.user?.role);
+  const data = await getArticleBySlug(slug, { allowUnpublished });
   if (!data) return { title: "Article not found" };
 
+  const robots = data.isPreview
+    ? { index: false, follow: false, googleBot: { index: false, follow: false } }
+    : undefined;
+
   return {
-    title: data.article.seoTitle ?? data.article.title,
+    title: data.isPreview
+      ? `Preview: ${data.article.seoTitle ?? data.article.title}`
+      : (data.article.seoTitle ?? data.article.title),
     description: data.article.seoDescription ?? data.article.excerpt,
-    openGraph: {
-      type: "article",
-      title: data.article.title,
-      description: data.article.excerpt,
-      images: [data.article.featuredImage],
-      publishedTime: data.article.publishedAt,
-    },
+    robots,
+    openGraph: data.isPreview
+      ? undefined
+      : {
+          type: "article",
+          title: data.article.title,
+          description: data.article.excerpt,
+          images: [data.article.featuredImage],
+          publishedTime: data.article.publishedAt,
+        },
   };
 }
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const [data, session, adRight, adBelow] = await Promise.all([
-    getArticleBySlug(slug),
-    auth(),
+  const session = await auth();
+  const allowUnpublished = canManageArticles(session?.user?.role);
+  const [data, adRight, adBelow] = await Promise.all([
+    getArticleBySlug(slug, { allowUnpublished }),
     getActiveAdBySlot("article-right"),
     getActiveAdBySlot("article-below"),
   ]);
@@ -55,7 +68,7 @@ export default async function ArticlePage({ params }: Props) {
   return (
     <>
       <ReadingProgress />
-      <TrackReading articleId={data.article._id} />
+      {!data.isPreview ? <TrackReading articleId={data.article._id} /> : null}
       <ArticleDetailView
         article={data.article}
         related={data.related}
@@ -64,6 +77,7 @@ export default async function ArticlePage({ params }: Props) {
         siteUrl={siteUrl}
         adRight={adRight}
         adBelow={adBelow}
+        isPreview={data.isPreview}
       />
     </>
   );
