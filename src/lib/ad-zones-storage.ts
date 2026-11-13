@@ -1,7 +1,20 @@
 import { CMS_AD_ZONES } from "@/lib/cms-mock-data";
+import { AD_SLOTS, isAdSlot, type AdSlotId } from "@/lib/ad-slots";
 import { connectDB } from "@/lib/mongodb";
 import { Category } from "@/models/Category";
 import { SiteSettings, type AdZoneDoc } from "@/models/SiteSettings";
+
+const LEGACY_SLOT_BY_KEY: Record<string, AdSlotId> = {
+  header: "home-below",
+  sidebar: "home-sidebar",
+  mid: "article-below",
+  skyscraper: "article-right",
+};
+
+export function resolveZoneSlot(zone: Pick<AdZoneDoc, "key" | "slot">): AdSlotId | null {
+  if (zone.slot && isAdSlot(zone.slot)) return zone.slot;
+  return LEGACY_SLOT_BY_KEY[zone.key] ?? null;
+}
 
 const AD_ZONES_CATEGORY_SLUG = "__cms-ad-zones__";
 
@@ -35,6 +48,9 @@ export function defaultAdZones(): AdZoneDoc[] {
       impressions,
       clicks: Math.round(impressions * 0.038),
       revenueFcfa: parseRevenue(zone.revenue),
+      slot: LEGACY_SLOT_BY_KEY[zone.id] ?? "",
+      imageUrl: "",
+      linkUrl: "",
     };
   });
 }
@@ -50,10 +66,13 @@ function parseStoredZones(raw: string | undefined | null): AdZoneDoc[] | null {
 }
 
 async function loadFromSiteSettings(): Promise<AdZoneDoc[] | null> {
-  const settings = await SiteSettings.findOne().lean();
-  if (settings?.adZones?.length) {
-    return settings.adZones;
-  }
+  // Lecture brute : un modèle Mongoose mis en cache peut ignorer slot / imageUrl.
+  const settings = await SiteSettings.collection.findOne(
+    {},
+    { projection: { adZones: 1 } }
+  );
+  const zones = settings?.adZones as AdZoneDoc[] | undefined;
+  if (zones?.length) return zones;
   return null;
 }
 
@@ -63,9 +82,12 @@ async function loadFromCategory(): Promise<AdZoneDoc[] | null> {
 }
 
 async function saveToSiteSettings(zones: AdZoneDoc[]): Promise<boolean> {
-  const settings = await SiteSettings.findOne().lean();
+  const settings = await SiteSettings.collection.findOne({}, { projection: { _id: 1 } });
   if (!settings) return false;
-  await SiteSettings.updateOne({ _id: settings._id }, { $set: { adZones: zones } });
+  await SiteSettings.collection.updateOne(
+    { _id: settings._id },
+    { $set: { adZones: zones, updatedAt: new Date() } }
+  );
   return true;
 }
 

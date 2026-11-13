@@ -8,6 +8,7 @@ interface AdViewProps {
   ad: PublicAd;
   slot: AdSlotId;
   className?: string;
+  priority?: boolean;
 }
 
 /** Envoie un signal d'impression une seule fois au montage (best-effort). */
@@ -37,7 +38,7 @@ function useImpression(adKey: string) {
   }, [adKey]);
 }
 
-export function AdView({ ad, slot, className }: AdViewProps) {
+export function AdView({ ad, slot, className, priority = false }: AdViewProps) {
   useImpression(ad.key);
   const dims = AD_SLOT_DIMENSIONS[slot];
 
@@ -48,7 +49,8 @@ export function AdView({ ad, slot, className }: AdViewProps) {
       alt={ad.name || "Advertisement"}
       width={dims.width}
       height={dims.height}
-      loading="lazy"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       decoding="async"
       className="ad-slot-img"
     />

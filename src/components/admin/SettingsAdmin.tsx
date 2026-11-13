@@ -12,6 +12,8 @@ interface SettingsData {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
   siteLogo: string;
   favicon: string;
   breakingAlertEnabled: boolean;
@@ -115,6 +117,24 @@ export function SettingsAdmin({ siteUrl, feedUrl, isSuperAdmin }: SettingsAdminP
               <div className="admin-field">
                 <label>Contact email</label>
                 <input type="email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+              </div>
+              <div className="admin-field">
+                <label>Location</label>
+                <input
+                  type="text"
+                  value={form.contactLocation ?? ""}
+                  onChange={(e) => setForm({ ...form, contactLocation: e.target.value })}
+                  placeholder="Abidjan, Côte d'Ivoire"
+                />
+              </div>
+              <div className="admin-field">
+                <label>Phone (homepage footer, contact, press)</label>
+                <input
+                  type="tel"
+                  value={form.contactPhone ?? ""}
+                  onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+                  placeholder="+225 …"
+                />
               </div>
               <div>
                 <p className="adm-entity-meta" style={{ marginBottom: 10 }}>

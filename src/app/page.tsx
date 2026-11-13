@@ -46,7 +46,7 @@ export default async function HomePage() {
         <section className="home-band home-band--ad">
           {homeBelowAd ? (
             <div className="container">
-              <AdView ad={homeBelowAd} slot="home-below" />
+              <AdView ad={homeBelowAd} slot="home-below" priority />
             </div>
           ) : (
             <MegaAd />

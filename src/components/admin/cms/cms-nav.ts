@@ -97,7 +97,8 @@ export const CMS_NAV_GROUPS: CmsNavGroup[] = [
     label: "System",
     items: [
       { id: "analytics", label: "Analytics", href: "/admin/analytics" },
-      { id: "seo", label: "SEO settings", href: "/admin/seo" },
+      { id: "homepage", label: "Homepage", href: "/admin/homepage" },
+      { id: "seo", label: "SEO & contact", href: "/admin/seo" },
     ],
   },
 ];

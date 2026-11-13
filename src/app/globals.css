@@ -56,6 +56,8 @@
   --color-muted: var(--mid-gray);
   --color-muted-bg: var(--cream);
   --color-border: var(--rule);
+  --color-charcoal: var(--charcoal);
+  --color-surface: var(--white);
   --font-serif: var(--font-canela);
   --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
 }
@@ -1127,6 +1129,11 @@ img { display: block; max-width: 100%; }
   margin: 0;
 }
 .donate-amount-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
   padding: 12px 8px;
   font-size: 14px;
   font-weight: 700;
@@ -1137,9 +1144,22 @@ img { display: block; max-width: 100%; }
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, color 0.2s;
 }
+.donate-amount-btn-value {
+  line-height: 1.2;
+}
+.donate-amount-btn-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mid-gray);
+}
 .donate-amount-btn.is-active {
   border-color: var(--brand-blue, #1a3896);
   background: rgba(26, 56, 150, 0.06);
+  color: var(--brand-blue, #1a3896);
+}
+.donate-amount-btn.is-active .donate-amount-btn-label {
   color: var(--brand-blue, #1a3896);
 }
 .donate-field {
@@ -2909,8 +2929,23 @@ img { display: block; max-width: 100%; }
   font-size: 13px;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.72);
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   max-width: 28ch;
+}
+.footer-brand-contact {
+  margin: 0 0 18px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.footer-brand-contact a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer-brand-contact a:hover {
+  color: #fff;
+  opacity: 0.85;
 }
 .footer-social { display: flex; gap: 10px; }
 .footer-social a,
@@ -3488,12 +3523,7 @@ img { display: block; max-width: 100%; }
   object-fit: cover;
 }
 .home-page .hero-illustration::after {
-  background: linear-gradient(
-    to top,
-    rgba(13, 13, 13, 0.9) 0%,
-    rgba(26, 56, 150, 0.4) 50%,
-    rgba(26, 56, 150, 0.05) 100%
-  );
+  content: none;
 }
 .home-page .hero-corner {
   position: absolute;

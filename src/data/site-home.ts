@@ -84,7 +84,7 @@ export const HEADER_UTILITY_LINKS = [
 ] as const;
 
 export const HEADER_TOP_ACTIONS = [
-  { label: "Support our work", href: "/donate" },
+  { label: "Make a donation", href: "/donate" },
 ] as const;
 
 export { HEADER_SOCIAL_NETWORKS } from "@/lib/social";

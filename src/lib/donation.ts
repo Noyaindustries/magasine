@@ -1,13 +1,18 @@
 export const DONATION_CURRENCY = "USD" as const;
 
-export const DONATION_PRESETS = [15, 35, 75, 150] as const;
+/** Montants uniques pour paliers membership + boutons du formulaire + checkout. */
+export const DONATION_AMOUNTS = [5, 15, 50, 150] as const;
+
+export const DONATION_PRESETS = DONATION_AMOUNTS;
+
+export const DONATION_DEFAULT_AMOUNT = 15;
 
 export const DONATION_MIN_AMOUNT = 1;
 
 export const DONATION_IMPACT = [
+  { amount: 5, text: "Keeps daily coverage free for readers worldwide" },
   { amount: 15, text: "Funds one field dispatch from a regional correspondent" },
-  { amount: 35, text: "Supports a week of fact-checking for an investigation" },
-  { amount: 75, text: "Helps produce a video report from the Global South" },
+  { amount: 50, text: "Helps produce a video report from the Global South" },
   { amount: 150, text: "Sponsors an in-depth regional dossier" },
 ] as const;
 
@@ -40,7 +45,7 @@ export const DONATION_TIERS = [
   {
     id: "reader",
     name: "Reader",
-    amount: 5,
+    amount: DONATION_AMOUNTS[0],
     frequency: "monthly" as const,
     blurb: "Keep daily coverage free for everyone.",
     perks: ["Weekly newsletter", "Reader badge on profile"],
@@ -49,7 +54,7 @@ export const DONATION_TIERS = [
   {
     id: "ally",
     name: "Ally",
-    amount: 15,
+    amount: DONATION_AMOUNTS[1],
     frequency: "monthly" as const,
     blurb: "Back correspondents on the ground.",
     perks: ["All Reader perks", "Early access to investigations"],
@@ -58,7 +63,7 @@ export const DONATION_TIERS = [
   {
     id: "champion",
     name: "Champion",
-    amount: 50,
+    amount: DONATION_AMOUNTS[2],
     frequency: "monthly" as const,
     blurb: "Power multimedia and video reporting.",
     perks: ["All Ally perks", "Quarterly newsroom briefing"],
@@ -67,7 +72,7 @@ export const DONATION_TIERS = [
   {
     id: "patron",
     name: "Patron",
-    amount: 150,
+    amount: DONATION_AMOUNTS[3],
     frequency: "monthly" as const,
     blurb: "Sponsor major cross-border series.",
     perks: ["All Champion perks", "Named credit on a special report"],

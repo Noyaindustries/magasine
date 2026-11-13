@@ -6,6 +6,10 @@ export interface IComment {
   user: mongoose.Types.ObjectId;
   parent?: mongoose.Types.ObjectId;
   content: string;
+  /** Nom figé à la création — survit si le compte User disparaît. */
+  authorName?: string;
+  authorImage?: string;
+  likes: mongoose.Types.ObjectId[];
   isApproved: boolean;
   isReported: boolean;
   isRejected: boolean;
@@ -19,6 +23,9 @@ const CommentSchema = new Schema<IComment>(
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     parent: { type: Schema.Types.ObjectId, ref: "Comment" },
     content: { type: String, required: true, maxlength: 2000 },
+    authorName: { type: String, trim: true, maxlength: 120 },
+    authorImage: { type: String, trim: true },
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
     isApproved: { type: Boolean, default: false },
     isReported: { type: Boolean, default: false },
     isRejected: { type: Boolean, default: false },
@@ -27,6 +34,7 @@ const CommentSchema = new Schema<IComment>(
 );
 
 CommentSchema.index({ article: 1, createdAt: -1 });
+CommentSchema.index({ parent: 1, createdAt: 1 });
 
 export const Comment: Model<IComment> =
   mongoose.models.Comment ?? mongoose.model<IComment>("Comment", CommentSchema);

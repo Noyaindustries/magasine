@@ -45,6 +45,8 @@ export interface ISiteSettings {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
   siteLogo: string;
   favicon: string;
   breakingAlertEnabled: boolean;
@@ -88,6 +90,8 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
       default: "Decolonizing media",
     },
     contactEmail: { type: String, default: "contact@globalsouthwatch.com" },
+    contactPhone: { type: String, default: "" },
+    contactLocation: { type: String, default: "Abidjan, Côte d'Ivoire" },
     siteLogo: { type: String, default: "/images/logo-global-south-watch.png" },
     favicon: { type: String, default: "/images/logo-global-south-watch.png" },
     breakingAlertEnabled: { type: Boolean, default: true },

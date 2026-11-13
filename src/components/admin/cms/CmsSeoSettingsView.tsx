@@ -17,6 +17,8 @@ interface SeoSettingsForm {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
   siteLogo: string;
   favicon: string;
   seoTitle: string;
@@ -53,6 +55,8 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
           siteName: data.siteName ?? SITE_NAME,
           tagline: data.tagline ?? "",
           contactEmail: data.contactEmail ?? "",
+          contactPhone: data.contactPhone ?? "",
+          contactLocation: data.contactLocation ?? "",
           siteLogo: data.siteLogo ?? DEFAULT_SITE_LOGO,
           favicon: data.favicon ?? DEFAULT_FAVICON,
           seoTitle: data.seoTitle ?? data.siteName ?? "",
@@ -124,13 +128,64 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
     <CmsPage>
       <div className="vhead">
         <div>
-          <div className="vh1">SEO settings</div>
-          <div className="vh2">Global SEO, site metadata, and social tags</div>
+          <div className="vh1">SEO &amp; contact</div>
+          <div className="vh2">Phone, email, location, then global SEO and social tags</div>
         </div>
         <div className="vacts">
           <button type="button" className="btn btn-red" disabled={saving} onClick={() => void save()}>
             {saving ? "Saving…" : "Save →"}
           </button>
+        </div>
+      </div>
+
+      <div className="card" id="site-contact" style={{ marginBottom: 16 }}>
+        <div className="card-header">
+          <span className="card-title">Phone, email and location</span>
+        </div>
+        <div className="card-body cms-stack">
+          <p className="cms-field-hint">
+            Shown in the footer, on the contact page, the legal page and the About headquarters line.
+            Save with the button at the top.
+          </p>
+          <div className="field">
+            <label className="lbl" htmlFor="seo-email">
+              Email
+            </label>
+            <input
+              id="seo-email"
+              className="input"
+              type="email"
+              value={form.contactEmail}
+              onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
+              placeholder="contact@globalsouthwatch.com"
+            />
+          </div>
+          <div className="field">
+            <label className="lbl" htmlFor="seo-phone">
+              Phone number
+            </label>
+            <input
+              id="seo-phone"
+              className="input"
+              type="tel"
+              value={form.contactPhone}
+              onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
+              placeholder="+225 …"
+            />
+          </div>
+          <div className="field">
+            <label className="lbl" htmlFor="seo-location">
+              Location
+            </label>
+            <input
+              id="seo-location"
+              className="input"
+              type="text"
+              value={form.contactLocation}
+              onChange={(e) => setForm({ ...form, contactLocation: e.target.value })}
+              placeholder="Abidjan, Côte d'Ivoire"
+            />
+          </div>
         </div>
       </div>
 
@@ -252,21 +307,9 @@ export function CmsSeoSettingsView({ canManageBranding = false }: CmsSeoSettings
 
           <div className="card">
             <div className="card-header">
-              <span className="card-title">Newsletter &amp; contact</span>
+              <span className="card-title">Newsletter</span>
             </div>
             <div className="card-body cms-stack">
-              <div className="field">
-                <label className="lbl" htmlFor="seo-email">
-                  Contact email
-                </label>
-                <input
-                  id="seo-email"
-                  className="input"
-                  type="email"
-                  value={form.contactEmail}
-                  onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-                />
-              </div>
               <div className="field">
                 <label className="lbl" htmlFor="seo-nl-title">
                   Newsletter block title

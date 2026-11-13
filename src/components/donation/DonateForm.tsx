@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Heart, CheckCircle2 } from "lucide-react";
 import {
+  DONATION_DEFAULT_AMOUNT,
   DONATION_MIN_AMOUNT,
   DONATION_PRESETS,
+  DONATION_TIERS,
   formatDonationAmount,
   getDonationImpact,
 } from "@/lib/donation";
@@ -28,7 +30,7 @@ export function DonateForm({
   onTierClear,
 }: DonateFormProps = {}) {
   const [internalFrequency, setInternalFrequency] = useState<"one-time" | "monthly">("one-time");
-  const [internalAmount, setInternalAmount] = useState(35);
+  const [internalAmount, setInternalAmount] = useState(DONATION_DEFAULT_AMOUNT);
   const frequency = controlledFrequency ?? internalFrequency;
   const amount = controlledAmount ?? internalAmount;
   const [custom, setCustom] = useState("");
@@ -50,7 +52,6 @@ export function DonateForm({
       setInternalAmount(next);
     }
     onAmountChange?.(next);
-    onTierClear?.();
   };
 
   const updateFrequency = (next: "one-time" | "monthly") => {
@@ -58,7 +59,6 @@ export function DonateForm({
       setInternalFrequency(next);
     }
     onFrequencyChange?.(next);
-    onTierClear?.();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -150,19 +150,27 @@ export function DonateForm({
 
       <fieldset className="donate-amounts">
         <legend className="sr-only">Choose an amount in U.S. dollars</legend>
-        {DONATION_PRESETS.map((preset) => (
-          <button
-            key={preset}
-            type="button"
-            className={`donate-amount-btn${amount === preset && !custom ? " is-active" : ""}`}
-            onClick={() => {
-              updateAmount(preset);
-              setCustom("");
-            }}
-          >
-            {formatDonationAmount(preset)}
-          </button>
-        ))}
+        {DONATION_PRESETS.map((preset) => {
+          const tier = DONATION_TIERS.find((entry) => entry.amount === preset);
+          return (
+            <button
+              key={preset}
+              type="button"
+              className={`donate-amount-btn${amount === preset && !custom ? " is-active" : ""}`}
+              onClick={() => {
+                updateAmount(preset);
+                setCustom("");
+              }}
+            >
+              <span className="donate-amount-btn-value">
+                {formatDonationAmount(preset, {
+                  frequency: frequency === "monthly" ? "monthly" : undefined,
+                })}
+              </span>
+              {tier ? <span className="donate-amount-btn-label">{tier.name}</span> : null}
+            </button>
+          );
+        })}
       </fieldset>
 
       <label className="donate-field">
@@ -247,9 +255,7 @@ export function DonateForm({
       </label>
 
       <button type="submit" className="donate-submit" disabled={status === "loading"}>
-        {status === "loading"
-          ? "Processing…"
-          : `Donate ${formatDonationAmount(chargedAmount, { frequency })}`}
+        {status === "loading" ? "Processing…" : "Make a donation"}
       </button>
 
       <p className="donate-disclaimer">

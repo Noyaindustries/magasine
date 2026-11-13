@@ -66,13 +66,18 @@ export async function createUserAsAdmin(
   });
 
   // Auto-provisionne une signature éditoriale pour les rôles qui peuvent publier.
-  await ensureAuthorForUser({
-    userId: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    avatar: image,
-  });
+  // Ne fait pas échouer la création du compte si le provisioning auteur plante.
+  try {
+    await ensureAuthorForUser({
+      userId: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: image,
+    });
+  } catch (error) {
+    console.error("[createUserAsAdmin] ensureAuthorForUser failed:", error);
+  }
 
   return {
     user: {

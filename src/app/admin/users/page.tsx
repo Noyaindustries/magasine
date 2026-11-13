@@ -7,6 +7,8 @@ import { getAdminUsers, type UserListFilter } from "@/lib/admin-users";
 import { getRolePermissionsMatrix } from "@/lib/role-permissions-matrix";
 import { isUserInviteMailConfigured } from "@/lib/user-invite-mail";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<{
     q?: string;

@@ -1,13 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage, ContentSection, ContentCta } from "@/components/layout/ContentPage";
+import { getPublicSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Press room",
   description: "Press releases, media contacts, and resources — Global South Watch.",
 };
 
-export default function EspacePressePage() {
+export default async function EspacePressePage() {
+  const settings = await getPublicSiteSettings();
+  const phoneHref = settings.contactPhone.replace(/[^\d+]/g, "");
+
   return (
     <ContentPage
       eyebrow="Media"
@@ -18,14 +22,18 @@ export default function EspacePressePage() {
         <ul className="space-y-3 not-prose">
           <li className="p-4 bg-muted-bg border border-border rounded-sm">
             <p className="text-xs font-bold tracking-wider uppercase text-muted">Press relations</p>
-            <a href="mailto:presse@globalsouthwatch.com" className="text-charcoal font-medium hover:text-accent">
-              presse@globalsouthwatch.com
+            <a href={`mailto:${settings.contactEmail}`} className="text-charcoal font-medium hover:text-accent">
+              {settings.contactEmail}
             </a>
           </li>
-          <li className="p-4 bg-muted-bg border border-border rounded-sm">
-            <p className="text-xs font-bold tracking-wider uppercase text-muted">Phone</p>
-            <p className="text-charcoal font-medium">+225 27 00 00 00 01</p>
-          </li>
+          {settings.contactPhone ? (
+            <li className="p-4 bg-muted-bg border border-border rounded-sm">
+              <p className="text-xs font-bold tracking-wider uppercase text-muted">Phone</p>
+              <a href={`tel:${phoneHref}`} className="text-charcoal font-medium hover:text-accent">
+                {settings.contactPhone}
+              </a>
+            </li>
+          ) : null}
         </ul>
       </ContentSection>
 

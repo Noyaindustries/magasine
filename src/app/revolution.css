@@ -706,12 +706,7 @@ body {
   border-radius: 0;
 }
 .home-page--revolution .hero-illustration::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--gradient-hero);
-  z-index: 1;
-  pointer-events: none;
+  content: none;
 }
 .home-page--revolution .hero-img-title {
   font-family: var(--f-display) !important;
@@ -1052,7 +1047,9 @@ body {
 }
 
 .home-page--revolution .home-band--ad {
-  padding: 0 0 12px;
+  position: relative;
+  z-index: 2;
+  padding: 8px 0 16px;
 }
 .home-page--revolution .mega-ad-slot {
   border-radius: 18px;

@@ -35,6 +35,9 @@ const trustPartnerSchema = z.object({
 
 const updateSchema = z.object({
   tagline: z.string().optional(),
+  contactEmail: z.string().email().optional(),
+  contactPhone: z.string().max(40).optional(),
+  contactLocation: z.string().max(160).optional(),
   mastheadVolume: z.string().optional(),
   mastheadCities: z.string().optional(),
   mastheadBadge: z.string().optional(),

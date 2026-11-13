@@ -8,6 +8,9 @@ export interface SiteBrandingValue {
   tagline: string;
   siteLogo: string;
   favicon: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
 }
 
 const SiteBrandingContext = createContext<SiteBrandingValue>({
@@ -15,6 +18,9 @@ const SiteBrandingContext = createContext<SiteBrandingValue>({
   tagline: "",
   siteLogo: DEFAULT_SITE_LOGO,
   favicon: DEFAULT_FAVICON,
+  contactEmail: "contact@globalsouthwatch.com",
+  contactPhone: "",
+  contactLocation: "Abidjan, Côte d'Ivoire",
 });
 
 export function SiteBrandingProvider({

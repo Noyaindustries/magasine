@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminApi } from "@/lib/admin-api";
-import { loadAdZones, saveAdZones } from "@/lib/ad-zones-storage";
+import { loadAdZones, resolveZoneSlot, saveAdZones } from "@/lib/ad-zones-storage";
 import { revalidateSiteShell } from "@/lib/revalidate-public";
 import type { AdZoneDoc } from "@/models/SiteSettings";
 
@@ -31,7 +31,7 @@ function serializeZones(zones: AdZoneDoc[]) {
     position: z.position,
     size: z.size,
     active: z.active,
-    slot: z.slot ?? "",
+    slot: resolveZoneSlot(z) ?? z.slot ?? "",
     imageUrl: z.imageUrl ?? "",
     linkUrl: z.linkUrl ?? "",
     impressions: formatImpressions(z.impressions),

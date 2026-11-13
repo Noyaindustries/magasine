@@ -58,7 +58,7 @@ const NAV_ITEMS: { id: HpgTab; label: string; icon: ComponentType<{ className?: 
   { id: "sections", label: "Layout", icon: LayoutGrid },
   { id: "related", label: "Related Stories", icon: Newspaper },
   { id: "ads", label: "Ad images", icon: Megaphone },
-  { id: "masthead", label: "Masthead & pulse", icon: Newspaper },
+  { id: "masthead", label: "Contact", icon: Newspaper },
   { id: "trust", label: "Trust strip", icon: Star },
   { id: "closing", label: "Closing band", icon: BarChart3 },
 ];
@@ -468,9 +468,10 @@ export function HomepageManager({
             <div className="hpg-panel-card">
               <div className="hpg-panel-head">
                 <div>
-                  <h3 className="hpg-panel-title">Masthead & pulse stats</h3>
+                  <h3 className="hpg-panel-title">Phone, email and location</h3>
                   <p className="hpg-panel-desc">
-                    Edition header copy and live pulse counters shown in the intro band.
+                    These three fields appear in the footer, on Contact, and on the legal page.
+                    Edition copy and pulse counters are below.
                   </p>
                 </div>
               </div>
@@ -500,6 +501,33 @@ export function HomepageManager({
                     rows={2}
                     value={settings.tagline}
                     onChange={(e) => setSettings({ ...settings, tagline: e.target.value })}
+                  />
+                </div>
+                <div className="hpg-field">
+                  <label>Location</label>
+                  <input
+                    type="text"
+                    value={settings.contactLocation ?? ""}
+                    onChange={(e) => setSettings({ ...settings, contactLocation: e.target.value })}
+                    placeholder="Abidjan, Côte d'Ivoire"
+                  />
+                </div>
+                <div className="hpg-field">
+                  <label>Contact email</label>
+                  <input
+                    type="email"
+                    value={settings.contactEmail ?? ""}
+                    onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                    placeholder="contact@globalsouthwatch.com"
+                  />
+                </div>
+                <div className="hpg-field">
+                  <label>Phone number</label>
+                  <input
+                    type="tel"
+                    value={settings.contactPhone ?? ""}
+                    onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                    placeholder="+225 …"
                   />
                 </div>
                 <div className="hpg-field">
@@ -546,6 +574,9 @@ export function HomepageManager({
                       tagline: settings.tagline,
                       mastheadVolume: settings.mastheadVolume,
                       mastheadCities: settings.mastheadCities,
+                      contactEmail: settings.contactEmail,
+                      contactPhone: settings.contactPhone,
+                      contactLocation: settings.contactLocation,
                       pulseStats: settings.pulseStats,
                     })
                   }

@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { SocialLinks } from "@/components/ui/SocialIcons";
 import { UtilityPageLayout } from "@/components/layout/UtilityPageLayout";
 import { toast } from "@/lib/toast";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 export default function ContactPage() {
+  const { contactEmail, contactPhone, contactLocation } = useSiteBranding();
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -56,9 +58,13 @@ export default function ContactPage() {
           <h2>Reach us</h2>
           <ul className="utility-contact-list">
             {[
-              { icon: Mail, label: "Email", value: "contact@globalsouthwatch.com" },
-              { icon: Phone, label: "Phone", value: "+225 27 00 00 00 00" },
-              { icon: MapPin, label: "Headquarters", value: "Abidjan, Côte d'Ivoire" },
+              { icon: Mail, label: "Email", value: contactEmail || "contact@globalsouthwatch.com" },
+              ...(contactPhone
+                ? [{ icon: Phone, label: "Phone", value: contactPhone }]
+                : []),
+              ...(contactLocation
+                ? [{ icon: MapPin, label: "Headquarters", value: contactLocation }]
+                : []),
             ].map(({ icon: Icon, label, value }) => (
               <li key={label}>
                 <Icon className="utility-contact-icon" aria-hidden />

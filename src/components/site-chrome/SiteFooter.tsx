@@ -4,9 +4,12 @@ import Link from "next/link";
 import { ABOUT_NAV, FOOTER_BOTTOM_LINKS, FOOTER_SUPPORT_LINKS, SITE_TAGLINE } from "@/data/site-home";
 import { SocialLinks } from "@/components/ui/SocialIcons";
 import { useSiteNav } from "@/components/site-chrome/SiteNavContext";
+import { useSiteBranding } from "@/components/SiteBranding";
 
 export function SiteFooter() {
   const { footerSections, footerRegions, footerFormats } = useSiteNav();
+  const { contactPhone, contactEmail, contactLocation } = useSiteBranding();
+  const phoneHref = contactPhone.replace(/[^\d+]/g, "");
 
   const footerColumns = [
     { title: "Sections", links: footerSections },
@@ -39,6 +42,21 @@ export function SiteFooter() {
               Independent journalism from Africa and the Global South — news, commentary,
               explainers, and regional coverage.
             </p>
+            {(contactPhone || contactEmail || contactLocation) && (
+              <p className="footer-brand-contact">
+                {contactLocation ? <span>{contactLocation}</span> : null}
+                {contactLocation && (contactPhone || contactEmail) ? (
+                  <span aria-hidden> · </span>
+                ) : null}
+                {contactPhone ? (
+                  <a href={`tel:${phoneHref}`}>{contactPhone}</a>
+                ) : null}
+                {contactPhone && contactEmail ? <span aria-hidden> · </span> : null}
+                {contactEmail ? (
+                  <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                ) : null}
+              </p>
+            )}
             <SocialLinks />
           </div>
           <div className="footer-cols">

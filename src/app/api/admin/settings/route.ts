@@ -24,6 +24,8 @@ const updateSchema = z.object({
   siteName: z.string().min(1).optional(),
   tagline: z.string().optional(),
   contactEmail: z.string().email().optional(),
+  contactPhone: z.string().max(40).optional(),
+  contactLocation: z.string().max(160).optional(),
   siteLogo: z.string().min(1).optional(),
   favicon: z.string().min(1).optional(),
   breakingAlertEnabled: z.boolean().optional(),

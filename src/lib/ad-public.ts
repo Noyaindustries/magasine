@@ -1,5 +1,6 @@
-﻿import { loadAdZones } from "@/lib/ad-zones-storage";
-import type { AdSlotId, PublicAd } from "@/lib/ad-slots";
+﻿import { loadAdZones, resolveZoneSlot } from "@/lib/ad-zones-storage";
+import { AD_SLOTS, type AdSlotId, type PublicAd } from "@/lib/ad-slots";
+import { resolveMediaUrl } from "@/lib/media-url";
 
 export {
   AD_SLOTS,
@@ -17,15 +18,33 @@ export type { AdSlotId, PublicAd } from "@/lib/ad-slots";
 export async function getActiveAdBySlot(slot: AdSlotId): Promise<PublicAd | null> {
   try {
     const zones = await loadAdZones();
-    const zone = zones.find(
-      (z) => z.active && z.slot === slot && !!z.imageUrl && z.imageUrl.trim().length > 0
+    const withImage = zones.filter(
+      (z) => z.active && !!z.imageUrl && z.imageUrl.trim().length > 0
     );
-    if (!zone || !zone.imageUrl) return null;
+    const taken = new Set<AdSlotId>();
+    const placed = new Map<AdSlotId, (typeof withImage)[number]>();
+
+    for (const zone of withImage) {
+      const resolved = resolveZoneSlot(zone);
+      if (!resolved || taken.has(resolved)) continue;
+      taken.add(resolved);
+      placed.set(resolved, zone);
+    }
+    for (const zone of withImage) {
+      if (resolveZoneSlot(zone)) continue;
+      const free = AD_SLOTS.find((candidate) => !taken.has(candidate));
+      if (!free) break;
+      taken.add(free);
+      placed.set(free, zone);
+    }
+
+    const zone = placed.get(slot);
+    if (!zone?.imageUrl) return null;
     return {
       key: zone.key,
       slot,
       name: zone.name,
-      imageUrl: zone.imageUrl,
+      imageUrl: resolveMediaUrl(zone.imageUrl),
       linkUrl: zone.linkUrl && zone.linkUrl.trim().length > 0 ? zone.linkUrl : undefined,
     };
   } catch {

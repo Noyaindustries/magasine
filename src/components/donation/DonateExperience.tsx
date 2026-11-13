@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, CheckCircle2, XCircle } from "lucide-react";
 import {
+  DONATION_DEFAULT_AMOUNT,
   DONATION_FAQ,
   DONATION_TIERS,
   DONATION_TRUST,
@@ -17,7 +18,7 @@ interface DonateExperienceProps {
 }
 
 export function DonateExperience({ liveMode = false, checkoutStatus = null }: DonateExperienceProps) {
-  const [amount, setAmount] = useState(35);
+  const [amount, setAmount] = useState(DONATION_DEFAULT_AMOUNT);
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
 
@@ -25,6 +26,15 @@ export function DonateExperience({ liveMode = false, checkoutStatus = null }: Do
     setSelectedTier(tierId);
     setAmount(tierAmount);
     setFrequency(tierFrequency);
+  };
+
+  const syncTierFromAmount = (nextAmount: number, nextFrequency: "one-time" | "monthly") => {
+    if (nextFrequency !== "monthly") {
+      setSelectedTier(null);
+      return;
+    }
+    const match = DONATION_TIERS.find((tier) => tier.amount === nextAmount);
+    setSelectedTier(match?.id ?? null);
   };
 
   return (
@@ -124,8 +134,14 @@ export function DonateExperience({ liveMode = false, checkoutStatus = null }: Do
             amount={amount}
             frequency={frequency}
             liveMode={liveMode}
-            onAmountChange={setAmount}
-            onFrequencyChange={setFrequency}
+            onAmountChange={(next) => {
+              setAmount(next);
+              syncTierFromAmount(next, frequency);
+            }}
+            onFrequencyChange={(next) => {
+              setFrequency(next);
+              syncTierFromAmount(amount, next);
+            }}
             onTierClear={() => setSelectedTier(null)}
           />
         </section>

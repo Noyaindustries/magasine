@@ -35,6 +35,8 @@ export interface PublicSiteSettings {
   siteName: string;
   tagline: string;
   contactEmail: string;
+  contactPhone: string;
+  contactLocation: string;
   siteLogo: string;
   favicon: string;
   breakingAlertEnabled: boolean;
@@ -94,6 +96,8 @@ export function mapSiteSettings(doc: ISiteSettings): PublicSiteSettings {
     siteName: doc.siteName,
     tagline: doc.tagline,
     contactEmail: doc.contactEmail,
+    contactPhone: doc.contactPhone?.trim() ?? "",
+    contactLocation: doc.contactLocation?.trim() || "Abidjan, Côte d'Ivoire",
     siteLogo: resolveSiteLogo(doc.siteLogo),
     favicon: resolveFavicon(doc.favicon),
     breakingAlertEnabled: doc.breakingAlertEnabled,
@@ -146,6 +150,8 @@ export const getPublicSiteSettings = cache(async (): Promise<PublicSiteSettings>
       siteName: "Global South Watch",
       tagline: "Decolonizing media",
       contactEmail: "contact@globalsouthwatch.com",
+      contactPhone: "",
+      contactLocation: "Abidjan, Côte d'Ivoire",
       siteLogo: resolveSiteLogo(undefined),
       favicon: resolveFavicon(undefined),
       breakingAlertEnabled: false,
@@ -188,6 +194,9 @@ export type UpdateSiteSettingsInput = Omit<Partial<PublicSiteSettings>, "homeSec
 export type HomepageSettingsInput = Pick<
   UpdateSiteSettingsInput,
   | "tagline"
+  | "contactEmail"
+  | "contactPhone"
+  | "contactLocation"
   | "mastheadVolume"
   | "mastheadCities"
   | "mastheadBadge"
@@ -240,6 +249,8 @@ function applySettingsPatch(
     "siteName",
     "tagline",
     "contactEmail",
+    "contactPhone",
+    "contactLocation",
     "siteLogo",
     "favicon",
     "breakingAlertEnabled",

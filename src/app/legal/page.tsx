@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage, ContentSection, ContentSocialBlock } from "@/components/layout/ContentPage";
+import { getPublicSiteSettings } from "@/lib/site-settings";
 
 export const metadata: Metadata = {
   title: "Legal notice",
   description: "Legal and editorial information — Global South Watch.",
 };
 
-export default function MentionsLegalesPage() {
+export default async function MentionsLegalesPage() {
+  const settings = await getPublicSiteSettings();
+
   return (
     <ContentPage
       eyebrow="Legal"
@@ -18,10 +21,10 @@ export default function MentionsLegalesPage() {
         <ul className="space-y-2 not-prose text-sm">
           <li><strong>Company name:</strong> Noya Industries</li>
           <li><strong>Editorial brand:</strong> Global South Watch</li>
-          <li><strong>Headquarters:</strong> Abidjan, Côte d&apos;Ivoire</li>
+          <li><strong>Headquarters:</strong> {settings.contactLocation}</li>
           <li><strong>Email:</strong>{" "}
-            <a href="mailto:contact@globalsouthwatch.com" className="text-accent hover:underline">
-              contact@globalsouthwatch.com
+            <a href={`mailto:${settings.contactEmail}`} className="text-accent hover:underline">
+              {settings.contactEmail}
             </a>
           </li>
           <li><strong>Publication director:</strong> Global South Watch Editorial Board</li>

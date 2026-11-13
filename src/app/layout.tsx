@@ -117,6 +117,9 @@ export default async function RootLayout({
             tagline: siteSettings.tagline,
             siteLogo: siteSettings.siteLogo,
             favicon: siteSettings.favicon,
+            contactEmail: siteSettings.contactEmail,
+            contactPhone: siteSettings.contactPhone,
+            contactLocation: siteSettings.contactLocation,
           }}
         >
           <MaintenanceGate

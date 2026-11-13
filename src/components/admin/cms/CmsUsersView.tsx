@@ -138,7 +138,10 @@ export function CmsUsersView({
       } else {
         toast.success("User created", { description: data.email });
       }
-      refresh();
+      // Réinitialise filtre / recherche / page : sinon un onglet Readers,
+      // une query q ou page>1 masque le compte tout juste créé.
+      router.push("/admin/users");
+      router.refresh();
     } catch {
       toastNetworkError();
     } finally {

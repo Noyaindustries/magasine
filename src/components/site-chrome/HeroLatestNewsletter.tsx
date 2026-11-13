@@ -19,7 +19,7 @@ export function HeroLatestNewsletter({ enabled = true }: HeroLatestNewsletterPro
         </Link>
       </div>
       <p className="hero-latest-newsletter-lead">
-        Free morning briefing — curated by our newsroom, straight to your inbox.
+        Curated by our newsroom, straight to your inbox.
       </p>
       <NewsletterSignupForm variant="sidebar" showTopics={false} />
     </div>
