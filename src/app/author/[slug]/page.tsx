@@ -13,7 +13,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const data = await getAuthorBySlug(slug);
-  if (!data) return { title: "Author not found" };
+  if (!data) return { title: "Author not founded yet" };
   return {
     title: `${data.author.name} — Global South Watch`,
     description: data.author.bio ?? `Articles by ${data.author.name}`,

@@ -3,9 +3,7 @@ import { AboutPageView } from "@/components/about/AboutPageView";
 import { getAboutPageContent } from "@/lib/about-page";
 import { getPublicSiteSettings } from "@/lib/site-settings";
 import "./about-page.css";
-
 export const revalidate = 60;
-
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getAboutPageContent();
   return {
